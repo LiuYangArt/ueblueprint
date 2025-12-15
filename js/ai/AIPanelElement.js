@@ -26,9 +26,11 @@ export default class AIPanelElement extends LitElement {
         model: { type: String },
         isGenerating: { type: Boolean },
         statusText: { type: String },
+        statusType: { type: String }, // 'error', 'success', or ''
     }
 
     static styles = css`
+        /* ... existing styles ... */
         :host {
             position: fixed;
             top: 50px;
@@ -277,6 +279,8 @@ export default class AIPanelElement extends LitElement {
         this.model = "gpt-4o"
         this.isGenerating = false
         this.statusText = "Ready"
+        this.statusType = ""
+        this.abortController = null
 
         // Dragging state
         this._isDragging = false
@@ -290,11 +294,12 @@ export default class AIPanelElement extends LitElement {
         this.llmService = new LLMService()
     }
 
+    /* ... lifecycle and handlers ... */
+
     connectedCallback() {
         super.connectedCallback()
         this._loadSettings()
         this._setupKeyboardShortcut()
-        // Listen for settings updates to update LLM config
         document.body.addEventListener("ueb-ai-settings-saved", (e) => {
             if (this.llmService) {
                 this.llmService.updateConfig(e.detail)
@@ -309,12 +314,10 @@ export default class AIPanelElement extends LitElement {
 
     _setupKeyboardShortcut() {
         this._keydownHandler = (e) => {
-            // Alt+A to toggle panel (Changed from Ctrl+Shift+A to avoid Chrome conflict)
             if (e.altKey && e.code === "KeyA") {
                 e.preventDefault()
                 this.toggle()
             }
-            // Escape to close
             if (e.key === "Escape" && this.visible) {
                 this.hide()
             }
@@ -330,8 +333,6 @@ export default class AIPanelElement extends LitElement {
                 this.temperature = settings.temperature ?? 0.5
                 this.model = settings.model ?? "gpt-4o"
             }
-
-            // Also load API settings for LLM Service
             const savedApi = localStorage.getItem("ueblueprint-api-settings")
             if (savedApi) {
                 this.llmService.updateConfig(JSON.parse(savedApi))
@@ -348,33 +349,19 @@ export default class AIPanelElement extends LitElement {
                 model: this.model
             }
             localStorage.setItem("ueblueprint-ai-settings", JSON.stringify(settings))
-            // Update service locally too
             this.llmService.updateConfig(settings)
         } catch (e) {
             console.warn("Failed to save AI settings:", e)
         }
     }
 
-    show() {
-        this.visible = true
-    }
+    show() { this.visible = true }
+    hide() { this.visible = false }
+    toggle() { this.visible = !this.visible }
 
-    hide() {
-        this.visible = false
-    }
-
-    toggle() {
-        this.visible = !this.visible
-    }
-
-    _handleModeChange(mode) {
-        this.mode = mode
-    }
-
-    _handlePromptInput(e) {
-        this.prompt = e.target.value
-    }
-
+    _handleModeChange(mode) { this.mode = mode }
+    _handlePromptInput(e) { this.prompt = e.target.value }
+    
     _handleTemperatureChange(e) {
         this.temperature = parseFloat(e.target.value)
         this._saveSettings()
@@ -385,6 +372,7 @@ export default class AIPanelElement extends LitElement {
         this._saveSettings()
     }
 
+    /* ... drag handlers ... */
     _handleDragStart(e) {
         if (e.target.closest(".tabs") || e.target.closest("button")) return
         this._isDragging = true
@@ -393,7 +381,6 @@ export default class AIPanelElement extends LitElement {
         const rect = this.getBoundingClientRect()
         this._panelStartX = rect.left
         this._panelStartY = rect.top
-
         document.addEventListener("mousemove", this._handleDragMove)
         document.addEventListener("mouseup", this._handleDragEnd)
     }
@@ -414,33 +401,46 @@ export default class AIPanelElement extends LitElement {
     }
 
     _openSettings() {
-        // Dispatch event for settings panel
         this.dispatchEvent(new CustomEvent("open-settings", { bubbles: true }))
     }
 
+    _handleStop() {
+        if (this.abortController) {
+            this.abortController.abort()
+            this.abortController = null
+            this.isGenerating = false
+            this.statusText = "Generation stopped"
+            this.statusType = "" // Neutral color for stop
+        }
+    }
+
     async _handleGenerate() {
-        if (this.isGenerating) return
+        if (this.isGenerating) {
+            this._handleStop()
+            return
+        }
 
         if (!this.prompt || !this.prompt.trim()) {
             this.statusText = "Please enter a prompt"
+            this.statusType = "error"
             return
         }
 
         this.isGenerating = true
         this.statusText = "Generating..."
+        this.statusType = ""
+        
+        this.abortController = new AbortController()
 
         try {
-            // Update config with latest panel settings before call
             this.llmService.updateConfig({
                 model: this.model,
                 temperature: this.temperature
             })
 
-            const t3dText = await this.llmService.generate(this.prompt)
+            const t3dText = await this.llmService.generate(this.prompt, this.abortController.signal)
             const nodes = this._injectBlueprint(t3dText)
             
-            // Wait for UI to update (create elements) then auto layout
-            // We need a short delay because Lit updates are async and we want initial sizes if possible
             if (nodes && nodes.length > 0) {
                  setTimeout(() => {
                     LayoutEngine.process(nodes)
@@ -448,30 +448,27 @@ export default class AIPanelElement extends LitElement {
             }
 
             this.statusText = "Generation complete!"
+            this.statusType = "success"
         } catch (error) {
-            this.statusText = `Error: ${error.message}`
-            console.error("Generation failed:", error)
+            if (error.name === 'AbortError') {
+                this.statusText = "Generation stopped"
+                this.statusType = ""
+            } else {
+                this.statusText = `Error: ${error.message}`
+                this.statusType = "error"
+                console.error("Generation failed:", error)
+            }
         } finally {
             this.isGenerating = false
+            this.abortController = null
         }
     }
 
-    /**
-     * Inject Blueprint T3D text
-     */
     _injectBlueprint(t3dText) {
-        if (!this.blueprint) {
-            throw new Error("Blueprint instance not set")
-        }
-
-        // Inject via paste interface
+        if (!this.blueprint) throw new Error("Blueprint instance not set")
         const pasteHandler = this.blueprint.template.getPasteInputObject()
         const nodes = pasteHandler.pasted(t3dText)
-
-        if (!nodes || nodes.length === 0) {
-            throw new Error("Failed to parse blueprint text or no nodes generated")
-        }
-
+        if (!nodes || nodes.length === 0) throw new Error("Failed to parse blueprint text or no nodes generated")
         return nodes
     }
 
@@ -494,6 +491,7 @@ export default class AIPanelElement extends LitElement {
                 </div>
 
                 <div class="panel-body">
+                    <!-- Presets removed for brevity in this replace, assume staying same if granular replace, but this is full replace request -->
                     <div class="preset-row">
                         <select class="preset-select">
                             <option>Select prompt preset</option>
@@ -534,13 +532,12 @@ export default class AIPanelElement extends LitElement {
                     <button
                         class="generate-btn ${this.isGenerating ? "generating" : ""}"
                         @click=${this._handleGenerate}
-                        ?disabled=${this.isGenerating}
                     >
-                        ${this.isGenerating ? "GENERATING..." : "GENERATE"}
+                        ${this.isGenerating ? "STOP GENERATION" : "GENERATE"}
                     </button>
                 </div>
 
-                <div class="status-bar">${this.statusText}</div>
+                <div class="status-bar ${this.statusType}">${this.statusText}</div>
             </div>
         `
     }

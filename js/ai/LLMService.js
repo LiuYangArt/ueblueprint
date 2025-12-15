@@ -17,9 +17,10 @@ export default class LLMService {
     /**
      * Generate Blueprint T3D from prompt
      * @param {string} userPrompt
+     * @param {AbortSignal} [signal] Optional abort signal
      * @returns {Promise<string>} T3D text
      */
-    async generate(userPrompt) {
+    async generate(userPrompt, signal) {
         if (!this.config.apiKey) {
             throw new Error("API Key is missing. Please configure it in settings.")
         }
@@ -43,7 +44,8 @@ export default class LLMService {
                     ],
                     temperature: temperature,
                     stream: false
-                })
+                }),
+                signal: signal
             })
 
             if (!response.ok) {
