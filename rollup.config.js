@@ -39,5 +39,16 @@ export default [
                 }]
             })
         ]
+    },
+    // AI Module bundle (separate from main bundle)
+    {
+        input: 'js/ai/index.js',
+        output: {
+            file: 'dist/ueblueprint-ai.js',
+            format: 'es'
+        },
+        plugins: [
+            resolve({ browser: true })
+        ]
     }
 ]
