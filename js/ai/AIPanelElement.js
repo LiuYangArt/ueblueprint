@@ -270,7 +270,7 @@ export default class AIPanelElement extends LitElement {
 
     constructor() {
         super()
-        this.visible = false
+        this.visible = true // Default to visible per user request
         this.mode = "text"
         this.prompt = ""
         this.temperature = 0.5
@@ -309,8 +309,8 @@ export default class AIPanelElement extends LitElement {
 
     _setupKeyboardShortcut() {
         this._keydownHandler = (e) => {
-            // Ctrl+Shift+A to toggle panel
-            if (e.ctrlKey && e.shiftKey && e.key === "A") {
+            // Alt+A to toggle panel (Changed from Ctrl+Shift+A to avoid Chrome conflict)
+            if (e.altKey && e.code === "KeyA") {
                 e.preventDefault()
                 this.toggle()
             }
