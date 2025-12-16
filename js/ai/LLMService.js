@@ -15,12 +15,13 @@ export default class LLMService {
     }
 
     /**
-     * Generate Blueprint T3D from prompt
+     * Generate T3D from prompt
      * @param {string} userPrompt
      * @param {AbortSignal} [signal] Optional abort signal
+     * @param {string} [systemPrompt] Optional system prompt override
      * @returns {Promise<string>} T3D text
      */
-    async generate(userPrompt, signal) {
+    async generate(userPrompt, signal, systemPrompt = SYSTEM_PROMPT) {
         if (!this.config.apiKey) {
             throw new Error("API Key is missing. Please configure it in settings.")
         }
@@ -39,7 +40,7 @@ export default class LLMService {
                 body: JSON.stringify({
                     model: model,
                     messages: [
-                        { role: "system", content: SYSTEM_PROMPT },
+                        { role: "system", content: systemPrompt },
                         { role: "user", content: userPrompt }
                     ],
                     temperature: temperature,

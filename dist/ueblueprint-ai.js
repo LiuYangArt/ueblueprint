@@ -28,7 +28,7 @@ const t=globalThis,i$1=t.trustedTypes,s$1=i$1?i$1.createPolicy("lit-html",{creat
  * System Prompt for UE Blueprint Generation
  */
 
-const SYSTEM_PROMPT = `You are an expert Unreal Engine 5 Blueprint developer. Your task is to generate valid T3D format Blueprint code based on user requests.
+const BLUEPRINT_SYSTEM_PROMPT = `You are an expert Unreal Engine 5 Blueprint developer. Your task is to generate valid T3D format Blueprint code based on user requests.
 
 ### Core Rules
 1. **Output Format**: Return ONLY the raw T3D text. Do not wrap in markdown code blocks. Do not add explanations.
@@ -76,6 +76,68 @@ End Object
 `;
 
 /**
+ * System Prompt for UE Material Generation
+ */
+const MATERIAL_SYSTEM_PROMPT = `You are an expert Unreal Engine 5 Material Editor developer. Your task is to generate valid T3D format Material nodes based on user requests.
+
+### Core Rules
+1. **Output Format**: Return ONLY the raw T3D text. Do not wrap in markdown code blocks. Do not add explanations.
+2. **Node Structure**: Material nodes have a TWO-LEVEL structure:
+   - Outer wrapper: \`MaterialGraphNode\`
+   - Inner expression: \`MaterialExpression*\` subobject
+3. **GUIDs**: generate unique 32-character hex strings for \`NodeGuid\` and \`MaterialExpressionGuid\`.
+4. **Layout**:
+   - Use \`NodePosX\` and \`NodePosY\` on the outer MaterialGraphNode.
+   - Also set \`MaterialExpressionEditorX\` and \`MaterialExpressionEditorY\` on the inner expression.
+5. **Connections**: Use \`A=(Expression="NodeName.ExpressionName")\` format for input connections.
+
+### Common Material Expressions
+
+**Constant**
+Inner Class: /Script/Engine.MaterialExpressionConstant
+Property: R=1.0 (the constant value)
+
+**Add**
+Inner Class: /Script/Engine.MaterialExpressionAdd
+Inputs: A=(Expression=...), B=(Expression=...)
+
+**Multiply**
+Inner Class: /Script/Engine.MaterialExpressionMultiply
+Inputs: A=(Expression=...), B=(Expression=...)
+
+**Texture Sample**
+Inner Class: /Script/Engine.MaterialExpressionTextureSample
+Property: Texture=/Script/Engine.Texture2D'...'
+
+**Vector Parameter**
+Inner Class: /Script/Engine.MaterialExpressionVectorParameter
+Properties: ParameterName="ColorParam", DefaultValue=(R=1,G=0,B=0,A=1)
+
+**Scalar Parameter**
+Inner Class: /Script/Engine.MaterialExpressionScalarParameter
+Properties: ParameterName="FloatParam", DefaultValue=1.0
+
+### Example Output
+Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_0"
+    Begin Object Class=/Script/Engine.MaterialExpressionConstant Name="MaterialExpressionConstant_0"
+    End Object
+    Begin Object Name="MaterialExpressionConstant_0"
+        R=1.000000
+        MaterialExpressionEditorX=-200
+        MaterialExpressionEditorY=0
+        MaterialExpressionGuid=00000000000000000000000000000001
+    End Object
+    MaterialExpression=/Script/Engine.MaterialExpressionConstant'"MaterialExpressionConstant_0"'
+    NodePosX=-200
+    NodePosY=0
+    NodeGuid=00000000000000000000000000000002
+End Object
+`;
+
+// Keep backward compatibility alias
+const SYSTEM_PROMPT = BLUEPRINT_SYSTEM_PROMPT;
+
+/**
  * LLM Service - Handles API communication
  */
 
@@ -90,12 +152,13 @@ class LLMService {
     }
 
     /**
-     * Generate Blueprint T3D from prompt
+     * Generate T3D from prompt
      * @param {string} userPrompt
      * @param {AbortSignal} [signal] Optional abort signal
+     * @param {string} [systemPrompt] Optional system prompt override
      * @returns {Promise<string>} T3D text
      */
-    async generate(userPrompt, signal) {
+    async generate(userPrompt, signal, systemPrompt = SYSTEM_PROMPT) {
         if (!this.config.apiKey) {
             throw new Error("API Key is missing. Please configure it in settings.")
         }
@@ -114,7 +177,7 @@ class LLMService {
                 body: JSON.stringify({
                     model: model,
                     messages: [
-                        { role: "system", content: SYSTEM_PROMPT },
+                        { role: "system", content: systemPrompt },
                         { role: "user", content: userPrompt }
                     ],
                     temperature: temperature,
@@ -402,8 +465,13 @@ class AIPanelElement extends i {
         provider: { type: String },
         // "chat" or "generate" (which covers text/image/node generation)
         mode: { type: String }, 
+        // "blueprint" or "material" - graph type mode
+        graphMode: { type: String },
         // Array of { role: 'user' | 'assistant', content: string }
-        history: { type: Array }
+        history: { type: Array },
+        // Modal dialog state
+        showModal: { type: Boolean },
+        modalConfig: { type: Object }
     }
 
     static styles = i$3`
@@ -478,6 +546,119 @@ class AIPanelElement extends i {
         .tab.active {
             background: #4a7c8c;
             color: white;
+        }
+
+        .tab.active.material {
+            background: #7c4a8c;
+        }
+
+        /* Mode Buttons (BP/Material) */
+        .mode-buttons {
+            display: flex;
+            gap: 2px;
+            background: #1a1a1a;
+            padding: 2px;
+            border-radius: 4px;
+            border: 1px solid #3a3a3a;
+            margin-right: auto;
+        }
+
+        .mode-btn {
+            padding: 4px 10px;
+            background: transparent;
+            border: none;
+            border-radius: 3px;
+            color: #888;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+
+        .mode-btn:hover {
+            background: #333;
+            color: #ccc;
+        }
+
+        .mode-btn.active {
+            background: #4a7c8c;
+            color: white;
+        }
+
+        .mode-btn.active.material {
+            background: #7c4a8c;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal {
+            background: #252525;
+            border: 1px solid #4a4a4a;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 350px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #f0c060;
+        }
+
+        .modal-message {
+            font-size: 14px;
+            color: #ccc;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .modal-btn.cancel {
+            background: #3a3a3a;
+            color: #ccc;
+        }
+
+        .modal-btn.cancel:hover {
+            background: #4a4a4a;
+        }
+
+        .modal-btn.confirm {
+            background: #4a7c8c;
+            color: white;
+        }
+
+        .modal-btn.confirm:hover {
+            background: #5a8c9c;
         }
 
         .close-btn, .settings-btn {
@@ -663,6 +844,9 @@ class AIPanelElement extends i {
         this.statusType = "";
         this.isGenerating = false;
         this.mode = "chat"; // Default to chat mode
+        this.graphMode = "blueprint"; // "blueprint" or "material"
+        this.showModal = false;
+        this.modalConfig = null;
         this.model = localStorage.getItem("ueb-ai-model") || "";
         this.provider = localStorage.getItem("ueb-ai-provider") || "";
         this.quickModels = [];
@@ -705,6 +889,16 @@ class AIPanelElement extends i {
                 }
                 this.requestUpdate();
             }
+        });
+        
+        // Listen for type mismatch events from blueprint
+        document.body.addEventListener("ueb-type-mismatch", (e) => {
+            const { currentType, newType, nodeCount } = e.detail;
+            this.history = [...this.history, { 
+                role: 'system', 
+                content: `⚠️ Added ${nodeCount || 1} ${newType} node(s) to ${currentType} graph.` 
+            }];
+            this._scrollToBottom();
         });
     }
 
@@ -884,6 +1078,64 @@ Use concise language.`;
         this.mode = newMode;
     }
 
+    /**
+     * Handle graph type mode switching (blueprint/material)
+     */
+    _handleGraphModeChange(newMode) {
+        // If graph has nodes and switching to different type, show warning
+        const currentType = this.blueprint?.blueprintType;
+        const targetType = newMode === "material" ? "MATERIAL" : "BLUEPRINT";
+        
+        if (currentType && currentType !== targetType && this.blueprint?.nodes?.length > 0) {
+            this._showModal({
+                title: "⚠️ Switch Mode?",
+                message: `Current graph contains ${currentType} nodes. Switching to ${newMode.toUpperCase()} mode may cause issues.`,
+                confirmText: "Switch Anyway",
+                cancelText: "Cancel",
+                onConfirm: () => {
+                    this.graphMode = newMode;
+                    this._hideModal();
+                }
+            });
+        } else {
+            this.graphMode = newMode;
+        }
+    }
+
+    /**
+     * Convert graphMode to blueprintType string
+     */
+    _modeToType(mode) {
+        return mode === "material" ? "MATERIAL" : "BLUEPRINT"
+    }
+
+    /**
+     * Show modal dialog with config
+     */
+    _showModal(config) {
+        this.modalConfig = config;
+        this.showModal = true;
+    }
+
+    /**
+     * Hide modal dialog
+     */
+    _hideModal() {
+        this.showModal = false;
+        this.modalConfig = null;
+    }
+
+    /**
+     * Handle modal confirm action
+     */
+    _confirmModal() {
+        if (this.modalConfig?.onConfirm) {
+            this.modalConfig.onConfirm();
+        } else {
+            this._hideModal();
+        }
+    }
+
     _handleModelSelect(e) {
         const index = e.target.value;
         if (index !== "" && this.quickModels[index]) {
@@ -984,13 +1236,33 @@ Use concise language.`;
                 promptToSend = `${context}\n\nTask: ${currentPrompt}`;
             }
 
-            const t3dText = await this.llmService.generate(promptToSend, this.abortController.signal);
+            // Select system prompt based on graphMode
+            const systemPrompt = this.graphMode === "material" 
+                ? MATERIAL_SYSTEM_PROMPT 
+                : BLUEPRINT_SYSTEM_PROMPT;
+
+            const t3dText = await this.llmService.generate(promptToSend, this.abortController.signal, systemPrompt);
             const nodes = this._injectBlueprint(t3dText);
             
+            // Validate generated node types match graphMode
             if (nodes && nodes.length > 0) {
-                 setTimeout(() => {
+                const expectedType = this._modeToType(this.graphMode);
+                const mismatchedNodes = nodes.filter(n => {
+                    const nodeType = n.entity.getBlueprintType();
+                    return nodeType !== expectedType
+                });
+                
+                if (mismatchedNodes.length > 0) {
+                    const actualType = mismatchedNodes[0].entity.getBlueprintType();
+                    this.history = [...this.history, { 
+                        role: 'system', 
+                        content: `\u26a0\ufe0f Generated ${mismatchedNodes.length} ${actualType} nodes in ${this.graphMode.toUpperCase()} mode.` 
+                    }];
+                }
+                
+                setTimeout(() => {
                     LayoutEngine.process(nodes);
-                 }, 50);
+                }, 50);
             }
 
             // Add success response to history
@@ -1036,6 +1308,14 @@ Use concise language.`;
                 @wheel=${e => e.stopPropagation()}
             >
                 <div class="panel-header" @mousedown=${this._handleDragStart}>
+                    <div class="mode-buttons">
+                        <button class="mode-btn ${this.graphMode === "blueprint" ? "active" : ""}"
+                                @click=${() => this._handleGraphModeChange("blueprint")}
+                                title="Blueprint mode">🔷 BP</button>
+                        <button class="mode-btn ${this.graphMode === "material" ? "active material" : ""}"
+                                @click=${() => this._handleGraphModeChange("material")}
+                                title="Material mode">🎨 Mat</button>
+                    </div>
                     <div>
                         <button class="settings-btn" @click=${this._openSettings} title="Settings">⚙</button>
                         <button class="close-btn" @click=${this.hide}>×</button>
@@ -1078,7 +1358,7 @@ Use concise language.`;
 
                     <textarea
                         class="prompt-input"
-                        placeholder="${this.mode === 'chat' ? 'Ask a question...' : 'Describe functionality...'}"
+                        placeholder="${this._getPlaceholder()}"
                         .value=${this.prompt}
                         @input=${this._handlePromptInput}
                         @keydown=${this._handleKeyDown}
@@ -1104,8 +1384,39 @@ Use concise language.`;
                 </div>
                 
                 <div class="status-bar ${this.statusType}">${this.statusText}</div>
+
+                ${this.showModal && this.modalConfig ? x`
+                    <div class="modal-overlay" @click=${this._hideModal}>
+                        <div class="modal" @click=${e => e.stopPropagation()}>
+                            <div class="modal-title">${this.modalConfig.title}</div>
+                            <div class="modal-message">${this.modalConfig.message}</div>
+                            <div class="modal-buttons">
+                                <button class="modal-btn cancel" @click=${this._hideModal}>
+                                    ${this.modalConfig.cancelText || "Cancel"}
+                                </button>
+                                <button class="modal-btn confirm" @click=${this._confirmModal}>
+                                    ${this.modalConfig.confirmText || "Confirm"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `
+    }
+
+    /**
+     * Get placeholder text based on mode and graphMode
+     */
+    _getPlaceholder() {
+        if (this.mode === 'chat') {
+            return this.graphMode === 'material' 
+                ? 'Ask about material nodes...' 
+                : 'Ask about blueprint nodes...'
+        }
+        return this.graphMode === 'material'
+            ? 'Describe shader effect...'
+            : 'Describe blueprint logic...'
     }
 }
 

@@ -437,6 +437,20 @@ export default class Blueprint extends IElement {
                 this.template.nodesContainerElement?.appendChild(element)
                 if (!this.blueprintType) {
                     this.blueprintType = element.entity.getBlueprintType()
+                } else {
+                    // Check for type mismatch and dispatch warning event
+                    const newType = element.entity.getBlueprintType()
+                    if (newType && newType !== this.blueprintType) {
+                        const event = new CustomEvent('ueb-type-mismatch', {
+                            detail: { 
+                                currentType: this.blueprintType, 
+                                newType: newType,
+                                nodeCount: 1
+                            },
+                            bubbles: true
+                        })
+                        this.dispatchEvent(event)
+                    }
                 }
             } else if (element instanceof LinkElement && !this.links.includes(element)) {
                 this.links.push(element)
