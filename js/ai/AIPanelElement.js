@@ -1,4 +1,4 @@
-k/**
+/**
  * AI Panel Element - AI Assistant Floating Panel
  * Lit-based web component for UE Blueprint AI generation
  */
@@ -8,6 +8,7 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js"
 import LLMService from "./LLMService.js"
 import LayoutEngine from "./LayoutEngine.js"
 import { BLUEPRINT_SYSTEM_PROMPT, MATERIAL_SYSTEM_PROMPT, BLUEPRINT_CHAT_PROMPT, MATERIAL_CHAT_PROMPT, DEFAULT_PROMPT_TEMPLATE } from "./prompts.js"
+import { enhancePromptWithExamples } from "./NodeExampleService.js"
 import { parseMarkdown } from "./MarkdownParser.js"
 
 /**
@@ -1124,10 +1125,17 @@ export default class AIPanelElement extends LitElement {
                 promptToSend = `${context}\n\nTask: ${currentPrompt}`
             }
 
-            // Select system prompt based on graphMode
-            const systemPrompt = this.graphMode === "material" 
+            // Select system prompt based on graphMode and enhance with relevant examples
+            const baseSystemPrompt = this.graphMode === "material" 
                 ? MATERIAL_SYSTEM_PROMPT 
                 : BLUEPRINT_SYSTEM_PROMPT
+            
+            // Dynamically inject relevant T3D examples based on user prompt
+            const systemPrompt = await enhancePromptWithExamples(
+                baseSystemPrompt, 
+                currentPrompt, 
+                this.graphMode
+            )
 
             const t3dText = await this.llmService.generate(promptToSend, this.abortController.signal, systemPrompt)
             const nodes = this._injectBlueprint(t3dText)
