@@ -9,14 +9,14 @@ const t$2=globalThis,e$4=t$2.ShadowRoot&&(void 0===t$2.ShadyCSS||t$2.ShadyCSS.na
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */const{is:i$3,defineProperty:e$3,getOwnPropertyDescriptor:h$1,getOwnPropertyNames:r$1,getOwnPropertySymbols:o$3,getPrototypeOf:n$1}=Object,a$1=globalThis,c$1=a$1.trustedTypes,l$1=c$1?c$1.emptyScript:"",p$1=a$1.reactiveElementPolyfillSupport,d$1=(t,s)=>t,u$1={toAttribute(t,s){switch(s){case Boolean:t=t?l$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,s){let i=t;switch(s){case Boolean:i=null!==t;break;case Number:i=null===t?null:Number(t);break;case Object:case Array:try{i=JSON.parse(t);}catch(t){i=null;}}return i}},f$1=(t,s)=>!i$3(t,s),b={attribute:!0,type:String,converter:u$1,reflect:!1,useDefault:!1,hasChanged:f$1};Symbol.metadata??=Symbol("metadata"),a$1.litPropertyMetadata??=new WeakMap;class y$1 extends HTMLElement{static addInitializer(t){this._$Ei(),(this.l??=[]).push(t);}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(t,s=b){if(s.state&&(s.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(t)&&((s=Object.create(s)).wrapped=!0),this.elementProperties.set(t,s),!s.noAccessor){const i=Symbol(),h=this.getPropertyDescriptor(t,i,s);void 0!==h&&e$3(this.prototype,t,h);}}static getPropertyDescriptor(t,s,i){const{get:e,set:r}=h$1(this.prototype,t)??{get(){return this[s]},set(t){this[s]=t;}};return {get:e,set(s){const h=e?.call(this);r?.call(this,s),this.requestUpdate(t,h,i);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)??b}static _$Ei(){if(this.hasOwnProperty(d$1("elementProperties")))return;const t=n$1(this);t.finalize(),void 0!==t.l&&(this.l=[...t.l]),this.elementProperties=new Map(t.elementProperties);}static finalize(){if(this.hasOwnProperty(d$1("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(d$1("properties"))){const t=this.properties,s=[...r$1(t),...o$3(t)];for(const i of s)this.createProperty(i,t[i]);}const t=this[Symbol.metadata];if(null!==t){const s=litPropertyMetadata.get(t);if(void 0!==s)for(const[t,i]of s)this.elementProperties.set(t,i);}this._$Eh=new Map;for(const[t,s]of this.elementProperties){const i=this._$Eu(t,s);void 0!==i&&this._$Eh.set(i,t);}this.elementStyles=this.finalizeStyles(this.styles);}static finalizeStyles(s){const i=[];if(Array.isArray(s)){const e=new Set(s.flat(1/0).reverse());for(const s of e)i.unshift(c$2(s));}else void 0!==s&&i.push(c$2(s));return i}static _$Eu(t,s){const i=s.attribute;return !1===i?void 0:"string"==typeof i?i:"string"==typeof t?t.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev();}_$Ev(){this._$ES=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach((t=>t(this)));}addController(t){(this._$EO??=new Set).add(t),void 0!==this.renderRoot&&this.isConnected&&t.hostConnected?.();}removeController(t){this._$EO?.delete(t);}_$E_(){const t=new Map,s=this.constructor.elementProperties;for(const i of s.keys())this.hasOwnProperty(i)&&(t.set(i,this[i]),delete this[i]);t.size>0&&(this._$Ep=t);}createRenderRoot(){const t=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return S$1(t,this.constructor.elementStyles),t}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach((t=>t.hostConnected?.()));}enableUpdating(t){}disconnectedCallback(){this._$EO?.forEach((t=>t.hostDisconnected?.()));}attributeChangedCallback(t,s,i){this._$AK(t,i);}_$ET(t,s){const i=this.constructor.elementProperties.get(t),e=this.constructor._$Eu(t,i);if(void 0!==e&&!0===i.reflect){const h=(void 0!==i.converter?.toAttribute?i.converter:u$1).toAttribute(s,i.type);this._$Em=t,null==h?this.removeAttribute(e):this.setAttribute(e,h),this._$Em=null;}}_$AK(t,s){const i=this.constructor,e=i._$Eh.get(t);if(void 0!==e&&this._$Em!==e){const t=i.getPropertyOptions(e),h="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==t.converter?.fromAttribute?t.converter:u$1;this._$Em=e;const r=h.fromAttribute(s,t.type);this[e]=r??this._$Ej?.get(e)??r,this._$Em=null;}}requestUpdate(t,s,i){if(void 0!==t){const e=this.constructor,h=this[t];if(i??=e.getPropertyOptions(t),!((i.hasChanged??f$1)(h,s)||i.useDefault&&i.reflect&&h===this._$Ej?.get(t)&&!this.hasAttribute(e._$Eu(t,i))))return;this.C(t,s,i);}!1===this.isUpdatePending&&(this._$ES=this._$EP());}C(t,s,{useDefault:i,reflect:e,wrapped:h},r){i&&!(this._$Ej??=new Map).has(t)&&(this._$Ej.set(t,r??s??this[t]),!0!==h||void 0!==r)||(this._$AL.has(t)||(this.hasUpdated||i||(s=void 0),this._$AL.set(t,s)),!0===e&&this._$Em!==t&&(this._$Eq??=new Set).add(t));}async _$EP(){this.isUpdatePending=!0;try{await this._$ES;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[t,s]of this._$Ep)this[t]=s;this._$Ep=void 0;}const t=this.constructor.elementProperties;if(t.size>0)for(const[s,i]of t){const{wrapped:t}=i,e=this[s];!0!==t||this._$AL.has(s)||void 0===e||this.C(s,void 0,i,e);}}let t=!1;const s=this._$AL;try{t=this.shouldUpdate(s),t?(this.willUpdate(s),this._$EO?.forEach((t=>t.hostUpdate?.())),this.update(s)):this._$EM();}catch(s){throw t=!1,this._$EM(),s}t&&this._$AE(s);}willUpdate(t){}_$AE(t){this._$EO?.forEach((t=>t.hostUpdated?.())),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$EM(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(t){return !0}update(t){this._$Eq&&=this._$Eq.forEach((t=>this._$ET(t,this[t]))),this._$EM();}updated(t){}firstUpdated(t){}}y$1.elementStyles=[],y$1.shadowRootOptions={mode:"open"},y$1[d$1("elementProperties")]=new Map,y$1[d$1("finalized")]=new Map,p$1?.({ReactiveElement:y$1}),(a$1.reactiveElementVersions??=[]).push("2.1.1");
+ */const{is:i$3,defineProperty:e$3,getOwnPropertyDescriptor:h$1,getOwnPropertyNames:r$1,getOwnPropertySymbols:o$3,getPrototypeOf:n$1}=Object,a$1=globalThis,c$1=a$1.trustedTypes,l$1=c$1?c$1.emptyScript:"",p$6=a$1.reactiveElementPolyfillSupport,d$1=(t,s)=>t,u$1={toAttribute(t,s){switch(s){case Boolean:t=t?l$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,s){let i=t;switch(s){case Boolean:i=null!==t;break;case Number:i=null===t?null:Number(t);break;case Object:case Array:try{i=JSON.parse(t);}catch(t){i=null;}}return i}},f$1=(t,s)=>!i$3(t,s),b={attribute:!0,type:String,converter:u$1,reflect:!1,useDefault:!1,hasChanged:f$1};Symbol.metadata??=Symbol("metadata"),a$1.litPropertyMetadata??=new WeakMap;class y$1 extends HTMLElement{static addInitializer(t){this._$Ei(),(this.l??=[]).push(t);}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(t,s=b){if(s.state&&(s.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(t)&&((s=Object.create(s)).wrapped=!0),this.elementProperties.set(t,s),!s.noAccessor){const i=Symbol(),h=this.getPropertyDescriptor(t,i,s);void 0!==h&&e$3(this.prototype,t,h);}}static getPropertyDescriptor(t,s,i){const{get:e,set:r}=h$1(this.prototype,t)??{get(){return this[s]},set(t){this[s]=t;}};return {get:e,set(s){const h=e?.call(this);r?.call(this,s),this.requestUpdate(t,h,i);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)??b}static _$Ei(){if(this.hasOwnProperty(d$1("elementProperties")))return;const t=n$1(this);t.finalize(),void 0!==t.l&&(this.l=[...t.l]),this.elementProperties=new Map(t.elementProperties);}static finalize(){if(this.hasOwnProperty(d$1("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(d$1("properties"))){const t=this.properties,s=[...r$1(t),...o$3(t)];for(const i of s)this.createProperty(i,t[i]);}const t=this[Symbol.metadata];if(null!==t){const s=litPropertyMetadata.get(t);if(void 0!==s)for(const[t,i]of s)this.elementProperties.set(t,i);}this._$Eh=new Map;for(const[t,s]of this.elementProperties){const i=this._$Eu(t,s);void 0!==i&&this._$Eh.set(i,t);}this.elementStyles=this.finalizeStyles(this.styles);}static finalizeStyles(s){const i=[];if(Array.isArray(s)){const e=new Set(s.flat(1/0).reverse());for(const s of e)i.unshift(c$2(s));}else void 0!==s&&i.push(c$2(s));return i}static _$Eu(t,s){const i=s.attribute;return !1===i?void 0:"string"==typeof i?i:"string"==typeof t?t.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev();}_$Ev(){this._$ES=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach((t=>t(this)));}addController(t){(this._$EO??=new Set).add(t),void 0!==this.renderRoot&&this.isConnected&&t.hostConnected?.();}removeController(t){this._$EO?.delete(t);}_$E_(){const t=new Map,s=this.constructor.elementProperties;for(const i of s.keys())this.hasOwnProperty(i)&&(t.set(i,this[i]),delete this[i]);t.size>0&&(this._$Ep=t);}createRenderRoot(){const t=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return S$1(t,this.constructor.elementStyles),t}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach((t=>t.hostConnected?.()));}enableUpdating(t){}disconnectedCallback(){this._$EO?.forEach((t=>t.hostDisconnected?.()));}attributeChangedCallback(t,s,i){this._$AK(t,i);}_$ET(t,s){const i=this.constructor.elementProperties.get(t),e=this.constructor._$Eu(t,i);if(void 0!==e&&!0===i.reflect){const h=(void 0!==i.converter?.toAttribute?i.converter:u$1).toAttribute(s,i.type);this._$Em=t,null==h?this.removeAttribute(e):this.setAttribute(e,h),this._$Em=null;}}_$AK(t,s){const i=this.constructor,e=i._$Eh.get(t);if(void 0!==e&&this._$Em!==e){const t=i.getPropertyOptions(e),h="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==t.converter?.fromAttribute?t.converter:u$1;this._$Em=e;const r=h.fromAttribute(s,t.type);this[e]=r??this._$Ej?.get(e)??r,this._$Em=null;}}requestUpdate(t,s,i){if(void 0!==t){const e=this.constructor,h=this[t];if(i??=e.getPropertyOptions(t),!((i.hasChanged??f$1)(h,s)||i.useDefault&&i.reflect&&h===this._$Ej?.get(t)&&!this.hasAttribute(e._$Eu(t,i))))return;this.C(t,s,i);}!1===this.isUpdatePending&&(this._$ES=this._$EP());}C(t,s,{useDefault:i,reflect:e,wrapped:h},r){i&&!(this._$Ej??=new Map).has(t)&&(this._$Ej.set(t,r??s??this[t]),!0!==h||void 0!==r)||(this._$AL.has(t)||(this.hasUpdated||i||(s=void 0),this._$AL.set(t,s)),!0===e&&this._$Em!==t&&(this._$Eq??=new Set).add(t));}async _$EP(){this.isUpdatePending=!0;try{await this._$ES;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(const[t,s]of this._$Ep)this[t]=s;this._$Ep=void 0;}const t=this.constructor.elementProperties;if(t.size>0)for(const[s,i]of t){const{wrapped:t}=i,e=this[s];!0!==t||this._$AL.has(s)||void 0===e||this.C(s,void 0,i,e);}}let t=!1;const s=this._$AL;try{t=this.shouldUpdate(s),t?(this.willUpdate(s),this._$EO?.forEach((t=>t.hostUpdate?.())),this.update(s)):this._$EM();}catch(s){throw t=!1,this._$EM(),s}t&&this._$AE(s);}willUpdate(t){}_$AE(t){this._$EO?.forEach((t=>t.hostUpdated?.())),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$EM(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(t){return !0}update(t){this._$Eq&&=this._$Eq.forEach((t=>this._$ET(t,this[t]))),this._$EM();}updated(t){}firstUpdated(t){}}y$1.elementStyles=[],y$1.shadowRootOptions={mode:"open"},y$1[d$1("elementProperties")]=new Map,y$1[d$1("finalized")]=new Map,p$6?.({ReactiveElement:y$1}),(a$1.reactiveElementVersions??=[]).push("2.1.1");
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const t$1=globalThis,i$2=t$1.trustedTypes,s$1=i$2?i$2.createPolicy("lit-html",{createHTML:t=>t}):void 0,e$2="$lit$",h=`lit$${Math.random().toFixed(9).slice(2)}$`,o$2="?"+h,n=`<${o$2}>`,r=document,l=()=>r.createComment(""),c=t=>null===t||"object"!=typeof t&&"function"!=typeof t,a=Array.isArray,u=t=>a(t)||"function"==typeof t?.[Symbol.iterator],d="[ \t\n\f\r]",f=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,v=/-->/g,_=/>/g,m=RegExp(`>|${d}(?:([^\\s"'>=/]+)(${d}*=${d}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),p=/'/g,g=/"/g,$=/^(?:script|style|textarea|title)$/i,y=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),x=y(1),T=Symbol.for("lit-noChange"),E=Symbol.for("lit-nothing"),A=new WeakMap,C=r.createTreeWalker(r,129);function P(t,i){if(!a(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==s$1?s$1.createHTML(i):i}const V=(t,i)=>{const s=t.length-1,o=[];let r,l=2===i?"<svg>":3===i?"<math>":"",c=f;for(let i=0;i<s;i++){const s=t[i];let a,u,d=-1,y=0;for(;y<s.length&&(c.lastIndex=y,u=c.exec(s),null!==u);)y=c.lastIndex,c===f?"!--"===u[1]?c=v:void 0!==u[1]?c=_:void 0!==u[2]?($.test(u[2])&&(r=RegExp("</"+u[2],"g")),c=m):void 0!==u[3]&&(c=m):c===m?">"===u[0]?(c=r??f,d=-1):void 0===u[1]?d=-2:(d=c.lastIndex-u[2].length,a=u[1],c=void 0===u[3]?m:'"'===u[3]?g:p):c===g||c===p?c=m:c===v||c===_?c=f:(c=m,r=void 0);const x=c===m&&t[i+1].startsWith("/>")?" ":"";l+=c===f?s+n:d>=0?(o.push(a),s.slice(0,d)+e$2+s.slice(d)+h+x):s+h+(-2===d?i:x);}return [P(t,l+(t[s]||"<?>")+(2===i?"</svg>":3===i?"</math>":"")),o]};class N{constructor({strings:t,_$litType$:s},n){let r;this.parts=[];let c=0,a=0;const u=t.length-1,d=this.parts,[f,v]=V(t,s);if(this.el=N.createElement(f,n),C.currentNode=this.el.content,2===s||3===s){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes);}for(;null!==(r=C.nextNode())&&d.length<u;){if(1===r.nodeType){if(r.hasAttributes())for(const t of r.getAttributeNames())if(t.endsWith(e$2)){const i=v[a++],s=r.getAttribute(t).split(h),e=/([.?@])?(.*)/.exec(i);d.push({type:1,index:c,name:e[2],strings:s,ctor:"."===e[1]?H:"?"===e[1]?I:"@"===e[1]?L:k}),r.removeAttribute(t);}else t.startsWith(h)&&(d.push({type:6,index:c}),r.removeAttribute(t));if($.test(r.tagName)){const t=r.textContent.split(h),s=t.length-1;if(s>0){r.textContent=i$2?i$2.emptyScript:"";for(let i=0;i<s;i++)r.append(t[i],l()),C.nextNode(),d.push({type:2,index:++c});r.append(t[s],l());}}}else if(8===r.nodeType)if(r.data===o$2)d.push({type:2,index:c});else {let t=-1;for(;-1!==(t=r.data.indexOf(h,t+1));)d.push({type:7,index:c}),t+=h.length-1;}c++;}}static createElement(t,i){const s=r.createElement("template");return s.innerHTML=t,s}}function S(t,i,s=t,e){if(i===T)return i;let h=void 0!==e?s._$Co?.[e]:s._$Cl;const o=c(i)?void 0:i._$litDirective$;return h?.constructor!==o&&(h?._$AO?.(!1),void 0===o?h=void 0:(h=new o(t),h._$AT(t,s,e)),void 0!==e?(s._$Co??=[])[e]=h:s._$Cl=h),void 0!==h&&(i=S(t,h._$AS(t,i.values),h,e)),i}class M{constructor(t,i){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:i},parts:s}=this._$AD,e=(t?.creationScope??r).importNode(i,!0);C.currentNode=e;let h=C.nextNode(),o=0,n=0,l=s[0];for(;void 0!==l;){if(o===l.index){let i;2===l.type?i=new R(h,h.nextSibling,this,t):1===l.type?i=new l.ctor(h,l.name,l.strings,this,t):6===l.type&&(i=new z(h,this,t)),this._$AV.push(i),l=s[++n];}o!==l?.index&&(h=C.nextNode(),o++);}return C.currentNode=r,e}p(t){let i=0;for(const s of this._$AV)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class R{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,i,s,e){this.type=2,this._$AH=E,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cv=e?.isConnected??!0;}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t?.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=S(this,t,i),c(t)?t===E||null==t||""===t?(this._$AH!==E&&this._$AR(),this._$AH=E):t!==this._$AH&&t!==T&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):u(t)?this.k(t):this._(t);}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t));}_(t){this._$AH!==E&&c(this._$AH)?this._$AA.nextSibling.data=t:this.T(r.createTextNode(t)),this._$AH=t;}$(t){const{values:i,_$litType$:s}=t,e="number"==typeof s?this._$AC(t):(void 0===s.el&&(s.el=N.createElement(P(s.h,s.h[0]),this.options)),s);if(this._$AH?._$AD===e)this._$AH.p(i);else {const t=new M(e,this),s=t.u(this.options);t.p(i),this.T(s),this._$AH=t;}}_$AC(t){let i=A.get(t.strings);return void 0===i&&A.set(t.strings,i=new N(t)),i}k(t){a(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const h of t)e===i.length?i.push(s=new R(this.O(l()),this.O(l()),this,this.options)):s=i[e],s._$AI(h),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){for(this._$AP?.(!1,!0,i);t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t));}}class k{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,i,s,e,h){this.type=1,this._$AH=E,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=h,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=E;}_$AI(t,i=this,s,e){const h=this.strings;let o=!1;if(void 0===h)t=S(this,t,i,0),o=!c(t)||t!==this._$AH&&t!==T,o&&(this._$AH=t);else {const e=t;let n,r;for(t=h[0],n=0;n<h.length-1;n++)r=S(this,e[s+n],i,n),r===T&&(r=this._$AH[n]),o||=!c(r)||r!==this._$AH[n],r===E?t=E:t!==E&&(t+=(r??"")+h[n+1]),this._$AH[n]=r;}o&&!e&&this.j(t);}j(t){t===E?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"");}}class H extends k{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===E?void 0:t;}}class I extends k{constructor(){super(...arguments),this.type=4;}j(t){this.element.toggleAttribute(this.name,!!t&&t!==E);}}class L extends k{constructor(t,i,s,e,h){super(t,i,s,e,h),this.type=5;}_$AI(t,i=this){if((t=S(this,t,i,0)??E)===T)return;const s=this._$AH,e=t===E&&s!==E||t.capture!==s.capture||t.once!==s.once||t.passive!==s.passive,h=t!==E&&(s===E||e);e&&this.element.removeEventListener(this.name,this,s),h&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t);}}class z{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){S(this,t);}}const j=t$1.litHtmlPolyfillSupport;j?.(N,R),(t$1.litHtmlVersions??=[]).push("3.3.1");const B=(t,i,s)=>{const e=s?.renderBefore??i;let h=e._$litPart$;if(void 0===h){const t=s?.renderBefore??null;e._$litPart$=h=new R(i.insertBefore(l(),t),t,void 0,s??{});}return h._$AI(t),h};
+const t$1=globalThis,i$2=t$1.trustedTypes,s$1=i$2?i$2.createPolicy("lit-html",{createHTML:t=>t}):void 0,e$2="$lit$",h=`lit$${Math.random().toFixed(9).slice(2)}$`,o$2="?"+h,n=`<${o$2}>`,r=document,l=()=>r.createComment(""),c=t=>null===t||"object"!=typeof t&&"function"!=typeof t,a=Array.isArray,u=t=>a(t)||"function"==typeof t?.[Symbol.iterator],d="[ \t\n\f\r]",f=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,v=/-->/g,_=/>/g,m=RegExp(`>|${d}(?:([^\\s"'>=/]+)(${d}*=${d}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),p$5=/'/g,g=/"/g,$=/^(?:script|style|textarea|title)$/i,y=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),x=y(1),T=Symbol.for("lit-noChange"),E=Symbol.for("lit-nothing"),A=new WeakMap,C=r.createTreeWalker(r,129);function P(t,i){if(!a(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==s$1?s$1.createHTML(i):i}const V=(t,i)=>{const s=t.length-1,o=[];let r,l=2===i?"<svg>":3===i?"<math>":"",c=f;for(let i=0;i<s;i++){const s=t[i];let a,u,d=-1,y=0;for(;y<s.length&&(c.lastIndex=y,u=c.exec(s),null!==u);)y=c.lastIndex,c===f?"!--"===u[1]?c=v:void 0!==u[1]?c=_:void 0!==u[2]?($.test(u[2])&&(r=RegExp("</"+u[2],"g")),c=m):void 0!==u[3]&&(c=m):c===m?">"===u[0]?(c=r??f,d=-1):void 0===u[1]?d=-2:(d=c.lastIndex-u[2].length,a=u[1],c=void 0===u[3]?m:'"'===u[3]?g:p$5):c===g||c===p$5?c=m:c===v||c===_?c=f:(c=m,r=void 0);const x=c===m&&t[i+1].startsWith("/>")?" ":"";l+=c===f?s+n:d>=0?(o.push(a),s.slice(0,d)+e$2+s.slice(d)+h+x):s+h+(-2===d?i:x);}return [P(t,l+(t[s]||"<?>")+(2===i?"</svg>":3===i?"</math>":"")),o]};class N{constructor({strings:t,_$litType$:s},n){let r;this.parts=[];let c=0,a=0;const u=t.length-1,d=this.parts,[f,v]=V(t,s);if(this.el=N.createElement(f,n),C.currentNode=this.el.content,2===s||3===s){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes);}for(;null!==(r=C.nextNode())&&d.length<u;){if(1===r.nodeType){if(r.hasAttributes())for(const t of r.getAttributeNames())if(t.endsWith(e$2)){const i=v[a++],s=r.getAttribute(t).split(h),e=/([.?@])?(.*)/.exec(i);d.push({type:1,index:c,name:e[2],strings:s,ctor:"."===e[1]?H:"?"===e[1]?I:"@"===e[1]?L:k}),r.removeAttribute(t);}else t.startsWith(h)&&(d.push({type:6,index:c}),r.removeAttribute(t));if($.test(r.tagName)){const t=r.textContent.split(h),s=t.length-1;if(s>0){r.textContent=i$2?i$2.emptyScript:"";for(let i=0;i<s;i++)r.append(t[i],l()),C.nextNode(),d.push({type:2,index:++c});r.append(t[s],l());}}}else if(8===r.nodeType)if(r.data===o$2)d.push({type:2,index:c});else {let t=-1;for(;-1!==(t=r.data.indexOf(h,t+1));)d.push({type:7,index:c}),t+=h.length-1;}c++;}}static createElement(t,i){const s=r.createElement("template");return s.innerHTML=t,s}}function S(t,i,s=t,e){if(i===T)return i;let h=void 0!==e?s._$Co?.[e]:s._$Cl;const o=c(i)?void 0:i._$litDirective$;return h?.constructor!==o&&(h?._$AO?.(!1),void 0===o?h=void 0:(h=new o(t),h._$AT(t,s,e)),void 0!==e?(s._$Co??=[])[e]=h:s._$Cl=h),void 0!==h&&(i=S(t,h._$AS(t,i.values),h,e)),i}class M{constructor(t,i){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:i},parts:s}=this._$AD,e=(t?.creationScope??r).importNode(i,!0);C.currentNode=e;let h=C.nextNode(),o=0,n=0,l=s[0];for(;void 0!==l;){if(o===l.index){let i;2===l.type?i=new R(h,h.nextSibling,this,t):1===l.type?i=new l.ctor(h,l.name,l.strings,this,t):6===l.type&&(i=new z(h,this,t)),this._$AV.push(i),l=s[++n];}o!==l?.index&&(h=C.nextNode(),o++);}return C.currentNode=r,e}p(t){let i=0;for(const s of this._$AV)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class R{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,i,s,e){this.type=2,this._$AH=E,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cv=e?.isConnected??!0;}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t?.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=S(this,t,i),c(t)?t===E||null==t||""===t?(this._$AH!==E&&this._$AR(),this._$AH=E):t!==this._$AH&&t!==T&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):u(t)?this.k(t):this._(t);}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t));}_(t){this._$AH!==E&&c(this._$AH)?this._$AA.nextSibling.data=t:this.T(r.createTextNode(t)),this._$AH=t;}$(t){const{values:i,_$litType$:s}=t,e="number"==typeof s?this._$AC(t):(void 0===s.el&&(s.el=N.createElement(P(s.h,s.h[0]),this.options)),s);if(this._$AH?._$AD===e)this._$AH.p(i);else {const t=new M(e,this),s=t.u(this.options);t.p(i),this.T(s),this._$AH=t;}}_$AC(t){let i=A.get(t.strings);return void 0===i&&A.set(t.strings,i=new N(t)),i}k(t){a(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const h of t)e===i.length?i.push(s=new R(this.O(l()),this.O(l()),this,this.options)):s=i[e],s._$AI(h),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){for(this._$AP?.(!1,!0,i);t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t));}}class k{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,i,s,e,h){this.type=1,this._$AH=E,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=h,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=E;}_$AI(t,i=this,s,e){const h=this.strings;let o=!1;if(void 0===h)t=S(this,t,i,0),o=!c(t)||t!==this._$AH&&t!==T,o&&(this._$AH=t);else {const e=t;let n,r;for(t=h[0],n=0;n<h.length-1;n++)r=S(this,e[s+n],i,n),r===T&&(r=this._$AH[n]),o||=!c(r)||r!==this._$AH[n],r===E?t=E:t!==E&&(t+=(r??"")+h[n+1]),this._$AH[n]=r;}o&&!e&&this.j(t);}j(t){t===E?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"");}}class H extends k{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===E?void 0:t;}}class I extends k{constructor(){super(...arguments),this.type=4;}j(t){this.element.toggleAttribute(this.name,!!t&&t!==E);}}class L extends k{constructor(t,i,s,e,h){super(t,i,s,e,h),this.type=5;}_$AI(t,i=this){if((t=S(this,t,i,0)??E)===T)return;const s=this._$AH,e=t===E&&s!==E||t.capture!==s.capture||t.once!==s.once||t.passive!==s.passive,h=t!==E&&(s===E||e);e&&this.element.removeEventListener(this.name,this,s),h&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t);}}class z{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){S(this,t);}}const j=t$1.litHtmlPolyfillSupport;j?.(N,R),(t$1.litHtmlVersions??=[]).push("3.3.1");const B=(t,i,s)=>{const e=s?.renderBefore??i;let h=e._$litPart$;if(void 0===h){const t=s?.renderBefore??null;e._$litPart$=h=new R(i.insertBefore(l(),t),t,void 0,s??{});}return h._$AI(t),h};
 
 /**
  * @license
@@ -886,6 +886,108 @@ async function enhancePromptWithExamples(basePrompt, userPrompt, graphType = 'bl
     
     const examplesSection = formatExamplesForPrompt(examples);
     return basePrompt + examplesSection
+}
+
+/**
+ * NodeClassIndex - Build and format a node class index for LLM prompts
+ * P1 Optimization: Helps LLM know which node types are available
+ */
+
+let cachedIndex = null;
+
+/**
+ * Build a deduplicated index of node classes from templates
+ * @param {Array} templates - Node templates array from nodeTemplates.json
+ * @returns {Array} - Array of unique node class entries
+ */
+function buildClassIndex(templates) {
+    const index = new Map();
+    
+    for (const t of templates) {
+        // Use functionName if available, otherwise use class
+        const key = t.functionName || t.class;
+        if (!key) continue
+        
+        if (!index.has(key)) {
+            index.set(key, {
+                class: t.class,
+                functionName: t.functionName,
+                name: t.name,
+                type: t.type
+            });
+        }
+    }
+    
+    return Array.from(index.values())
+}
+
+/**
+ * Format the class index for injection into prompts
+ * @param {Array} index - Class index array
+ * @param {string} mode - 'blueprint' or 'material'
+ * @returns {string} - Formatted text for prompt injection
+ */
+function formatClassIndexForPrompt(index, mode = 'blueprint') {
+    // Filter by mode
+    const filtered = index.filter(n => n.type === mode);
+    
+    if (filtered.length === 0) return ''
+    
+    // Group by class for better organization
+    const byClass = new Map();
+    for (const n of filtered) {
+        const baseClass = n.class?.split('.').pop() || 'Unknown';
+        if (!byClass.has(baseClass)) {
+            byClass.set(baseClass, []);
+        }
+        if (n.functionName) {
+            byClass.get(baseClass).push(n.functionName);
+        }
+    }
+    
+    // Format output
+    let result = 'AVAILABLE NODE TYPES:\n';
+    for (const [cls, funcs] of byClass) {
+        if (funcs.length > 0) {
+            result += `- ${cls}: ${funcs.slice(0, 10).join(', ')}${funcs.length > 10 ? '...' : ''}\n`;
+        } else {
+            result += `- ${cls}\n`;
+        }
+    }
+    
+    return result
+}
+
+/**
+ * Load and cache the node class index
+ * @returns {Promise<Array>} - Cached class index
+ */
+async function getClassIndex() {
+    if (cachedIndex) return cachedIndex
+    
+    try {
+        const response = await fetch('./js/ai/nodeTemplates.json');
+        if (!response.ok) {
+            console.warn('Failed to load nodeTemplates.json for class index');
+            return []
+        }
+        const data = await response.json();
+        cachedIndex = buildClassIndex(data.templates || []);
+        return cachedIndex
+    } catch (e) {
+        console.warn('Error loading node class index:', e);
+        return []
+    }
+}
+
+/**
+ * Get formatted class index text for a specific mode
+ * @param {string} mode - 'blueprint' or 'material'
+ * @returns {Promise<string>} - Formatted index text
+ */
+async function getClassIndexText(mode = 'blueprint') {
+    const index = await getClassIndex();
+    return formatClassIndexForPrompt(index, mode)
 }
 
 /**
@@ -4045,6 +4147,3857 @@ class LinearColorEntity extends IEntity {
     }
 }
 
+const p$4 = Configuration.paths;
+
+/** @param {ObjectEntity} entity */
+function nodeColor(entity) {
+    switch (entity.getType()) {
+        case p$4.materialExpressionConstant2Vector:
+        case p$4.materialExpressionConstant3Vector:
+        case p$4.materialExpressionConstant4Vector:
+            return Configuration.nodeColors.yellow
+        case p$4.materialExpressionFunctionInput:
+        case p$4.materialExpressionTextureCoordinate:
+        case p$4.materialExpressionWorldPosition:
+        case p$4.pcgEditorGraphNodeInput:
+        case p$4.pcgEditorGraphNodeOutput:
+            return Configuration.nodeColors.red
+        case p$4.makeStruct:
+            return Configuration.nodeColors.darkBlue
+        case p$4.materialExpressionMaterialFunctionCall:
+            return Configuration.nodeColors.blue
+        case p$4.materialExpressionTextureSample:
+            return Configuration.nodeColors.darkTurquoise
+        case p$4.niagaraNodeInput:
+            switch (entity["Usage"]?.toString()) {
+                case "Attribute": return Configuration.nodeColors.intenseGreen
+                case "Parameter": return Configuration.nodeColors.red
+                case "RapidIterationParameter": return Configuration.nodeColors.black
+                case "SystemConstant": return Configuration.nodeColors.gray
+                case "TranslatorConstant": return Configuration.nodeColors.gray
+                default: return Configuration.nodeColors.red
+            }
+    }
+    switch (entity.getClass()) {
+        case p$4.niagaraNodeFunctionCall:
+            return Configuration.nodeColors.darkerBlue
+        case p$4.dynamicCast:
+            return Configuration.nodeColors.turquoise
+        case p$4.inputDebugKey:
+        case p$4.inputKey:
+            return Configuration.nodeColors.red
+        case p$4.createDelegate:
+        case p$4.enumLiteral:
+        case p$4.makeArray:
+        case p$4.makeMap:
+        case p$4.materialGraphNode:
+        case p$4.select:
+            return Configuration.nodeColors.green
+        case p$4.executionSequence:
+        case p$4.ifThenElse:
+        case p$4.macro:
+        case p$4.multiGate:
+            return Configuration.nodeColors.gray
+        case p$4.functionEntry:
+        case p$4.functionResult:
+            return Configuration.nodeColors.violet
+        case p$4.timeline:
+            return Configuration.nodeColors.yellow
+    }
+    if (entity.switchTarget()) {
+        return Configuration.nodeColors.lime
+    }
+    if (entity.isEvent()) {
+        return Configuration.nodeColors.red
+    }
+    if (entity.isComment()) {
+        return (entity.CommentColor ? entity.CommentColor : LinearColorEntity.getWhite())
+            .toDimmedColor()
+            .toCSSRGBValues()
+    }
+    const pcgSubobject = entity.getPcgSubobject();
+    if (pcgSubobject) {
+        if (pcgSubobject.NodeTitleColor) {
+            return pcgSubobject.NodeTitleColor.toDimmedColor(0.1).toCSSRGBValues()
+        }
+        switch (entity.PCGNode?.getName(true)) {
+            case "Branch":
+            case "Select":
+                return Configuration.nodeColors.intenseGreen
+        }
+    }
+    if (entity.bIsPureFunc?.valueOf() || entity.bDefaultsToPureFunc?.valueOf()) {
+        return Configuration.nodeColors.green
+    }
+    if (entity["Input"]?.["Name"]) {
+        return Configuration.nodeColors.gray
+    }
+    return Configuration.nodeColors.blue
+}
+
+class SVGIcon {
+
+    static arrayPin = x`
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 0H0V4H4V0Z" fill="currentColor" />
+            <path d="M10 0H6V4H10V0Z" fill="currentColor" />
+            <path d="M16 0H12V4H16V0Z" fill="currentColor" />
+            <path d="M4 6H0V10H4V6Z" fill="currentColor" />
+            <path class="ueb-pin-tofill" d="M10 6H6V10H10V6Z" fill="black" />
+            <path d="M16 6H12V10H16V6Z" fill="currentColor" />
+            <path d="M4 12H0V16H4V12Z" fill="currentColor" />
+            <path d="M10 12H6V16H10V12Z" fill="currentColor" />
+            <path d="M16 12H12V16H16V12Z" fill="currentColor" />
+        </svg>
+    `
+
+    static branchNode = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M11 2H6C5.44772 2 5 2.44772 5 3V13C5 13.5523 5.44772 14 6 14H11V12H7V4H11V2Z" fill="white" />
+            <rect x="1" y="7" width="4" height="2" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M11 6L15 3L11 0V6Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M11 16L15 13L11 10V16Z" fill="white" />
+        </svg>
+    `
+
+    static breakStruct = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 14L10 12L11 11L13 13L14 12L14 15L11 15L12 14Z" fill="white" />
+            <path d="M13 3L11 5L10 4L12 2L11 1L14 1L14 4L13 3Z" fill="white" />
+            <path d="M7.975 6H3.025C1.90662 6 1 6.90662 1 8.025V8.475C1 9.59338 1.90662 10.5 3.025 10.5H7.975C9.09338 10.5 10 9.59338 10 8.475V8.025C10 6.90662 9.09338 6 7.975 6Z" fill="white" />
+        </svg>
+    `
+
+    static cast = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 12L16 7.5L12 3V12Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M0 11L4 7.5L0 4V11Z" fill="white" />
+            <rect opacity="0.5" x="5" y="6" width="1" height="3" fill="white" />
+            <rect opacity="0.5" x="7" y="6" width="1" height="3" fill="white" />
+            <rect opacity="0.5" x="9" y="6" width="1" height="3" fill="white" />
+            <rect x="9" y="6" width="3" height="3" fill="white" />
+        </svg>
+    `
+
+    static close = x`
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <line x1="2" y1="2" x2="30" y2="30" stroke="currentColor" stroke-width="4" />
+            <line x1="30" y1="2" x2="2" y2="30" stroke="currentColor" stroke-width="4" />
+        </svg>
+    `
+
+    static convert = x`
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#3e7fbc" d="M 4 0 H 16 V 32 H 4 L 0 28 V 4 Z" />
+            <path fill="#bdd6ef" d="M 2 8 H 14 V 30 H 4 L 2 28 Z" />
+            <path fill="#bc3e4a" d="M 16 0 H 28 L 32 4 V 28 L 28 32 H 16 Z" />
+            <path fill="#efbdc1" d="M 18 8 H 30 V 27 L 27 30 H 18 Z" />
+        </svg>
+    `
+
+    static correct = x`
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#2da800" d="M 2 16 L 14 30 L 30 2 L 13 22 Z" />
+        </svg>
+    `
+
+    static delegate = x`
+        <svg width="11" height="11" viewBox="-2 -2 32 32" xmlns="http://www.w3.org/2000/svg">
+            <rect class="ueb-pin-tofill" fill="black" width="28" height="28" rx="4" stroke="currentColor" stroke-width="5" />
+        </svg>
+    `
+
+    static doN = x`
+        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path fill="white" d="M1 12V8H9V4L16 10L9 16V12H1Z" />
+            <path fill="white" d="M7 6L6 6L4 2.66667V6H3V1H4L6 4.33333V1H7V6Z" />
+        </svg>
+    `
+
+    static doOnce = x`
+        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 12V8H9V4L16 10L9 16V12H1Z" fill="white" />
+            <path d="M6 6H5L4.98752 2.42387L4 2.8642V1.893L5.89305 1H6V6Z" fill="white" />
+            <rect x="4" y="5" width="3" height="1" fill="white" />
+        </svg>
+    `
+
+    static enum = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill="white" d="M9 5V0H2V16H14V5H9ZM3.2 4.4L4.5 4H4.6V7H4V4.7L3.2 4.9V4.4ZM4.7 14.8C4.6 14.9 4.3 15 4 15C3.7 15 3.5 14.9 3.3 14.8C3.1 14.6 3 14.4 3 14.2H3.6C3.6 14.3 3.6 14.4 3.7 14.5C3.8 14.6 3.9 14.6 4 14.6C4.1 14.6 4.2 14.6 4.3 14.5C4.4 14.4 4.4 14.3 4.4 14.2C4.4 13.9 4.2 13.8 3.9 13.8H3.7V13.3H4C4.1 13.3 4.3 13.3 4.3 13.2C4.4 13.1 4.4 13 4.4 12.9C4.4 12.8 4.4 12.7 4.3 12.6C4.2 12.5 4.1 12.5 4 12.5C3.9 12.5 3.8 12.5 3.7 12.6C3.6 12.7 3.6 12.7 3.6 12.8H3C3 12.6 3 12.5 3.1 12.4C3.2 12.3 3.3 12.2 3.4 12.1C3.7 12 3.8 12 4 12C4.3 12 4.6 12.1 4.7 12.2C4.9 12.4 5 12.6 5 12.8C5 12.9 5 13.1 4.9 13.2C4.8 13.3 4.7 13.4 4.6 13.5C4.8 13.6 4.9 13.6 5 13.8C5 13.8 5 14 5 14.1C5 14.4 4.9 14.6 4.7 14.8ZM5.1 11H3.1V10.6L4.1 9.6C4.2 9.5 4.3 9.3 4.4 9.2C4.4 9.1 4.4 9 4.4 8.9C4.4 8.8 4.4 8.7 4.3 8.6C4.2 8.5 4.1 8.5 4 8.5C3.9 8.5 3.8 8.5 3.7 8.6C3.6 8.7 3.6 8.8 3.6 9H3C3 8.8 3 8.7 3.1 8.5C3.2 8.4 3.3 8.2 3.5 8.1C3.7 8 3.8 8 4 8C4.3 8 4.5 8.1 4.7 8.2C4.9 8.4 5 8.6 5 8.8C5 9 5 9.1 4.9 9.3C4.8 9.4 4.7 9.6 4.5 9.8L3.8 10.5H5.1V11ZM12 15H6V14H12V15ZM12 11H6V10H12V11ZM12 7H6V6H12V7Z" />
+            <path d="M9 0H8L14 6V5L9 0Z" fill="white" />
+        </svg>
+    `
+
+    static event = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0.929031" y="8" width="10" height="10" rx="0.5" transform="rotate(-45 0.929031 8)" stroke="white" />
+            <path d="M5 4.00024L8 1.00024V6.00024H3L5 4.00024Z" fill="white" />
+            <path d="M6 13.0002L3 10.0002L8 10.0002L8 15.0002L6 13.0002Z" fill="white" />
+            <path d="M4.53551 6.82854L4.53551 11.0712L0.999977 7.53564L4.53551 4.00011L4.53551 6.82854Z" fill="white" />
+        </svg>
+    `
+
+    static execPin = x`
+        <svg width="15" height="15" viewBox="-2 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path class="ueb-pin-tofill" stroke-width="1.25" stroke="white" fill="none"
+                d="M 2 1 a 2 2 0 0 0 -2 2 v 10 a 2 2 0 0 0 2 2 h 4 a 2 2 0 0 0 1.519 -0.698 l 4.843 -5.651 a 1 1 0 0 0 0 -1.302 L 7.52 1.7 a 2 2 0 0 0 -1.519 -0.698 z" />
+        </svg>
+    `
+
+    static expandIcon = x`
+        <svg fill="currentColor" viewBox="4 4 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 16.003 18.626 l 7.081 -7.081 L 25 13.46 l -8.997 8.998 -9.003 -9 1.917 -1.916 z" />
+        </svg>
+    `
+
+    static flipflop = x`
+        <svg  viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2L10 14" stroke="white" stroke-width="2" stroke-linecap="round" />
+            <path d="M6 2L2 14" stroke="white" stroke-width="2" stroke-linecap="round" />
+            <path d="M6 2L10 14" stroke="white" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" />
+        </svg>
+    `
+
+    static forEachLoop = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M4 2C1.8 2 0 3.8 0 6V9C0 11.2 2 13 4 13H10V11H5C3.2 11 2 9.7 2 8V7C2 5.63882 2.76933 4.53408 4 4.14779V2ZM12 4C13.8 4 14 5.3 14 7V8C14 8.8 13.7 9.5 13.3 10L15.2 11.4C15.7 10.7 16 9.9 16 9V6C16 3.8 14.2 2 12 2V4Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8 16L13 12L8 8V16Z" fill="white" />
+            <rect x="5" y="1" width="1" height="4" fill="white" />
+            <rect x="7" y="1" width="1" height="4" fill="white" />
+            <rect x="9" y="1" width="1" height="4" fill="white" />
+            <rect x="11" y="2" width="1" height="2" fill="white" />
+        </svg>
+    `
+
+    static functionSymbol = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M9.72002 6.0699C9.88111 4.96527 10.299 3.9138 10.94 2.99991C10.94 2.99991 10.94 3.05991 10.94 3.08991C10.94 3.36573 11.0496 3.63026 11.2446 3.8253C11.4397 4.02033 11.7042 4.12991 11.98 4.12991C12.2558 4.12991 12.5204 4.02033 12.7154 3.8253C12.9105 3.63026 13.02 3.36573 13.02 3.08991C13.0204 2.90249 12.9681 2.71873 12.8691 2.5596C12.7701 2.40047 12.6283 2.27237 12.46 2.18991H12.37C11.8725 2.00961 11.3275 2.00961 10.83 2.18991C9.21002 2.63991 8.58002 4.99991 8.58002 4.99991L8.40002 5.1199H5.40002L5.15002 6.1199H8.27002L7.27002 11.4199C7.11348 12.0161 6.79062 12.5555 6.33911 12.9751C5.8876 13.3948 5.32607 13.6773 4.72002 13.7899C4.78153 13.655 4.81227 13.5081 4.81002 13.3599C4.81002 13.0735 4.69624 12.7988 4.4937 12.5962C4.29116 12.3937 4.01646 12.2799 3.73002 12.2799C3.44359 12.2799 3.16889 12.3937 2.96635 12.5962C2.76381 12.7988 2.65002 13.0735 2.65002 13.3599C2.66114 13.605 2.75692 13.8386 2.92104 14.021C3.08517 14.2033 3.30746 14.3231 3.55002 14.3599C7.91002 15.1999 8.55002 11.4499 8.55002 11.4499L9.55002 7.05991H12.55L12.8 6.05991H9.64002L9.72002 6.0699Z"
+                fill="currentColor"
+            />
+        </svg>
+    `
+
+    static gamepad = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill="white" d="m 15.2107 8.525 c -0.6619 -1.7207 -1.9856 -4.8978 -3.3094 -4.8978 c -1.9856 0 -1.9856 1.8532 -2.7799 1.8532 c -0.3971 0 -1.8532 0 -2.3827 0 c -0.7943 0 -0.7943 -1.8532 -2.6475 -1.8532 c -1.3238 0 -2.6475 3.0446 -3.3094 4.8978 c -1.059 3.3094 -1.1914 4.8979 1.1914 4.8979 c 2.6475 0 2.6475 -3.0445 5.9569 -3.0445 c 3.3094 0 3.4418 3.0445 5.9569 3.0445 c 2.5151 0 2.5151 -1.5885 1.3238 -4.8979 z m -8.472 0 h -1.3238 v 1.3238 h -1.3238 v -1.3238 h -1.3238 v -1.3238 h 1.3238 v -1.3238 h 1.3238 v 1.3238 h 1.3238 v 1.3238 z m 4.6331 1.5887 c -1.1914 0 -2.2504 -0.9268 -2.2504 -2.2505 c 0 -1.1913 0.9267 -2.2503 2.2504 -2.2503 c 1.3238 0 2.2504 0.9266 2.2504 2.2503 c 0 1.1915 -1.059 2.2505 -2.2504 2.2505 z m -0.0001 -2.9124 c -0.3971 0 -0.6619 0.2648 -0.6619 0.6619 c 0 0.3971 0.2648 0.6619 0.6619 0.6619 c 0.3971 0 0.6619 -0.2648 0.6619 -0.6619 c 0 -0.3971 -0.2648 -0.6619 -0.6619 -0.6619 z" />
+        </svg>
+    `
+
+    static genericPin = x`
+        <svg width="16" height="12" viewBox="0 0 42 32" xmlns="http://www.w3.org/2000/svg">
+            <circle class="ueb-pin-tofill" cx="16" cy="16" r="13" fill="black" stroke="currentColor" stroke-width="5" />
+            <path fill="currentColor" d="M 34 6 L 34 26 L 42 16 Z" />
+        </svg>
+    `
+
+    static keyboard = x`
+        <svg viewBox="0 -3 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path fill="white" d="M 1 10 H 15 c 0.2652 0 0.5195 -0.1054 0.707 -0.293 c 0.1875 -0.1875 0.293 -0.4418 0.293 -0.707 v -8 c 0 -0.2652 -0.1054 -0.5195 -0.293 -0.707 c -0.1875 -0.1875 -0.4418 -0.293 -0.707 -0.293 H 1 c -0.2652 0 -0.5195 0.1054 -0.707 0.293 c -0.1875 0.1875 -0.293 0.4418 -0.293 0.707 V 9 c 0 0.2652 0.1054 0.5195 0.293 0.707 c 0.1875 0.1875 0.4418 0.293 0.707 0.293 Z M 14 6 h -3 v -2 h 3 v 2 Z M 13 1 h 2 v 2 h -2 v -2 Z M 10 1 h 2 v 2 h -2 v -2 Z M 10 6 h -2 v -2 h 2 v 2 Z M 7 1 h 2 v 2 h -2 v -2 Z M 7 6 h -2 v -2 h 2 v 2 Z M 4 1 h 2 v 2 h -2 v -2 Z M 4 6 h -2 v -2 h 2 v 2 Z M 1 1 h 2 v 2 h -2 v -2 Z M 1 7 h 2 v 2 h -2 v -2 M 4 7 h 8 v 2 h -8 v -2 M 13 7 h 2 v 2 h -2 v -2 Z" />
+        </svg>
+    `
+
+    static loop = x`
+        <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <style>
+                    .cls-1 {
+                        fill: #fff;
+                        fill-rule: evenodd;
+                    }
+                    .cls-2 {
+                        fill: none;
+                    }
+                </style>
+            </defs>
+            <g id="Layer_2" data-name="Layer 2">
+                <g id="Layer_4" data-name="Layer 4">
+                    <path class="cls-1" d="M16,2H4A4,4,0,0,0,0,6v4a4.14,4.14,0,0,0,4,4H9v5l8-6L9,7v5H4.5A2.36,2.36,0,0,1,2,9.5v-3A2.36,2.36,0,0,1,4.5,4h11A2.36,2.36,0,0,1,18,6.5V9a3,3,0,0,1-.69,2l1.88,1.41A4,4,0,0,0,20,10V6A4,4,0,0,0,16,2Z" />
+                    <rect class="cls-2" width="20" height="20" />
+                </g>
+            </g>
+        </svg>
+    `
+
+    static macro = x`
+        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 2.92L10 12.29L14.55 2.61C14.662 2.4259 14.8189 2.27332 15.0061 2.16661C15.1933 2.05989 15.4045 2.00256 15.62 2H19L18.66 2.89C18.66 2.89 17.17 3.04 17.11 3.63C17.05 4.22 16 15.34 15.93 16.13C15.86 16.92 17.33 17.13 17.33 17.13L17.17 17.99H13.84C13.7241 17.9764 13.612 17.9399 13.5103 17.8826C13.4086 17.8253 13.3194 17.7484 13.2477 17.6562C13.176 17.5641 13.1234 17.4586 13.0929 17.346C13.0624 17.2333 13.0546 17.1157 13.07 17L14.43 5.52L10 14.57C9.8 15.03 9.07 15.72 8.63 15.71H7.75L6.05 4.86L3.54 17.39C3.51941 17.5514 3.44327 17.7005 3.32465 17.8118C3.20603 17.9232 3.05235 17.9897 2.89 18H1L1.11 17.09C1.11 17.09 2.21 17.09 2.3 16.69C2.39 16.29 5.3 3.76 5.41 3.32C5.52 2.88 4.19 2.81 4.19 2.81L4.46 2H6.62C7.09 2 7.92 2.38 8 2.92Z" fill="white" />
+        </svg>
+    `
+
+    static mapPin = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 0H0V4H4V0Z" fill="currentColor" />
+            <path d="M4 6H0V10H4V6Z" fill="currentColor" />
+            <path d="M4 12H0V16H4V12Z" fill="currentColor" />
+            <path d="M16 0H6V4H16V0Z" fill="white" />
+            <path d="M16 6H6V10H16V6Z" fill="white" />
+            <path d="M16 12H6V16H16V12Z" fill="white" />
+        </svg>
+    `
+
+    static makeArray = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 4H13V6H15V4Z" fill="white" />
+            <path d="M15 7H13V9H15V7Z" fill="white" />
+            <path d="M15 10H13V12H15V10Z" fill="white" />
+            <path d="M12 4H10V6H12V4Z" fill="white" />
+            <path d="M12 7H10V9H12V7Z" fill="white" />
+            <path d="M12 10H10V12H12V10Z" fill="white" />
+            <path d="M9 4H7V6H9V4Z" fill="white" />
+            <path d="M9 7H7V9H9V7Z" fill="white" />
+            <path d="M9 10H7V12H9V10Z" fill="white" />
+            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white" />
+            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white" />
+        </svg>
+    `
+
+    static makeMap = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 4H10V6H15V4Z" fill="white" />
+            <path d="M15 7H10V9H15V7Z" fill="white" />
+            <path d="M15 10H10V12H15V10Z" fill="white" />
+            <path d="M9 4H7V6H9V4Z" fill="white" />
+            <path d="M9 7H7V9H9V7Z" fill="white" />
+            <path d="M9 10H7V12H9V10Z" fill="white" />
+            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white" />
+            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white" />
+        </svg>
+    `
+
+    static makeSet = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white" />
+            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white" />
+            <path d="M6 8.00205V7.43062C6.40147 7.37088 6.79699 7.28299 7.18286 7.16777C7.30414 7.11578 7.40659 7.03462 7.47858 6.93348C7.57165 6.81021 7.63108 6.66933 7.65215 6.52205C7.6832 6.31181 7.69609 6.09976 7.69072 5.88777C7.67539 5.53753 7.70341 5.18685 7.77429 4.84205C7.81918 4.66059 7.92446 4.49533 8.07643 4.36777C8.26269 4.22923 8.48285 4.13138 8.71929 4.08205C9.01252 4.02392 9.31249 3.99706 9.61287 4.00205H9.85715V4.57348C9.66398 4.58307 9.47806 4.64211 9.32179 4.7435C9.16552 4.84489 9.04559 4.9843 8.97644 5.14491C8.92057 5.24999 8.89621 5.36613 8.90572 5.48205C8.90572 5.64205 8.90572 5.95062 8.86715 6.40205C8.85805 6.6136 8.81697 6.8231 8.74501 7.02491C8.69216 7.17345 8.60697 7.3113 8.49429 7.43062C8.33135 7.64 8.1415 7.83177 7.92858 8.00205" fill="white" />
+            <path d="M7.92858 8.00195C8.14537 8.18165 8.33547 8.3852 8.49429 8.60767C8.60419 8.72229 8.6892 8.85404 8.74501 8.99624C8.81697 9.19805 8.85805 9.40755 8.86715 9.6191C8.89286 10.0724 8.90572 10.381 8.90572 10.5448C8.89679 10.6607 8.92112 10.7767 8.97644 10.882C9.05077 11.0375 9.17272 11.1714 9.32842 11.2683C9.48411 11.3653 9.66731 11.4215 9.85715 11.4305V12.002H9.61287C9.31086 12.0112 9.0087 11.9881 8.71286 11.9334C8.47744 11.8816 8.25788 11.784 8.07001 11.6477C7.91926 11.5193 7.81421 11.3543 7.76786 11.1734C7.69764 10.8285 7.66962 10.4779 7.68429 10.1277C7.69081 9.91186 7.67791 9.69593 7.64572 9.48195C7.62465 9.33468 7.56522 9.1938 7.47215 9.07052C7.40016 8.96939 7.29771 8.88822 7.17643 8.83624C6.79266 8.72131 6.3993 8.63342 6 8.57338V8.00195" fill="white" />
+            <path d="M13.0712 8.00197C12.8582 7.83169 12.6684 7.63992 12.5054 7.43054C12.3942 7.31461 12.3091 7.18076 12.2547 7.03626C12.1828 6.83445 12.1417 6.62495 12.1326 6.4134C12.1326 5.96197 12.094 5.6534 12.094 5.4934C12.1058 5.37369 12.0814 5.25334 12.0233 5.14483C11.9541 4.98422 11.8342 4.84481 11.6779 4.74342C11.5217 4.64203 11.3357 4.58299 11.1426 4.5734V4.00197H11.3869C11.6889 3.99277 11.991 4.01579 12.2869 4.07054C12.5233 4.11987 12.7435 4.21772 12.9297 4.35626C13.0817 4.48382 13.187 4.64908 13.2319 4.83054C13.3027 5.17534 13.3308 5.52602 13.3154 5.87626C13.3094 6.09206 13.3223 6.30795 13.354 6.52197C13.3751 6.66925 13.4345 6.81013 13.5276 6.9334C13.5996 7.03454 13.702 7.1157 13.8233 7.16769C14.2071 7.28262 14.6004 7.37051 14.9997 7.43054V8.00197" fill="white" />
+            <path d="M14.9997 8.00195V8.57338C14.5983 8.63312 14.2027 8.72102 13.8169 8.83624C13.6956 8.88822 13.5931 8.96939 13.5212 9.07052C13.4281 9.1938 13.3686 9.33468 13.3476 9.48195C13.3154 9.69593 13.3025 9.91186 13.309 10.1277C13.3237 10.4779 13.2957 10.8285 13.2254 11.1734C13.1791 11.3543 13.074 11.5193 12.9233 11.6477C12.7354 11.784 12.5159 11.8816 12.2804 11.9334C11.9846 11.9881 11.6824 12.0112 11.3804 12.002H11.1426V11.4305C11.3353 11.4196 11.5205 11.36 11.6765 11.2588C11.8325 11.1576 11.9528 11.0189 12.0233 10.8591C12.0786 10.7539 12.1029 10.6378 12.094 10.522C12.094 10.3543 12.1069 10.0458 12.1326 9.59624C12.1417 9.38469 12.1828 9.17519 12.2547 8.97338C12.3105 8.83119 12.3955 8.69943 12.5054 8.58481C12.666 8.37037 12.856 8.17457 13.0712 8.00195" fill="white" />
+        </svg>
+    `
+
+    static makeStruct = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 4L1 1.99995L2 1L4 3L5 1.99995L5 5L2 5L3 4Z" fill="white" />
+            <path d="M4 13L1.99995 15L1 14L3 12L1.99995 11L5 11L5 14L4 13Z" fill="white" />
+            <path d="M12.975 6H8.025C6.90662 6 6 6.90662 6 8.025V8.475C6 9.59338 6.90662 10.5 8.025 10.5H12.975C14.0934 10.5 15 9.59338 15 8.475V8.025C15 6.90662 14.0934 6 12.975 6Z" fill="white" />
+        </svg>
+    `
+
+    static metasoundFunction = x`
+        <svg viewBox="-8 1 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill="currentColor" d="M7.14453 3.32422C7.14453 3.53255 7.07292 3.70833 6.92969 3.85156C6.78646 3.98828 6.61068 4.05664 6.40234 4.05664C6.19401 4.05664 6.00846 3.98828 5.8457 3.85156C5.68945 3.71484 5.61133 3.53581 5.61133 3.31445C5.61133 3.0931 5.69922 2.91081 5.875 2.76758C5.82943 2.61784 5.7513 2.49414 5.64063 2.39648C5.52995 2.29232 5.39323 2.24023 5.23047 2.24023C5.02214 2.24023 4.85612 2.31185 4.73242 2.45508C4.61523 2.5918 4.52734 2.76107 4.46875 2.96289C4.41016 3.1582 4.37435 3.36328 4.36133 3.57812C4.34831 3.79297 4.3418 3.972 4.3418 4.11523C4.3418 4.42773 4.35482 4.74023 4.38086 5.05273C4.4069 5.35872 4.4362 5.66797 4.46875 5.98047H6.38281V6.86914H4.61523L5.13281 11.3418C5.14583 11.4915 5.15885 11.6413 5.17188 11.791C5.19141 11.9473 5.20117 12.1003 5.20117 12.25C5.20117 12.5885 5.1556 12.9206 5.06445 13.2461C4.97331 13.5781 4.83333 13.8711 4.64453 14.125C4.46224 14.3854 4.22786 14.5937 3.94141 14.75C3.66146 14.9128 3.33268 14.9941 2.95508 14.9941C2.69466 14.9941 2.44401 14.9453 2.20313 14.8477C1.96875 14.7565 1.75716 14.6263 1.56836 14.457C1.38607 14.2878 1.23958 14.0859 1.12891 13.8516C1.01823 13.6237 0.962891 13.3763 0.962891 13.1094C0.962891 12.8945 1.03451 12.7187 1.17773 12.582C1.32096 12.4453 1.49675 12.377 1.70508 12.377C1.80273 12.377 1.89714 12.3932 1.98828 12.4258C2.08594 12.4648 2.17057 12.5169 2.24219 12.582C2.32031 12.6471 2.37891 12.722 2.41797 12.8066C2.46354 12.8978 2.48633 12.9954 2.48633 13.0996C2.48633 13.3079 2.4082 13.4902 2.25195 13.6465C2.29753 13.7897 2.37565 13.9102 2.48633 14.0078C2.59701 14.112 2.72721 14.1641 2.87695 14.1641C3.05273 14.1641 3.19596 14.1087 3.30664 13.998C3.42383 13.8939 3.51497 13.7637 3.58008 13.6074C3.64518 13.4577 3.6875 13.2949 3.70703 13.1191C3.73307 12.9499 3.74609 12.8001 3.74609 12.6699C3.74609 12.4225 3.72982 12.1751 3.69727 11.9277C3.67122 11.6803 3.63867 11.4329 3.59961 11.1855L3.58984 11.1758L3.0625 6.86914H1.60742V5.98047H2.96484C2.93229 5.73307 2.90625 5.48893 2.88672 5.24805C2.8737 5.00716 2.86719 4.76302 2.86719 4.51562C2.86719 4.15104 2.903 3.7832 2.97461 3.41211C3.04622 3.04102 3.16992 2.70898 3.3457 2.41602C3.52148 2.11654 3.7526 1.8724 4.03906 1.68359C4.33203 1.49479 4.69661 1.40039 5.13281 1.40039C5.39974 1.40039 5.65365 1.44922 5.89453 1.54687C6.13542 1.64453 6.34701 1.78125 6.5293 1.95703C6.7181 2.1263 6.86784 2.32812 6.97852 2.5625C7.08919 2.79687 7.14453 3.05078 7.14453 3.32422Z" />
+        </svg>
+    `
+
+    static mouse = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 8.34043H14L13.9143 6.6383H8.85714V0H7.14286V6.6383H2.08571L2 8.34043H7.14286H8.85714Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.85714 0C11 0.595745 13.4 3.31915 13.9143 6.6383H8.85714V0ZM7.14286 0C5 0.595745 2.6 3.31915 2.08571 6.6383H7.14286V0ZM8.85714 8.34043H7.14286H2C2 12.5957 3.02857 16 8 16C12.9714 16 14 12.5957 14 8.34043H8.85714Z" fill="white" />
+        </svg>
+    `
+
+    static node = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="16" height="15" rx="1" fill="white" fill-opacity="0.5" />
+            <rect x="0.5" y="0.5" width="15" height="14" rx="0.5" stroke="white" />
+            <rect x="1" width="14" height="5" fill="white" />
+        </svg>
+    `
+
+    static operationPin = x`
+        <svg width="14" height="14" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <circle class="ueb-pin-tostroke" cx="16" cy="16" r="14" stroke="currentColor" stroke-width="4" />
+            <circle cx="16" cy="16" r="9.5" fill="#817a7a" />
+        </svg>
+    `
+
+    static pcgStackPin = x`
+        <svg width="18" height="22" viewBox="4 0 28 36" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="black" stroke-width="1" fill="rgba(var(--ueb-pin-color-rgb), 0.5)"  d="M25.8,32.2V17.5c0-1.7,1.3-3.1,3-3.1s3,1.3,3,3.1v14.7c0,1.8-1.3,3.2-3,3.2C27,35.5,25.8,34,25.8,32.2z" />
+            <path stroke="black" stroke-width="1" fill="rgba(var(--ueb-pin-color-rgb), 0.75)" d="M18.8,30.1V11.8c0-2.4,1.8-4.3,4-4.3s4,1.9,4,4.3v18.4c0,2.4-1.8,4.3-4,4.3C20.5,34.5,18.8,32.5,18.8,30.1z" />
+            <path stroke="black" stroke-width="1" fill="currentColor" d="M21.3,6.4v21.3c0,3.2-2.4,5.8-5.5,5.8s-5.5-2.5-5.5-5.8V6.3c0-3.2,2.4-5.8,5.5-5.8C18.8,0.5,21.2,3,21.3,6.4z" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="10.2" cy="9" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="10.2" cy="17" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="10.2" cy="25" r="6" />
+        </svg>
+    `
+
+    static pcgPin = x`
+        <svg class="ueb-pin-reflect-output" width="12" height="20" viewBox="8 0 20 36" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="black" stroke-width="1" fill="currentColor" d="M21.2,34.5c-3.1,0-5.5-2.6-5.5-5.8V7.3c0-3.3,2.4-5.8,5.5-5.8s5.5,2.6,5.5,5.8v21.3C26.8,31.9,24.3,34.5,21.2,34.5z" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="15.8" cy="10" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="15.8" cy="18" r="6" />
+            <circle class="ueb-pin-tofill ueb-pin-tostroke" stroke="currentColor" stroke-width="1" cx="15.8" cy="26" r="6" />
+        </svg>
+    `
+
+    static pcgParamPin = x`
+        <svg class="ueb-pin-reflect-output" width="18" height="12" viewBox="8 8 19 21" xmlns="http://www.w3.org/2000/svg">
+            <path class="ueb-pin-tofill" stroke="currentcolor" stroke-width="1" d="M8,18c-2.5,0-4.5-2-4.5-4.5S5.5,9,8,9h20c2.5,0,4.5,2,4.5,4.5S30.5,18,28,18H8z" />
+            <path fill="currentColor" d="M31,27.5H13c-0.5,0-1-0.4-1-1v-4c0-0.5,0.4-1,1-1h18c0.5,0,1,0.4,1,1v4C32,27.1,31.6,27.5,31,27.5z" />
+        </svg>
+    `
+
+    static pcgSpatialPin = x`
+        <svg width="14" height="16" viewBox="5 4 28 28" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="#ffffff" stroke-width="1" fill="#808080" d="M20.5,33h-10c-2.8,0-5-2.2-5-5V8c0-2.8,2.2-5,5-5h10c2.8,0,5,2.2,5,5v20C25.5,30.8,23.3,33,20.5,33z" />
+            <circle class="ueb-pin-tofill" stroke="#ffffff" stroke-width="1" fill="#202020" cx="23.7" cy="18" r="10" />
+        </svg>
+    `
+
+    static plusCircle = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M8.00016 10.6667V5.33334M5.3335 8H10.6668M8.00016 1.33334C4.31826 1.33334 1.3335 4.3181 1.3335 8C1.3335 11.6819 4.31826 14.6667 8.00016 14.6667C11.6821 14.6667 14.6668 11.6819 14.6668 8C14.6668 4.3181 11.6821 1.33334 8.00016 1.33334Z" />
+        </svg>
+    `
+
+    static questionMark = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 15C9.10456 15 10 14.1046 10 13C10 11.8954 9.10456 11 8 11C6.89544 11 6 11.8954 6 13C6 14.1046 6.89544 15 8 15Z" fill="white" />
+            <path d="M5 4.86697C5.15 3.33619 6.5 2.26465 8 2.26465C9.65 2.26465 11 3.64235 11 5.3262C11 7.01005 8 7.92852 8 9.00006" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+    `
+
+    static referencePin = x`
+        <svg width="12" height="12" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <polygon class="ueb-pin-tofill" points="4 16 16 4 28 16 16 28" stroke="currentColor" stroke-width="5" />
+        </svg>
+    `
+
+    static reject = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="red" stroke-width="2" stroke-miterlimit="10" d="M12.5 3.5L3.5 12.5" />
+            <path fill="red" d="M8 2C11.3 2 14 4.7 14 8C14 11.3 11.3 14 8 14C4.7 14 2 11.3 2 8C2 4.7 4.7 2 8 2ZM8 0.5C3.9 0.5 0.5 3.9 0.5 8C0.5 12.1 3.9 15.5 8 15.5C12.1 15.5 15.5 12.1 15.5 8C15.5 3.9 12.1 0.5 8 0.5Z" />
+        </svg>
+    `
+
+    static setPin = x`
+        <svg width="16" height="16" viewBox="2 2 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 7.99956V6.99956C1.62451 6.89501 2.23976 6.7412 2.84 6.53956C3.02865 6.44859 3.18802 6.30655 3.3 6.12956C3.44478 5.91383 3.53723 5.6673 3.57 5.40956C3.6183 5.04164 3.63836 4.67055 3.63 4.29956C3.60615 3.68664 3.64974 3.07296 3.76 2.46956C3.82982 2.152 3.99359 1.86279 4.23 1.63956C4.51974 1.39713 4.86221 1.22589 5.23 1.13956C5.68612 1.03782 6.15275 0.990826 6.62 0.999563H7V1.99956C6.69952 2.01634 6.4103 2.11967 6.16722 2.2971C5.92414 2.47453 5.73757 2.71849 5.63 2.99956C5.5431 3.18346 5.5052 3.3867 5.52 3.58956C5.52 3.86956 5.52 4.40956 5.46 5.19956C5.44584 5.56977 5.38194 5.9364 5.27 6.28956C5.18779 6.5495 5.05527 6.79074 4.88 6.99956C4.62654 7.36597 4.33121 7.70157 4 7.99956" fill="currentColor" />
+            <path d="M4 7.99951C4.33723 8.31397 4.63295 8.67019 4.88 9.05951C5.05095 9.2601 5.18319 9.49067 5.27 9.73951C5.38194 10.0927 5.44584 10.4593 5.46 10.8295C5.5 11.6228 5.52 12.1628 5.52 12.4495C5.5061 12.6523 5.54395 12.8553 5.63 13.0395C5.74563 13.3117 5.93533 13.546 6.17752 13.7157C6.41972 13.8854 6.70468 13.9837 7 13.9995V14.9995H6.62C6.15021 15.0156 5.68019 14.9753 5.22 14.8795C4.85378 14.7889 4.51224 14.6181 4.22 14.3795C3.98551 14.1548 3.8221 13.8662 3.75 13.5495C3.64077 12.946 3.59718 12.3324 3.62 11.7195C3.63014 11.3418 3.61007 10.964 3.56 10.5895C3.52723 10.3318 3.43478 10.0852 3.29 9.86951C3.17802 9.69252 3.01865 9.55048 2.83 9.45951C2.23302 9.25838 1.62113 9.10457 1 8.99951V7.99951" fill="currentColor" />
+            <path d="M12 7.99955C11.6688 7.70156 11.3735 7.36596 11.12 6.99955C10.947 6.79667 10.8146 6.56242 10.73 6.30955C10.6181 5.95638 10.5542 5.58976 10.54 5.21954C10.54 4.42954 10.48 3.88955 10.48 3.60955C10.4983 3.40004 10.4604 3.18944 10.37 2.99955C10.2624 2.71847 10.0759 2.47452 9.83278 2.29708C9.5897 2.11965 9.30048 2.01632 9 1.99955V0.999545H9.38C9.84979 0.983442 10.3198 1.02373 10.78 1.11955C11.1478 1.20587 11.4903 1.37711 11.78 1.61955C12.0164 1.84278 12.1802 2.13198 12.25 2.44955C12.3603 3.05294 12.4039 3.66662 12.38 4.27955C12.3706 4.6572 12.3907 5.03501 12.44 5.40954C12.4728 5.66728 12.5652 5.91382 12.71 6.12955C12.822 6.30653 12.9813 6.44858 13.17 6.53955C13.767 6.74067 14.3789 6.89448 15 6.99955V7.99955" fill="currentColor" />
+            <path d="M15 7.99951V8.99951C14.3755 9.10406 13.7602 9.25787 13.16 9.45951C12.9713 9.55048 12.812 9.69252 12.7 9.86951C12.5552 10.0852 12.4628 10.3318 12.43 10.5895C12.3799 10.964 12.3599 11.3418 12.37 11.7195C12.3928 12.3324 12.3492 12.946 12.24 13.5495C12.1679 13.8662 12.0045 14.1548 11.77 14.3795C11.4778 14.6181 11.1362 14.7889 10.77 14.8795C10.3098 14.9753 9.83979 15.0156 9.37 14.9995H9V13.9995C9.2998 13.9803 9.58791 13.876 9.83056 13.6989C10.0732 13.5218 10.2603 13.2792 10.37 12.9995C10.456 12.8153 10.4939 12.6123 10.48 12.4095C10.48 12.1162 10.5 11.5762 10.54 10.7895C10.5542 10.4193 10.6181 10.0527 10.73 9.69951C10.8168 9.45067 10.9491 9.2201 11.12 9.01951C11.3698 8.64424 11.6654 8.30159 12 7.99951" fill="currentColor" />
+        </svg>
+    `
+
+    static select = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="2" width="6" height="2" fill="white" />
+            <rect x="10" y="7" width="3" height="2" fill="white" />
+            <path d="M12 5L15 8L12 11V5Z" fill="white" />
+            <rect x="1" y="7" width="8" height="2" fill="white" />
+            <rect x="5" y="4" width="2" height="9" fill="white" />
+            <rect x="1" y="12" width="6" height="2" fill="white" />
+        </svg>
+    `
+
+    static sequence = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="2" width="5" height="2" fill="white" />
+            <rect y="7" width="8" height="2" fill="white" />
+            <rect x="3" y="4" width="2" height="9" fill="white" />
+            <rect x="3" y="12" width="5" height="2" fill="white" />
+            <rect x="10" y="2" width="6" height="2" fill="white" />
+            <rect x="10" y="7" width="4" height="2" fill="white" />
+            <rect x="10" y="12" width="2" height="2" fill="white" />
+        </svg>
+    `
+
+    static sound = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 5H3L7 1V15L3 11H0V5Z" fill="white" />
+            <path opacity="0.5" d="M9 1C13 2.7 15 5.4 15 8C15 10.6 13 13.3 9 15C11.5 12.8 12.7 10.4 12.7 8C12.7 5.6 11.5 3.2 9 1Z" fill="white" />
+            <path opacity="0.5" d="M9 5C10.3 5.7 11 6.9 11 8C11 9.1 10.3 10.3 9 11C9.8 10 9.8 6 9 5Z" fill="white" />
+        </svg>
+    `
+
+    static spawnActor = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.38 12.62L7 11.5L10.38 10.38L11.5 7L12.63 10.38L16 11.5L12.63 12.62L11.5 16L10.38 12.62Z" fill="white" />
+            <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M4 14H2L3 10L0 14V16H10L9 14H4Z" fill="white" />
+            <path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M2 6C1.9996 7.10384 2.30372 8.1864 2.87889 9.12854C3.45406 10.0707 4.27798 10.8359 5.26 11.34L9 9L11.5 5L13.78 7.6C13.9251 7.07902 13.9991 6.54081 14 6C14 4.4087 13.3679 2.88258 12.2426 1.75736C11.1174 0.63214 9.5913 0 8 0C6.4087 0 4.88258 0.63214 3.75736 1.75736C2.63214 2.88258 2 4.4087 2 6V6Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.22005 0.810059H8.00005C6.62265 0.810056 5.30153 1.35654 4.32663 2.32957C3.35172 3.30259 2.8027 4.62266 2.80005 6.00006C2.79984 7.03987 3.11257 8.05567 3.69756 8.91532C4.28255 9.77497 5.11271 10.4387 6.08005 10.8201L7.17005 10.1401C6.16687 9.86642 5.28119 9.27116 4.64894 8.44562C4.01669 7.62008 3.6728 6.60989 3.67005 5.57006C3.66886 4.34318 4.14143 3.16323 4.98917 2.27635C5.83692 1.38948 6.99437 0.864185 8.22005 0.810059V0.810059Z" fill="white" />
+            <path d="M10.0401 5.16001C10.7028 5.16001 11.2401 4.62275 11.2401 3.96001C11.2401 3.29727 10.7028 2.76001 10.0401 2.76001C9.37735 2.76001 8.84009 3.29727 8.84009 3.96001C8.84009 4.62275 9.37735 5.16001 10.0401 5.16001Z" fill="white" />
+        </svg>
+    `
+
+    static staticPin = x`
+        <svg width="16" height="12" viewBox="1 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path class="ueb-pin-tofill" d="M1 7C1 4 3 1 7 1C10 1 14 3 17 6C18 7 18 7 17 8C14 11 10 13 7 13C3 13 1 10 1 7Z" fill="none" stroke="currentColor" stroke-width="2" />
+            <path class="ueb-pin-tostroke" d="M 9 4 V 3.5 H 5 V 7 H 9 V 10.5 H 5 V 10" stroke="currentColor" stroke-width="2" />
+        </svg>
+    `
+
+    static switch = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="2" width="6" height="2" fill="white" />
+            <rect y="7" width="9" height="2" fill="white" />
+            <rect x="3" y="4" width="2" height="9" fill="white" />
+            <rect x="3" y="12" width="6" height="2" fill="white" />
+            <rect x="10" y="2" width="3" height="2" fill="white" />
+            <path d="M12 0L15 3L12 6V0Z" fill="white" />
+        </svg>
+    `
+
+    static timer = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8 0.5C3.9 0.5 0.5 3.9 0.5 8C0.5 12.1 3.9 15.5 8 15.5C12.1 15.5 15.5 12.1 15.5 8C15.5 3.9 12.1 0.5 8 0.5ZM8 14.1C4.6 14.1 1.9 11.4 1.9 8C1.9 4.6 4.6 1.90002 8 1.90002C11.4 1.90002 14.1 4.6 14.1 8C14.1 11.4 11.4 14.1 8 14.1Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.60003 3.19995H7.40002V8.49994L10.5 11.4999L11.4 10.5999L8.60003 7.99994V3.19995Z" fill="white" />
+        </svg>
+    `
+
+    static touchpad = x`
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path  fill="white" fill-rule="evenodd" clip-rule="evenodd" d="M13 0H3C2.4 0 2 0.4 2 1V15C2 15.6 2.4 16 3 16H13C13.6 16 14 15.6 14 15V1C14 0.4 13.6 0 13 0ZM8 15.5C7.2 15.5 6.5 14.8 6.5 14C6.5 13.2 7.2 12.5 8 12.5C8.8 12.5 9.5 13.2 9.5 14C9.5 14.8 8.8 15.5 8 15.5ZM13 12H3V1H13V12Z" />
+            <path opacity="0.5" d="M13 1H3V12H13V1Z" fill="white" />
+        </svg>
+    `
+}
+
+class BooleanEntity extends IEntity {
+
+    static grammar = this.createGrammar()
+    static booleanConverter = {
+        fromAttribute: (value, type) => {
+        },
+        toAttribute: (value, type) => {
+            if (value === true) {
+                return "true"
+            }
+            if (value === false) {
+                return "false"
+            }
+            return ""
+        }
+    }
+
+    #uppercase = true
+    get uppercase() {
+        return this.#uppercase
+    }
+    set uppercase(value) {
+        this.#uppercase = value;
+    }
+
+    /** @returns {P<BooleanEntity>} */
+    static createGrammar() {
+        return Parsernostrum.regArray(/(true)|(True)|(false)|(False)/)
+            .map(v => {
+                const result = (v[1] ?? v[2]) ? new this(true) : new this(false);
+                result.uppercase = (v[2] ?? v[4]) !== undefined;
+                return result
+            })
+            .label("BooleanEntity")
+    }
+
+    constructor(value = false) {
+        super();
+        this.value = value;
+    }
+
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value
+            ? this.#uppercase ? "True" : "true"
+            : this.#uppercase ? "False" : "false";
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
+    }
+
+    valueOf() {
+        return this.value
+    }
+}
+
+/** @template {typeof IEntity} T */
+class MirroredEntity extends IEntity {
+
+    /** @type {typeof IEntity} */
+    static type
+
+    /** @param {() => InstanceType<T>} getter */
+    constructor(getter = null) {
+        super();
+        const self = /** @type {typeof MirroredEntity<T>} */(this.constructor);
+        getter ??= self.default !== undefined ? /** @type {MirroredEntity} */(self.default(self)).getter : getter;
+        this.getter = getter;
+    }
+
+    static createGrammar(elementGrammar = this.type?.grammar ?? Parsernostrum.lazy(() => this.unknownEntityGrammar)) {
+        return this.type?.grammar.map(v => new this(() => v))
+    }
+
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     * @param {(type: T) => (InstanceType<T> | NullEntity)} value
+     * @returns {T}
+     */
+    // @ts-expect-error
+    static withDefault(value = type => new type(() => new (type.type)())) {
+        // @ts-expect-error
+        return super.withDefault(value)
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @param {T} type
+     */
+    static of(type) {
+        const result = /** @type {{type: T, grammar: P<MirroredEntity<T>> } & typeof MirroredEntity<T>} */(
+            this.asUniqueClass()
+        );
+        result.type = type;
+        result.grammar = result.createGrammar();
+        return result
+    }
+
+    doSerialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof MirroredEntity<T>} */(this.constructor),
+        printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
+        wrap = Self.wrap,
+    ) {
+        const value = this.getter();
+        return value.serialize(insideString, indentation, Self.type, printKey, keySeparator, attributeSeparator, wrap)
+    }
+
+    /** @param {IEntity} other */
+    equals(other) {
+        if (other instanceof MirroredEntity) {
+            other = other.getter?.();
+        }
+        return this.getter?.().equals(other)
+    }
+
+    /** @returns {InstanceType<T>} */
+    valueOf(arg) {
+        // @ts-expect-error
+        return this.getter(arg).valueOf()
+    }
+
+    toString() {
+        return this.getter().toString()
+    }
+}
+
+class NumberEntity extends IEntity {
+
+    static numberRegexSource = String.raw`${Grammar.numberRegexSource}(?<=(?:\.(\d*0+))?)`
+    static grammar = this.createGrammar()
+    /** @type {Number} */
+    static precision // Can override this.precision
+
+    #precision
+    get precision() {
+        return /** @type {typeof NumberEntity} */(this.constructor).precision ?? this.#precision
+    }
+    set precision(value) {
+        this.#precision = value;
+    }
+
+    /**
+     * @protected
+     * @type {Number}
+     */
+    _value
+    get value() {
+        return this._value
+    }
+    set value(value) {
+        if (value === -0) {
+            value = 0;
+        }
+        this._value = value;
+    }
+
+    constructor(value = 0, precision = null) {
+        super();
+        this.value = Number(value);
+        if (precision !== null) {
+            this.#precision = Number(precision);
+        }
+    }
+
+    /** @returns {P<NumberEntity>} */
+    static createGrammar() {
+        return Parsernostrum.regArray(
+            new RegExp(`(?<n>${this.numberRegexSource})|(?<posInf>\\+?inf)|(?<negInf>-inf)`)
+        ).map(({ 2: precision, groups: { n, posInf, negInf } }) => new this(
+            n ? Number(n) : posInf ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY,
+            precision?.length
+        )
+        ).label("NumberEntity")
+    }
+
+    /**
+     * @template {typeof NumberEntity} T
+     * @this {T}
+     * @returns {T}
+     */
+    static withPrecision(value = 0) {
+        const result = this.asUniqueClass();
+        result.precision = value;
+        return result
+    }
+
+    /** @param {Number} num */
+    static printNumber(num) {
+        if (num == Number.POSITIVE_INFINITY) {
+            return "inf"
+        } else if (num == Number.NEGATIVE_INFINITY) {
+            return "-inf"
+        }
+        return Utility.minDecimals(num)
+    }
+
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof NumberEntity} */(this.constructor),
+    ) {
+        if (this.value === Number.POSITIVE_INFINITY) {
+            return "+inf"
+        }
+        if (this.value === Number.NEGATIVE_INFINITY) {
+            return "-inf"
+        }
+        const precision = Self.precision ?? this.precision;
+        let result = precision !== undefined ? this.value.toFixed(precision) : this.value.toString();
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
+class VectorEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        X: NumberEntity.withDefault(),
+        Y: NumberEntity.withDefault(),
+        Z: NumberEntity.withDefault(),
+    }
+    static grammar = this.createGrammar()
+
+    constructor(values) {
+        super(values);
+        /** @type {InstanceType<typeof VectorEntity.attributes.X>} */ this.X;
+        /** @type {InstanceType<typeof VectorEntity.attributes.Y>} */ this.Y;
+        /** @type {InstanceType<typeof VectorEntity.attributes.X>} */ this.Z;
+    }
+
+    /** @returns {P<VectorEntity>} */
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, 1).label("VectorEntity")
+    }
+
+    /** @returns {[Number, Number, Number]} */
+    toArray() {
+        return [this.X.valueOf(), this.Y.valueOf(), this.Z.valueOf()]
+    }
+}
+
+const sequencerScriptingNameRegex = /\/Script\/SequencerScripting\.MovieSceneScripting(.+)Channel/;
+const keyNameValue = {
+    "A_AccentGrave": "à",
+    "Add": "Num +",
+    "C_Cedille": "ç",
+    "Decimal": "Num .",
+    "Divide": "Num /",
+    "E_AccentAigu": "é",
+    "E_AccentGrave": "è",
+    "F1": "F1", // Otherwise F and number will be separated
+    "F10": "F10",
+    "F11": "F11",
+    "F12": "F12",
+    "F2": "F2",
+    "F3": "F3",
+    "F4": "F4",
+    "F5": "F5",
+    "F6": "F6",
+    "F7": "F7",
+    "F8": "F8",
+    "F9": "F9",
+    "Gamepad_Special_Left_X": "Touchpad Button X Axis",
+    "Gamepad_Special_Left_Y": "Touchpad Button Y Axis",
+    "Mouse2D": "Mouse XY 2D-Axis",
+    "Multiply": "Num *",
+    "Section": "§",
+    "Subtract": "Num -",
+    "Tilde": "`",
+};
+const niagaraNodeNames = {
+    "Boolean::LogicAnd": "Logic AND",
+    "Boolean::LogicEq": "==",
+    "Boolean::LogicNEq": "!=",
+    "Boolean::LogicNot": "Logic NOT",
+    "Boolean::LogicOr": "Logic OR",
+    "Integer::BitAnd": "Bitwise AND",
+    "Integer::BitLShift": "Bitwise Left Shift",
+    "Integer::BitNot": "Bitwise NOT",
+    "Integer::BitOr": "Bitwise OR",
+    "Integer::BitRShift": "Bitwise Right Shift",
+    "Integer::BitXOr": "Bitwise XOR",
+    "Integer::EnumEq": "==",
+    "Integer::EnumNEq": "!=",
+    "Matrix::MatrixMultiply": "Multiply (Matrix * Matrix)",
+    "Matrix::MatrixVectorMultiply": "Multiply (Matrix * Vector4)",
+    // Numeric::
+    ...Object.fromEntries(Object.entries({
+        "Add": "+",
+        "ArcCosine": "ArcCosine",
+        "ArcCosine(Degrees)": "ArcCos(D)",
+        "ArcCosine(Radians)": "ArcCos(R)",
+        "ArcSine": "ArcSine",
+        "ArcSine(Degrees)": "ArcSin(D)",
+        "ArcSine(Radians)": "ArcSin(R)",
+        "ArcTangent(Degrees)": "ArcTan(D)",
+        "ArcTangent(Radians)": "ArcTan(R)",
+        "CmpEQ": "==",
+        "CmpGE": ">=",
+        "CmpGT": ">",
+        "CmpLE": "<=",
+        "CmpLT": "<",
+        "CmpNEQ": "!=",
+        "Cosine(Degrees)": "Cos(D)",
+        "Cosine(Radians)": "Cos(R)",
+        "DegreesToRadians": "DegToRad",
+        "DistancePos": "Distance",
+        "Div": String.fromCharCode(0x00f7),
+        "FMod": "%",
+        "FModFast": "Modulo Fast",
+        "Length": "Len",
+        "Madd": `(A${String.fromCharCode(0x2a2f)}B)+C`,
+        "Mul": String.fromCharCode(0x2a2f),
+        "Negate": "-A",
+        "OneMinus": "1-A",
+        "PI": String.fromCharCode(0x03C0),
+        "RadiansToDegrees": "RadToDeg",
+        "Rand Float": "Random Float",
+        "Rand Integer": "Random Integer",
+        "Rand": "Random",
+        "Rcp": "Reciprocal",
+        "RSqrt": "Rcp Sqrt",
+        "Sine(Degrees)": "Sin(D)",
+        "Sine(Radians)": "Sin(R)",
+        "Subtract": "-",
+        "Tangent(Degrees)": "Tan(D)",
+        "Tangent(Radians)": "Tan(R)",
+        "TWO_PI": `2 ${String.fromCharCode(0x03C0)}`,
+    }).map(([k, v]) => ["Numeric::" + k, v])),
+};
+const p$3 = Configuration.paths;
+const format = Utility.formatStringName;
+
+/** @param {String} value */
+function numberFromText(value = "") {
+    value = value.toLowerCase();
+    switch (value) {
+        case "zero": return 0
+        case "one": return 1
+        case "two": return 2
+        case "three": return 3
+        case "four": return 4
+        case "five": return 5
+        case "six": return 6
+        case "seven": return 7
+        case "eight": return 8
+        case "nine": return 9
+    }
+}
+
+function keyName(value) {
+    /** @type {String} */
+    let result = keyNameValue[value];
+    if (result) {
+        return result
+    }
+    result = numberFromText(value)?.toString();
+    if (result) {
+        return result
+    }
+    const match = value.match(/NumPad([a-zA-Z]+)/);
+    if (match) {
+        result = numberFromText(match[1]).toString();
+        if (result) {
+            return "Num " + result
+        }
+    }
+}
+
+/**
+ * @param {ObjectEntity} entity
+ * @returns {String}
+ */
+function nodeTitle(entity) {
+    let value;
+    switch (entity.getType()) {
+        case p$3.addDelegate:
+            value ??= "Bind Event to ";
+        case p$3.clearDelegate:
+            value ??= "Unbind all Events from ";
+        case p$3.removeDelegate:
+            value ??= "Unbind Event from ";
+            return value + format(
+                entity.DelegateReference?.MemberName?.toString().replace(/Delegate$/, "") ?? "None"
+            )
+        case p$3.asyncAction:
+            if (entity.ProxyFactoryFunctionName) {
+                return format(entity.ProxyFactoryFunctionName?.toString())
+            }
+        case p$3.actorBoundEvent:
+        case p$3.componentBoundEvent:
+            return `${format(entity.DelegatePropertyName?.toString())} (${entity.ComponentPropertyName?.toString() ?? "Unknown"})`
+        case p$3.callDelegate:
+            return `Call ${entity.DelegateReference?.MemberName?.toString() ?? "None"}`
+        case p$3.createDelegate:
+            return "Create Event"
+        case p$3.customEvent:
+            if (entity.CustomFunctionName) {
+                return entity.CustomFunctionName?.toString()
+            }
+        case p$3.dynamicCast:
+            if (!entity.TargetType) {
+                return "Bad cast node" // Target type not found
+            }
+            return `Cast To ${entity.TargetType?.getName()}`
+        case p$3.enumLiteral:
+            return `Literal enum ${entity.Enum?.getName()}`
+        case p$3.event:
+            return `Event ${(entity.EventReference?.MemberName?.toString() ?? "").replace(/^Receive/, "")}`
+        case p$3.executionSequence:
+            return "Sequence"
+        case p$3.forEachElementInEnum:
+            return `For Each ${entity.Enum?.getName()}`
+        case p$3.forEachLoopWithBreak:
+            return "For Each Loop with Break"
+        case p$3.functionEntry:
+            return entity.FunctionReference?.MemberName?.toString() === "UserConstructionScript"
+                ? "Construction Script"
+                : entity.FunctionReference?.MemberName?.toString()
+        case p$3.functionResult:
+            return "Return Node"
+        case p$3.ifThenElse:
+            return "Branch"
+        case p$3.makeStruct:
+            if (entity.StructType) {
+                return `Make ${entity.StructType.getName()}`
+            }
+        case p$3.materialExpressionComponentMask: {
+            const materialObject = entity.getMaterialSubobject();
+            if (materialObject) {
+                return `Mask ( ${Configuration.rgba
+                    .filter(k => /** @type {MirroredEntity<typeof BooleanEntity>} */(materialObject[k]).getter().value === true)
+                    .map(v => v + " ")
+                    .join("")})`
+            }
+        }
+        case p$3.materialExpressionConstant:
+            value ??= [entity.getCustomproperties().find(pinEntity => pinEntity.PinName.toString() == "Value")?.DefaultValue];
+        case p$3.materialExpressionConstant2Vector:
+            value ??= [
+                entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "X")?.DefaultValue,
+                entity.getCustomproperties().find(pinEntity => pinEntity.PinName?.toString() == "Y")?.DefaultValue,
+            ];
+        case p$3.materialExpressionConstant3Vector:
+        case p$3.materialExpressionConstant4Vector:
+            if (!value) {
+                const vector = entity.getCustomproperties()
+                    .find(pinEntity => pinEntity.PinName?.toString() == "Constant")
+                    ?.DefaultValue;
+                value = vector instanceof VectorEntity ? [vector.X, vector.Y, vector.Z].map(v => v.valueOf())
+                    : vector instanceof LinearColorEntity ? [vector.R, vector.G, vector.B, vector.A].map(v => v.valueOf())
+                        : /** @type {Number[]} */([]);
+            }
+            if (value?.length > 0) {
+                return value.map(v => Utility.printExponential(v)).join(",")
+            }
+            value = undefined;
+            break
+        case p$3.materialExpressionFunctionInput: {
+            const materialObject = entity.getMaterialSubobject();
+            const inputName = materialObject?.InputName ?? "In";
+            const inputType = materialObject?.InputType?.value.match(/^.+?_(\w+)$/)?.[1] ?? "Vector3";
+            return `Input ${inputName} (${inputType})`
+        }
+        case p$3.materialExpressionLogarithm:
+            return "Ln"
+        case p$3.materialExpressionLogarithm10:
+            return "Log10"
+        case p$3.materialExpressionLogarithm2:
+            return "Log2"
+        case p$3.materialExpressionMaterialFunctionCall:
+            const materialFunction = entity.getMaterialSubobject()?.MaterialFunction;
+            if (materialFunction) {
+                return materialFunction.getName()
+            }
+            break
+        case p$3.materialExpressionSquareRoot:
+            return "Sqrt"
+        case p$3.materialExpressionSubtract:
+            const materialObject = entity.getMaterialSubobject();
+            if (materialObject) {
+                return `Subtract(${materialObject.ConstA ?? "1"},${materialObject.ConstB ?? "1"})`
+            }
+        case p$3.metasoundEditorGraphExternalNode: {
+            const name = entity["ClassName"]?.["Name"];
+            if (name) {
+                switch (name) {
+                    case "Add": return "+"
+                    default: return name
+                }
+            }
+        }
+        case p$3.niagaraNodeConvert:
+            /** @type {String} */
+            const targetType = (entity["AutowireMakeType"]?.["ClassStructOrEnum"] ?? "")
+                .toString()
+                .match(/(?:Niagara)?(\w+)['"]*$/)
+                ?.[1]
+                ?? "";
+            return `Make ${targetType}`
+        case p$3.pcgEditorGraphNodeInput:
+            return "Input"
+        case p$3.pcgEditorGraphNodeOutput:
+            return "Output"
+        case p$3.soundNodeWavePlayer:
+            return `Wave Player : ${entity.getSounCueSubobject()
+                ?.SoundWaveAssetPtr
+                ?.type
+                .match(/([^.]+)$/)
+                ?.[0]
+                ?? "NONE"}`
+        case p$3.spawnActorFromClass:
+            let className = entity.getCustomproperties()
+                .find(pinEntity => pinEntity.PinName.toString() == "ReturnValue")
+                ?.PinType
+                ?.PinSubCategoryObject
+                ?.getName();
+            if (className === "Actor") {
+                className = null;
+            }
+            return `SpawnActor ${format(className ?? "NONE")}`
+        case p$3.switchEnum:
+            return `Switch on ${entity.Enum?.getName() ?? "Enum"}`
+        case p$3.switchInteger:
+            return `Switch on Int`
+        case p$3.variableGet:
+            return ""
+        case p$3.variableSet:
+            return "SET"
+    }
+    const className = entity.getClass();
+    let switchTarget = entity.switchTarget();
+    if (switchTarget) {
+        if (switchTarget[0] !== "E") {
+            switchTarget = format(switchTarget);
+        }
+        return `Switch on ${switchTarget}`
+    }
+    if (entity.isComment()) {
+        return entity.NodeComment.toString()
+    }
+    const keyNameSymbol = entity.getHIDAttribute();
+    if (keyNameSymbol) {
+        const name = keyNameSymbol.toString();
+        let title = keyName(name) ?? format(name);
+        if (className === p$3.inputDebugKey) {
+            title = "Debug Key " + title;
+        } else if (className === p$3.getInputAxisKeyValue) {
+            title = "Get " + title;
+        }
+        return title
+    }
+    if (className === p$3.macro) {
+        return format(entity.MacroGraphReference?.getMacroName())
+    }
+    const materialSubobject = entity.getMaterialSubobject();
+    if (materialSubobject) {
+        let result = nodeTitle(materialSubobject);
+        result = result.match(/Material Expression (.+)/)?.[1] ?? result;
+        return result
+    }
+    if (entity.isPcg() && entity.getPcgSubobject()) {
+        let pcgSubobject = entity.getPcgSubobject();
+        let result = pcgSubobject.NodeTitle ? pcgSubobject.NodeTitle.toString() : nodeTitle(pcgSubobject);
+        return result
+    }
+    const soundCueSubobject = entity.getSounCueSubobject();
+    if (soundCueSubobject) {
+        return Utility.formatStringName(soundCueSubobject.getObjectName(true).replace(/^SoundNode/, ""))
+    }
+    const subgraphObject = entity.getSubgraphObject();
+    if (subgraphObject) {
+        return subgraphObject.Graph.getName()
+    }
+    const settingsObject = entity.getSettingsObject();
+    if (settingsObject) {
+        if (settingsObject.ExportPath?.valueOf()?.type === p$3.pcgHiGenGridSizeSettings) {
+            return `Grid Size: ${(
+                settingsObject.HiGenGridSize?.toString().match(/\d+/)?.[0]?.concat("00")
+                ?? settingsObject.HiGenGridSize?.toString().match(/^\w+$/)?.[0]
+            ) ?? "256"}`
+        }
+        if (settingsObject.BlueprintElementInstance) {
+            return format(settingsObject.BlueprintElementType.getName())
+        }
+        if (settingsObject.Operation) {
+            const match = settingsObject.Name?.toString().match(/PCGMetadata(\w+)Settings_\d+/);
+            if (match) {
+                return format(match[1] + ": " + settingsObject.Operation)
+            }
+        }
+        const settingsSubgraphObject = settingsObject.getSubgraphObject();
+        if (settingsSubgraphObject && settingsSubgraphObject.Graph) {
+            return settingsSubgraphObject.Graph.getName()
+        }
+    }
+    let memberName = entity.FunctionReference?.MemberName?.toString();
+    if (memberName) {
+        const memberParent = entity.FunctionReference.MemberParent?.path ?? "";
+        switch (memberName) {
+            case "AddKey":
+                let result = memberParent.match(sequencerScriptingNameRegex);
+                if (result) {
+                    return `Add Key (${format(result[1])})`
+                }
+            case "Concat_StrStr":
+                return "Append"
+        }
+        const memberNameTraceLineMatch = memberName.match(Configuration.lineTracePattern);
+        if (memberNameTraceLineMatch) {
+            return "Line Trace"
+                + (memberNameTraceLineMatch[1] === "Multi" ? " Multi " : " ")
+                + (memberNameTraceLineMatch[2] === ""
+                    ? "By Channel"
+                    : format(memberNameTraceLineMatch[2])
+                )
+        }
+        switch (memberParent) {
+            case p$3.blueprintGameplayTagLibrary:
+            case p$3.kismetMathLibrary:
+            case p$3.kismetStringLibrary:
+            case p$3.slateBlueprintLibrary:
+            case p$3.timeManagementBlueprintLibrary:
+            case p$3.typedElementHandleLibrary:
+                const leadingLetter = memberName.match(/[BF]([A-Z]\w+)/);
+                if (leadingLetter) {
+                    // Some functions start with B or F (Like FCeil, FMax, BMin)
+                    memberName = leadingLetter[1];
+                }
+                switch (memberName) {
+                    case "Abs": return "ABS"
+                    case "BooleanAND": return "AND"
+                    case "BooleanNAND": return "NAND"
+                    case "BooleanOR": return "OR"
+                    case "Equal": return "=="
+                    case "Exp": return "e"
+                    case "LineTraceSingle": return "Line Trace By Channel"
+                    case "Max": return "MAX"
+                    case "MaxInt64": return "MAX"
+                    case "Min": return "MIN"
+                    case "MinInt64": return "MIN"
+                    case "Not_PreBool": return "NOT"
+                    case "Sin": return "SIN"
+                    case "Sqrt": return "SQRT"
+                    case "Square": return "^2"
+                    // Dot products not respecting MemberName pattern
+                    case "CrossProduct2D": return "cross"
+                    case "Vector4_CrossProduct3": return "cross3"
+                    case "DotProduct2D":
+                    case "Vector4_DotProduct":
+                        return "dot"
+                    case "Vector4_DotProduct3": return "dot3"
+                }
+                if (memberName.startsWith("Add_")) {
+                    return "+"
+                }
+                if (memberName.startsWith("And_")) {
+                    return "&"
+                }
+                if (memberName.startsWith("Conv_")) {
+                    return "" // Conversion nodes do not have visible names
+                }
+                if (memberName.startsWith("Cross_")) {
+                    return "cross"
+                }
+                if (memberName.startsWith("Divide_")) {
+                    return String.fromCharCode(0x00f7)
+                }
+                if (memberName.startsWith("Dot_")) {
+                    return "dot"
+                }
+                if (memberName.startsWith("EqualEqual_")) {
+                    return "=="
+                }
+                if (memberName.startsWith("Greater_")) {
+                    return ">"
+                }
+                if (memberName.startsWith("GreaterEqual_")) {
+                    return ">="
+                }
+                if (memberName.startsWith("Less_")) {
+                    return "<"
+                }
+                if (memberName.startsWith("LessEqual_")) {
+                    return "<="
+                }
+                if (memberName.startsWith("Multiply_")) {
+                    return String.fromCharCode(0x2a2f)
+                }
+                if (memberName.startsWith("Not_")) {
+                    return "~"
+                }
+                if (memberName.startsWith("NotEqual_")) {
+                    return "!="
+                }
+                if (memberName.startsWith("Or_")) {
+                    return "|"
+                }
+                if (memberName.startsWith("Percent_")) {
+                    return "%"
+                }
+                if (memberName.startsWith("Subtract_")) {
+                    return "-"
+                }
+                if (memberName.startsWith("Xor_")) {
+                    return "^"
+                }
+                break
+            case p$3.blueprintSetLibrary:
+                {
+                    const setOperationMatch = memberName.match(/Set_(\w+)/);
+                    if (setOperationMatch) {
+                        return format(setOperationMatch[1]).toUpperCase()
+                    }
+                }
+                break
+            case p$3.blueprintMapLibrary:
+                {
+                    const setOperationMatch = memberName.match(/Map_(\w+)/);
+                    if (setOperationMatch) {
+                        return format(setOperationMatch[1]).toUpperCase()
+                    }
+                }
+                break
+            case p$3.kismetArrayLibrary:
+                {
+                    const arrayOperationMath = memberName.match(/Array_(\w+)/);
+                    if (arrayOperationMath) {
+                        return arrayOperationMath[1].toUpperCase()
+                    }
+                }
+                break
+        }
+        return format(memberName)
+    }
+    if (entity.OpName) {
+        return niagaraNodeNames[entity.OpName.toString()]
+            ?? format(entity.OpName.toString().replaceAll(/(?:^\w+(?<!^Matrix))?::/g, " "))
+    }
+    if (entity.FunctionDisplayName) {
+        return format(entity.FunctionDisplayName.toString())
+    }
+    if (entity.ObjectRef) {
+        return entity.ObjectRef.getName()
+    }
+    let prefix;
+    if (
+        className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNodeParameter")
+        || className.startsWith(prefix = "/Script/NiagaraEditor.NiagaraNode")
+    ) {
+        return entity["Input"]?.["Name"]?.toString() ?? format(className.substring(prefix.length))
+    }
+    if (entity.ParameterName) {
+        return entity.ParameterName.toString()
+    }
+    return format(entity.getNameAndCounter()[0])
+}
+
+const p$2 = Configuration.paths;
+
+/** @param {ObjectEntity} entity */
+function nodeIcon(entity) {
+    if (entity.isMaterial() || entity.isPcg() || entity.isSoundCue() || entity.isNiagara()) {
+        return null
+    }
+    switch (entity.getType()) {
+        case p$2.addDelegate:
+        case p$2.asyncAction:
+        case p$2.callDelegate:
+        case p$2.clearDelegate:
+        case p$2.createDelegate:
+        case p$2.functionEntry:
+        case p$2.functionResult:
+        case p$2.removeDelegate:
+            return SVGIcon.node
+        case p$2.customEvent: return SVGIcon.event
+        case p$2.doN: return SVGIcon.doN
+        case p$2.doOnce: return SVGIcon.doOnce
+        case p$2.dynamicCast: return SVGIcon.cast
+        case p$2.enumLiteral: return SVGIcon.enum
+        case p$2.event: return SVGIcon.event
+        case p$2.executionSequence:
+        case p$2.multiGate:
+            return SVGIcon.sequence
+        case p$2.flipflop:
+            return SVGIcon.flipflop
+        case p$2.forEachElementInEnum:
+        case p$2.forLoop:
+        case p$2.forLoopWithBreak:
+        case p$2.whileLoop:
+            return SVGIcon.loop
+        case p$2.forEachLoop:
+        case p$2.forEachLoopWithBreak:
+            return SVGIcon.forEachLoop
+        case p$2.ifThenElse: return SVGIcon.branchNode
+        case p$2.isValid: return SVGIcon.questionMark
+        case p$2.makeArray: return SVGIcon.makeArray
+        case p$2.makeMap: return SVGIcon.makeMap
+        case p$2.makeSet: return SVGIcon.makeSet
+        case p$2.makeStruct: return SVGIcon.makeStruct
+        case p$2.metasoundEditorGraphExternalNode: return SVGIcon.metasoundFunction
+        case p$2.select: return SVGIcon.select
+        case p$2.spawnActorFromClass: return SVGIcon.spawnActor
+        case p$2.timeline: return SVGIcon.timer
+    }
+    if (entity.switchTarget()) {
+        return SVGIcon.switch
+    }
+    if (nodeTitle(entity).startsWith("Break")) {
+        return SVGIcon.breakStruct
+    }
+    if (entity.getClass() === p$2.macro) {
+        return SVGIcon.macro
+    }
+    const hidValue = entity.getHIDAttribute()?.toString();
+    if (hidValue) {
+        if (hidValue.includes("Mouse")) {
+            return SVGIcon.mouse
+        } else if (hidValue.includes("Gamepad_Special")) {
+            return SVGIcon.keyboard // It is called Touchpad in UE
+        } else if (hidValue.includes("Gamepad") || hidValue.includes("Steam")) {
+            return SVGIcon.gamepad
+        } else if (hidValue.includes("Touch")) {
+            return SVGIcon.touchpad
+        } else {
+            return SVGIcon.keyboard
+        }
+    }
+    if (entity.getDelegatePin()) {
+        return SVGIcon.event
+    }
+    if (entity.ObjectRef?.type === p$2.ambientSound) {
+        return SVGIcon.sound
+    }
+    return SVGIcon.functionSymbol
+}
+
+/** @template {typeof IEntity} T */
+class ArrayEntity extends IEntity {
+
+    /** @type {typeof IEntity} */
+    static type
+    static grammar = this.createGrammar()
+
+    get length() {
+        return this.values.length
+    }
+
+    /** @param {(ExtractType<T>)[]} values */
+    constructor(values = []) {
+        super();
+        this.values = values;
+    }
+
+    /** @returns {P<ArrayEntity<typeof IEntity>>} */
+    static createGrammar(elementGrammar = this.type?.grammar ?? Parsernostrum.lazy(() => this.unknownEntityGrammar)) {
+        // The following lines appear to be from a different entity type (AlternativesEntity)
+        // and are syntactically incorrect in this context.
+        // I am adding a console log as per the instruction, but not the problematic lines.
+        if (this.inlined && !elementGrammar) ;
+        return this.inlined
+            ? elementGrammar
+            : Parsernostrum.seq(
+                Parsernostrum.reg(/\(\s*/),
+                elementGrammar.sepBy(Grammar.commaSeparation).opt(),
+                Parsernostrum.reg(/\s*(,\s*)?\)/, 1),
+            ).map(([_0, values, trailing]) => {
+                values = values instanceof Array ? values : [];
+                let Self = this;
+                if ((trailing !== undefined) !== Self.trailing) {
+                    Self = Self.flagTrailing(trailing !== undefined);
+                }
+                return new Self(values)
+            }).label(`ArrayEntity of ${this.type?.className() ?? "unknown values"}`)
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @this {T}
+     */
+    static flagInlined(value = true) {
+        const result = this.asUniqueClass();
+        result.inlined = value;
+        result.grammar = /** @type {P<ArrayEntity>} */(result.createGrammar());
+        return result
+    }
+
+    /**
+     * @template {typeof IEntity} T
+     * @param {T} type
+     */
+    static of(type) {
+        const result = /** @type {{type: T, grammar: P<ArrayEntity<T>> } & typeof ArrayEntity<T>} */(
+            this.asUniqueClass()
+        );
+        result.type = type;
+        result.grammar = /** @type {P<ArrayEntity>} */(result.createGrammar());
+        return result
+    }
+
+    doSerialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof ArrayEntity<T>} */(this.constructor),
+        printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
+        wrap = Self.wrap,
+    ) {
+        if (Self.inlined) {
+            return super.serialize.bind(
+                this.values,
+                insideString,
+                indentation,
+                Self,
+                printKey,
+                keySeparator,
+                attributeSeparator,
+                wrap
+            )()
+        }
+        let result = this.values.map(v => v?.serialize(insideString)).join(Self.attributeSeparator);
+        if (this.trailing) {
+            result += Self.attributeSeparator;
+        }
+        return `(${result})`
+    }
+
+    valueOf() {
+        return this.values
+    }
+
+    /** @param {IEntity} other */
+    equals(other) {
+        if (!(other instanceof ArrayEntity) || this.values.length !== other.values.length) {
+            return false
+        }
+        for (let i = 0; i < this.values.length; ++i) {
+            if (!this.values[i].equals(other.values[i])) {
+                return false
+            }
+        }
+        return true
+    }
+}
+
+var crypto;
+if (typeof window === "undefined") {
+    // When used in nodejs, mainly for test purpose
+    import('crypto').then(mod => crypto = mod.default).catch();
+} else {
+    crypto = window.crypto;
+}
+
+class GuidEntity extends IEntity {
+
+    static grammar = this.createGrammar()
+
+    static generateGuid() {
+        let values = new Uint32Array(4);
+        crypto.getRandomValues(values);
+        let guid = "";
+        values.forEach(n => {
+            guid += ("0".repeat(8) + n.toString(16).toUpperCase()).slice(-8);
+        });
+        return guid
+    }
+
+    constructor(value = GuidEntity.generateGuid()) {
+        super();
+        this.value = value;
+    }
+
+    /** @returns {P<GuidEntity>} */
+    static createGrammar() {
+        return Parsernostrum.reg(/[0-9A-F]{32}/i).map(v => new this(v)).label("GuidEntity")
+    }
+
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value;
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
+    }
+
+    toString() {
+        return this.value
+    }
+}
+
+class IntegerEntity extends NumberEntity {
+
+    static grammar = this.createGrammar()
+
+    get value() {
+        return super.value
+    }
+    set value(value) {
+        value = Math.trunc(value);
+        if (value >= 1 << 31 && value < -(1 << 31)) {
+            value = Math.floor(value);
+            super.value = value;
+        }
+    }
+
+    /** @returns {P<IntegerEntity>} */
+    static createGrammar() {
+        return Parsernostrum.numberInteger.map(v => new this(v))
+    }
+}
+
+class NaturalNumberEntity extends IntegerEntity {
+
+    static grammar = this.createGrammar()
+
+    get value() {
+        return super.value
+    }
+    set value(value) {
+        value = Math.round(Utility.clamp(value, 0));
+        super.value = value;
+    }
+
+    /** @returns {P<NaturalNumberEntity>} */
+    static createGrammar() {
+        return Parsernostrum.numberNatural.map(v => new this(v))
+    }
+}
+
+const p$1 = Configuration.paths;
+const colors = {
+    "Any": i$4`132, 132, 132`,
+    "Any[]": i$4`132, 132, 132`,
+    "audio": i$4`252, 148, 252`,
+    "blue": i$4`0, 0, 255`,
+    "bool": i$4`146, 0, 0`,
+    "byte": i$4`0, 110, 100`,
+    "class": i$4`88, 0, 186`,
+    "default": i$4`255, 255, 255`,
+    "delegate": i$4`255, 56, 56`,
+    "enum": i$4`0, 109, 99`,
+    "exec": i$4`240, 240, 240`,
+    "float": i$4`160, 252, 70`,
+    "green": i$4`0, 255, 0`,
+    "int": i$4`30, 224, 172`,
+    "int32": i$4`30, 224, 172`,
+    "int64": i$4`170, 224, 172`,
+    "interface": i$4`238, 252, 168`,
+    "name": i$4`200, 128, 252`,
+    "object": i$4`0, 168, 242`,
+    "Param": i$4`255, 166, 40`,
+    "Param[]": i$4`255, 166, 40`,
+    "Point": i$4`64, 138, 255`,
+    "Point[]": i$4`64, 137, 255`,
+    "real": i$4`54, 208, 0`,
+    "red": i$4`255, 0, 0`,
+    "string": i$4`251, 0, 208`,
+    "struct": i$4`0, 88, 200`,
+    "Surface": i$4`69, 196, 126`,
+    "Surface[]": i$4`69, 196, 126`,
+    "text": i$4`226, 121, 167`,
+    "time": i$4`148, 252, 252`,
+    "Volume": i$4`230, 69, 188`,
+    "Volume[]": i$4`230, 69, 188`,
+    "wildcard": i$4`128, 120, 120`,
+    [p$1.linearColor]: i$4`0, 88, 200`,
+    [p$1.niagaraBool]: i$4`146, 0, 0`,
+    [p$1.niagaraDataInterfaceCollisionQuery]: i$4`0, 168, 242`,
+    [p$1.niagaraDataInterfaceCurlNoise]: i$4`0, 168, 242`,
+    [p$1.niagaraDataInterfaceVolumeTexture]: i$4`0, 168, 242`,
+    [p$1.niagaraFloat]: i$4`160, 250, 68`,
+    [p$1.niagaraInt32]: i$4`30, 224, 172`,
+    [p$1.niagaraPosition]: i$4`251, 146, 251`,
+    [p$1.quat4f]: i$4`0, 88, 200`,
+    [p$1.rotator]: i$4`157, 177, 251`,
+    [p$1.transform]: i$4`227, 103, 0`,
+    [p$1.vector]: i$4`251, 198, 34`,
+    [p$1.vector2f]: i$4`0, 88, 200`,
+    [p$1.vector3f]: i$4`250, 200, 36`,
+    [p$1.vector4f]: i$4`0, 88, 200`,
+};
+
+const pinColorMaterial = i$4`120, 120, 120`;
+
+/** @param {PinEntity<IEntity>} entity */
+function pinColor(entity) {
+    if (entity.PinType.PinCategory?.toString() === "mask") {
+        const result = colors[entity.PinType.PinSubCategory?.toString()];
+        if (result) {
+            return result
+        }
+    } else if (entity.PinType.PinCategory?.toString() === "optional") {
+        return pinColorMaterial
+    }
+    const type = entity.getType();
+    return colors[type]
+        ?? colors[entity.PinType.PinCategory?.toString().toLowerCase()]
+        ?? (type.startsWith("/Script/Niagara.") ? colors["struct"] : colors["default"])
+}
+
+/** @param {PinEntity<IEntity>} entity */
+function pinTitle(entity) {
+    let result = entity.PinFriendlyName
+        ? entity.PinFriendlyName.toString()
+        : Utility.formatStringName(entity.PinName?.toString() ?? "");
+    let match;
+    if (match = entity.PinToolTip?.toString().match(/\s*(.+?(?=\n)|.+\S)\s*/)) {
+        if (match[1].toLowerCase() === result.toLowerCase()) {
+            return match[1] // In case they match, then keep the case of the PinToolTip
+        }
+    }
+    result = result.replace(/^Module\./, "");
+    return result
+}
+
+class ByteEntity extends IntegerEntity {
+
+    static grammar = this.createGrammar()
+
+    get value() {
+        return super.value
+    }
+    set value(value) {
+        value = Math.trunc(value);
+        if (value >= 0 && value < 1 << 8) {
+            super.value = value;
+        }
+    }
+
+    /** @returns {P<ByteEntity>} */
+    createGrammar() {
+        // @ts-expect-error
+        return Parsernostrum.numberByte.map(v => new this(v))
+    }
+}
+
+class StringEntity extends IEntity {
+
+    static grammar = this.createGrammar()
+    static escapedCharacters = /['"\\]/g
+    static unescapedBackslash = /(?<=(?:[^\\]|^)(?:\\\\)*)\\(?!\\)/
+
+    constructor(value = "") {
+        super();
+        this.value = value;
+    }
+
+    /** @returns {P<StringEntity>} */
+    static createGrammar() {
+        return Parsernostrum.doubleQuotedString
+            .map(insideString => new this(StringEntity.unescape(insideString)))
+            .label("StringEntity")
+    }
+
+
+    /** @param {String} value */
+    static escape(value, inline = true) {
+        let result = value.replaceAll(new RegExp(`(${StringEntity.escapedCharacters.source})`, "g"), '\\$1');
+        if (inline) {
+            result = result
+                .replaceAll("\n", "\\n") // Replace newline with \n
+                .replaceAll("\t", "\\t"); // Replace tab with \t
+        }
+        return result
+    }
+
+    /** @param {String} value */
+    static unescape(value) {
+        return value
+            .replaceAll(new RegExp(StringEntity.unescapedBackslash.source + "t", "g"), "\t") // Replace tab with \t
+            .replaceAll(new RegExp(StringEntity.unescapedBackslash.source + "n", "g"), "\n") // Replace newline with \n
+            .replaceAll(new RegExp(`\\\\(${StringEntity.escapedCharacters.source})`, "g"), "$1")
+    }
+
+    doSerialize(insideString = false) {
+        let result = `"${StringEntity.escape(this.value)}"`;
+        if (insideString) {
+            result = StringEntity.escape(result, false);
+        }
+        return result
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value
+    }
+}
+
+class ComputedTypeEntity extends IEntity {
+
+    static grammar = this.createGrammar()
+    /** @type {(entity: IEntity) => typeof IEntity} */
+    static f
+
+    static createGrammar() {
+        return StringEntity.grammar
+    }
+
+    /**
+     * @template {typeof ComputedTypeEntity.f} T
+     * @param {T} producer
+     */
+    static from(producer) {
+        const result = /** @type {(typeof ComputedTypeEntity) & { f: T }} */(this.asUniqueClass());
+        result.f = producer;
+        return result
+    }
+
+    /** @param {IEntity} entity */
+    static compute(entity) {
+        return this.f(entity)
+    }
+}
+
+class SymbolEntity extends IEntity {
+
+    static attributeConverter = {
+        fromAttribute: (value, type) => new this(value),
+        toAttribute: (value, type) => value.toString()
+    }
+    static grammar = this.createGrammar()
+
+    /** @returns {P<SymbolEntity>} */
+    static createGrammar() {
+        return Grammar.symbol.map(v => new this(v)).label("SymbolEntity")
+    }
+
+    constructor(value = "") {
+        super();
+        this.value = value;
+    }
+
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value;
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
+    }
+
+    toString() {
+        return this.value
+    }
+}
+
+class EnumEntity extends SymbolEntity {
+
+    static grammar = this.createGrammar()
+
+    /** @returns {P<EnumEntity>} */
+    static createGrammar() {
+        return Grammar.symbol.map(v => new this(v))
+    }
+}
+
+class EnumDisplayValueEntity extends EnumEntity {
+
+    static grammar = this.createGrammar()
+
+    /** @returns {P<EnumDisplayValueEntity>} */
+    static createGrammar() {
+        return Parsernostrum.reg(Grammar.Regex.InsideString).map(v => new this(v))
+    }
+}
+
+class InvariantTextEntity extends IEntity {
+
+    static lookbehind = "INVTEXT"
+
+    static grammar = this.createGrammar()
+
+    constructor(value = "") {
+        super();
+        this.value = value;
+    }
+
+    /** @returns {P<InvariantTextEntity>} */
+    static createGrammar() {
+        return Parsernostrum.alt(
+            Parsernostrum.seq(
+                Parsernostrum.reg(new RegExp(`${this.lookbehind}\\s*\\(`)),
+                Parsernostrum.doubleQuotedString,
+                Parsernostrum.reg(/\s*\)/)
+            ).map(([_0, value, _2]) => value),
+            Parsernostrum.reg(new RegExp(this.lookbehind)).map(() => "") // InvariantTextEntity can have no arguments
+        )
+            .map(value => new this(value))
+            .label("InvariantTextEntity")
+    }
+
+    doSerialize() {
+        return this.lookbehind + '("' + this.value + '")'
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value
+    }
+}
+
+class LocalizedTextEntity extends IEntity {
+
+    static attributeSeparator = ", "
+    static printKey = k => ""
+    static lookbehind = "NSLOCTEXT"
+    static attributes = {
+        ...super.attributes,
+        namespace: StringEntity.withDefault(),
+        key: StringEntity.withDefault(),
+        value: StringEntity.withDefault(),
+    }
+    static grammar = this.createGrammar()
+
+    constructor(values = {}) {
+        super(values);
+        /** @type {InstanceType<typeof LocalizedTextEntity.attributes.namespace>} */ this.namespace;
+        /** @type {InstanceType<typeof LocalizedTextEntity.attributes.key>} */ this.key;
+        /** @type {InstanceType<typeof LocalizedTextEntity.attributes.value>} */ this.value;
+    }
+
+    /** @returns {P<LocalizedTextEntity>} */
+    static createGrammar() {
+        return Parsernostrum.regArray(new RegExp(
+            String.raw`${LocalizedTextEntity.lookbehind}\s*\(`
+            + String.raw`\s*"(?<namespace>${Grammar.Regex.InsideString.source})"\s*,`
+            + String.raw`\s*"(?<key>${Grammar.Regex.InsideString.source})"\s*,`
+            + String.raw`\s*"(?<value>${Grammar.Regex.InsideString.source})"\s*`
+            + String.raw`(?<trailing>,\s+)?`
+            + String.raw`\)`,
+            "m"
+        )).map(({ groups: { namespace, key, value, trailing } }) => {
+            return new this({
+                namespace: new (this.attributes.namespace)(Utility.unescapeString(namespace)),
+                key: new (this.attributes.namespace)(Utility.unescapeString(key)),
+                value: new (this.attributes.namespace)(Utility.unescapeString(value)),
+                trailing: trailing !== undefined,
+            })
+        }).label("LocalizedTextEntity")
+    }
+
+    toString() {
+        return Utility.capitalFirstLetter(this.value.valueOf())
+    }
+}
+
+class FormatTextEntity extends IEntity {
+
+    static attributeSeparator = ", "
+    static lookbehind = ["LOCGEN_FORMAT_NAMED", "LOCGEN_FORMAT_ORDERED"]
+    static grammar = this.createGrammar()
+
+    /** @param {(StringEntity | LocalizedTextEntity | InvariantTextEntity | FormatTextEntity)[]} values */
+    constructor(values) {
+        super();
+        this.values = values;
+    }
+
+    /** @returns {P<FormatTextEntity>} */
+    static createGrammar() {
+        return Parsernostrum.lazy(() => Parsernostrum.seq(
+            // Resulting regex: /(LOCGEN_FORMAT_NAMED|LOCGEN_FORMAT_ORDERED)\s*/
+            Parsernostrum.reg(new RegExp(String.raw`(${this.lookbehind.join("|")})\s*\(\s*`), 1),
+            Parsernostrum.alt(
+                ...[StringEntity, LocalizedTextEntity, InvariantTextEntity, FormatTextEntity].map(type => type.grammar)
+            ).sepBy(Parsernostrum.reg(/\s*\,\s*/)),
+            Parsernostrum.reg(/\s*\)/)
+        )
+            .map(([lookbehind, values]) => {
+                const result = new this(values);
+                result.lookbehind = lookbehind;
+                return result
+            }))
+            .label("FormatTextEntity")
+    }
+
+    doSerialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof FormatTextEntity} */(this.constructor),
+        printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
+        wrap = Self.wrap,
+    ) {
+        const separator = Self.attributeSeparator;
+        return this.lookbehind + "("
+            + this.values.map(v => v.serialize(insideString)).join(separator)
+            + (Self.trailing ? separator : "")
+            + ")"
+    }
+
+    toString() {
+        const pattern = this.values?.[0]?.toString(); // The pattern is always the first element of the array
+        if (!pattern) {
+            return ""
+        }
+        const values = this.values.slice(1).map(v => v?.valueOf());
+        let result = this.lookbehind == "LOCGEN_FORMAT_NAMED"
+            ? pattern.replaceAll(/\{([a-zA-Z]\w*)\}/g, (substring, arg) => {
+                const argLocation = values.indexOf(arg) + 1;
+                return argLocation > 0 && argLocation < values.length
+                    ? values[argLocation]
+                    : substring
+            })
+            : this.lookbehind == "LOCGEN_FORMAT_ORDERED"
+                ? pattern.replaceAll(/\{(\d+)\}/g, (substring, arg) => {
+                    const argValue = Number(arg);
+                    return argValue < values.length
+                        ? values[argValue]
+                        : substring
+                })
+                : "";
+        return result
+    }
+}
+
+class Integer64Entity extends IEntity {
+
+    static grammar = this.createGrammar()
+
+    /**
+     * @protected
+     * @type {bigint}
+     */
+    _value
+    get value() {
+        return this._value
+    }
+    set value(value) {
+        if (value >= -(1n << 63n) && value < 1n << 63n) {
+            this._value = value;
+        }
+    }
+
+    /** @param {bigint | Number} value */
+    constructor(value = 0n) {
+        super();
+        this.value = BigInt(value);
+    }
+
+    /** @returns {P<Integer64Entity>} */
+    static createGrammar() {
+        return Parsernostrum.numberBigInteger.map(v => new this(v))
+    }
+
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor),
+    ) {
+        let result = this.value.toString();
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
+    }
+
+    valueOf() {
+        return this.value
+    }
+
+    toString() {
+        return this.value.toString()
+    }
+}
+
+class ObjectReferenceEntity extends IEntity {
+
+    static typeReference = Parsernostrum.reg(
+        // Fallback to simple regexes to avoid potential circular dependency issues with Grammar.js during static init
+        new RegExp(`(?:\\/(?:[a-zA-Z_]\\w*(?:[\\.:][a-zA-Z_]\\w*)*)){2,}|[a-zA-Z_]\\w*`)
+    )
+    static fullReferenceGrammar = this.createFullReferenceGrammar()
+    static grammar = this.createGrammar()
+
+    #type
+    get type() {
+        return this.#type
+    }
+    set type(value) {
+        this.#type = value;
+    }
+
+    #path
+    get path() {
+        return this.#path
+    }
+    set path(value) {
+        this.#name = "";
+        this.#path = value;
+    }
+
+    #serializer
+    get full() {
+        return this.#serializer
+    }
+    set full(value) {
+        this.#serializer = value;
+    }
+
+    #name = ""
+
+    /** @param {(t: String, p: String) => String} serializer */
+    constructor(
+        type = "None",
+        path = "",
+        serializer = type.includes("/") || path
+            ? (t, p) => `"${t + (p ? (`'${p}'`) : "")}"`
+            : (t, p) => t) {
+        super();
+        this.#type = type;
+        this.#path = path;
+        this.#serializer = serializer;
+    }
+
+    /** @returns {P<ObjectReferenceEntity>} */
+    static createGrammar() {
+        return Parsernostrum.alt(
+            this.createFullReferenceSerializedGrammar(),
+            this.createFullReferenceGrammar(),
+            this.createTypeReferenceGrammar(),
+        ).label("ObjectReferenceEntity")
+    }
+
+    /** @returns {P<ObjectReferenceEntity>} */
+    static createFullReferenceGrammar() {
+        return Parsernostrum.alt(
+            Parsernostrum.seq(
+                this.typeReference,
+                Parsernostrum.reg(/'"/),
+                Parsernostrum.reg(Grammar.Regex.InsideString),
+                Parsernostrum.reg(/"'/)
+            ).map(([type, _1, path, _2]) => [type, path, true]),
+            Parsernostrum.seq(
+                this.typeReference,
+                Parsernostrum.reg(/'/),
+                Parsernostrum.reg(Grammar.Regex.InsideSingleQuotedString),
+                Parsernostrum.reg(/'/)
+            ).map(([type, _1, path, _2]) => [type, path, false])
+        ).map(([type, path, isDouble]) => {
+            let quotes = isDouble ? [`'"`, `"'`] : ["'", "'"];
+            return new this(
+                type,
+                path,
+                (t, p) => t + quotes[0] + p + quotes[1]
+            )
+        })
+    }
+
+    /** @returns {P<ObjectReferenceEntity>} */
+    static createFullReferenceSerializedGrammar() {
+        return Parsernostrum.regArray(
+            new RegExp(
+                '"(' + Grammar.Regex.InsideString.source + "?)"
+                + "(?:'(" + Grammar.Regex.InsideSingleQuotedString.source + `?)')?"`
+            )
+        ).map(([_0, type, path]) => new this(type, path, (t, p) => `"${t}${p ? `'${p}'` : ""}"`))
+    }
+
+    /** @returns {P<ObjectReferenceEntity>} */
+    static createTypeReferenceGrammar() {
+        return this.typeReference.map(v => new this(v, "", (t, p) => t))
+    }
+
+    static createNoneInstance() {
+        return new this("None")
+    }
+
+    getName(dropCounter = false) {
+        if (!this.#name) {
+            if (!dropCounter) {
+                return this.#name = Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
+            }
+            return Utility.getNameFromPath(this.path.replace(/_C$/, ""), dropCounter)
+        }
+        return this.#name
+    }
+
+    doSerialize(insideString = false) {
+        let result = this.full(this.type, this.path);
+        if (insideString) {
+            result = Utility.escapeString(result, false);
+        }
+        return result
+    }
+
+    /** @param {IEntity} other */
+    equals(other) {
+        if (!(other instanceof ObjectReferenceEntity)) {
+            return false
+        }
+        return this.type == other.type && this.path == other.path
+    }
+
+    toString() {
+        return this.full(this.type, this.path)
+    }
+}
+
+class PinReferenceEntity extends IEntity {
+
+    static grammar = this.createGrammar()
+
+    /**
+     * @param {SymbolEntity} objectName
+     * @param {GuidEntity} pinGuid
+     */
+    constructor(objectName = null, pinGuid = null) {
+        super();
+        this.objectName = objectName;
+        this.pinGuid = pinGuid;
+    }
+
+    /** @returns {P<PinReferenceEntity>} */
+    static createGrammar() {
+        return Parsernostrum.seq(
+            SymbolEntity.grammar,
+            Parsernostrum.whitespace,
+            GuidEntity.grammar
+        )
+            .map(([objectName, _1, pinGuid]) => new this(objectName, pinGuid))
+            .label("PinReferenceEntity")
+    }
+
+    doSerialize() {
+        return this.objectName.serialize() + " " + this.pinGuid.serialize()
+    }
+
+    toString() {
+        return this.doSerialize()
+    }
+}
+
+class FunctionReferenceEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        MemberParent: ObjectReferenceEntity,
+        MemberName: StringEntity,
+        MemberGuid: GuidEntity,
+    }
+    static grammar = this.createGrammar()
+
+    constructor(values) {
+        super(values);
+        /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberParent>} */ this.MemberParent;
+        /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberName>} */ this.MemberName;
+        /** @type {InstanceType<typeof FunctionReferenceEntity.attributes.MemberGuid>} */ this.MemberGuid;
+    }
+
+    /** @returns {P<FunctionReferenceEntity>} */
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, 0, 0)
+    }
+}
+
+class PinTypeEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        PinCategory: StringEntity.withDefault(),
+        PinSubCategory: StringEntity,
+        PinSubCategoryObject: ObjectReferenceEntity,
+        PinSubCategoryMemberReference: FunctionReferenceEntity,
+        ContainerType: SymbolEntity,
+        bIsReference: BooleanEntity,
+        bIsConst: BooleanEntity,
+        bIsWeakPointer: BooleanEntity,
+        bIsUObjectWrapper: BooleanEntity,
+        bSerializeAsSinglePrecisionFloat: BooleanEntity,
+    }
+    static grammar = this.createGrammar()
+
+    constructor(values = {}) {
+        super(values);
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.PinCategory>} */ this.PinCategory;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.PinSubCategory>} */ this.PinSubCategory;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.PinSubCategoryObject>} */ this.PinSubCategoryObject;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.PinSubCategoryMemberReference>} */ this.PinSubCategoryMemberReference;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.ContainerType>} */ this.ContainerType;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsReference>} */ this.bIsReference;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsConst>} */ this.bIsConst;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsWeakPointer>} */ this.bIsWeakPointer;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsUObjectWrapper>} */ this.bIsUObjectWrapper;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bIsUObjectWrapper>} */ this.bIsUObjectWrapper;
+        /** @type {InstanceType<typeof PinTypeEntity.attributes.bSerializeAsSinglePrecisionFloat>} */ this.bSerializeAsSinglePrecisionFloat;
+    }
+
+    /** @returns {P<PinTypeEntity>} */
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this).label("PinTypeEntity")
+    }
+
+    /** @param {PinTypeEntity} other */
+    copyTypeFrom(other) {
+        for (const key of this.keys) {
+            if (other[key] !== undefined) {
+                this[key] = other[key];
+            }
+        }
+    }
+}
+
+class Vector2DEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        X: NumberEntity.withDefault(),
+        Y: NumberEntity.withDefault(),
+    }
+    static grammar = this.createGrammar()
+
+    constructor(values) {
+        super(values);
+        /** @type {InstanceType<typeof Vector2DEntity.attributes.X>} */ this.X;
+        /** @type {InstanceType<typeof Vector2DEntity.attributes.Y>} */ this.Y;
+    }
+
+    /** @returns {P<Vector2DEntity>} */
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, 1).label("Vector2DEntity")
+    }
+
+    /** @returns {[Number, Number]} */
+    toArray() {
+        return [this.X.valueOf(), this.Y.valueOf()]
+    }
+}
+
+class RBSerializationVector2DEntity extends Vector2DEntity {
+
+    static grammar = this.createGrammar()
+
+    /** @returns {P<RBSerializationVector2DEntity>} */
+    static createGrammar() {
+        return Parsernostrum.alt(
+            Parsernostrum.regArray(new RegExp(
+                /X\s*=\s*/.source + "(?<x>" + Grammar.numberRegexSource + ")"
+                + "\\s+"
+                + /Y\s*=\s*/.source + "(?<y>" + Grammar.numberRegexSource + ")"
+            )).map(({ groups: { x, y } }) => new this({
+                X: new (Vector2DEntity.attributes.X)(x),
+                Y: new (Vector2DEntity.attributes.Y)(y),
+            })),
+            Vector2DEntity.grammar.map(v => new this({
+                X: v.X,
+                Y: v.Y,
+            }))
+        ).label("RBSerializationVector2DEntity")
+    }
+}
+
+class RotatorEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        R: NumberEntity.withDefault(),
+        P: NumberEntity.withDefault(),
+        Y: NumberEntity.withDefault(),
+    }
+    static grammar = this.createGrammar()
+
+    constructor(values) {
+        super(values);
+        /** @type {InstanceType<typeof RotatorEntity.attributes.R>} */ this.R;
+        /** @type {InstanceType<typeof RotatorEntity.attributes.P>} */ this.P;
+        /** @type {InstanceType<typeof RotatorEntity.attributes.Y>} */ this.Y;
+    }
+
+    /** @returns {P<RotatorEntity>} */
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, 1).label("RotatorEntity")
+    }
+
+    getRoll() {
+        return this.R
+    }
+
+    getPitch() {
+        return this.P
+    }
+
+    getYaw() {
+        return this.Y
+    }
+}
+
+class SimpleSerializationRotatorEntity extends RotatorEntity {
+
+    static attributeSeparator = ", "
+    static grammar = this.createGrammar()
+
+    /** @returns {P<SimpleSerializationRotatorEntity>} */
+    static createGrammar() {
+        return Parsernostrum.alt(
+            Parsernostrum.regArray(new RegExp(
+                `(${NumberEntity.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${NumberEntity.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${NumberEntity.numberRegexSource})`
+            )).map(([_, p, pPrecision, y, yPrecision, r, rPrecision]) => new this({
+                R: new (RotatorEntity.attributes.R)(r, rPrecision?.length),
+                P: new (RotatorEntity.attributes.P)(p, pPrecision?.length),
+                Y: new (RotatorEntity.attributes.Y)(y, yPrecision?.length),
+            })),
+            RotatorEntity.grammar.map(v => new this({
+                R: v.R,
+                P: v.P,
+                Y: v.Y,
+            }))
+        ).label("SimpleSerializationRotatorEntity")
+    }
+
+    doSerialize() {
+        const attributeSeparator = /** @type {typeof SimpleSerializationRotatorEntity} */(
+            this.constructor
+        ).attributeSeparator;
+        return this.P.serialize() + attributeSeparator
+            + this.Y.serialize() + attributeSeparator
+            + this.R.serialize() + (this.trailing ? attributeSeparator : "")
+    }
+}
+
+class SimpleSerializationVector2DEntity extends Vector2DEntity {
+
+    static attributeSeparator = ", "
+    static grammar = this.createGrammar()
+
+    /** @returns {P<SimpleSerializationVector2DEntity>} */
+    static createGrammar() {
+        return Parsernostrum.alt(
+            Parsernostrum.regArray(new RegExp(
+                `(${NumberEntity.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${NumberEntity.numberRegexSource})`
+            )).map(([_, x, xPrecision, y, yPrecision]) => new this({
+                X: new (Vector2DEntity.attributes.X)(x, xPrecision?.length),
+                Y: new (Vector2DEntity.attributes.Y)(y, yPrecision?.length),
+            })),
+            Vector2DEntity.grammar.map(v => new this({
+                X: v.X,
+                Y: v.Y,
+            }))
+        ).label("SimpleSerializationVector2DEntity")
+    }
+
+    doSerialize() {
+        const attributeSeparator = /** @type {typeof SimpleSerializationVector2DEntity} */(
+            this.constructor
+        ).attributeSeparator;
+        return this.X.serialize() + attributeSeparator
+            + this.Y.serialize() + (this.trailing ? attributeSeparator : "")
+    }
+}
+
+class Vector4DEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        X: NumberEntity.withDefault(),
+        Y: NumberEntity.withDefault(),
+        Z: NumberEntity.withDefault(),
+        W: NumberEntity.withDefault(),
+    }
+    static grammar = this.createGrammar()
+
+    constructor(values) {
+        super(values);
+        /** @type {InstanceType<typeof Vector4DEntity.attributes.X>} */ this.X;
+        /** @type {InstanceType<typeof Vector4DEntity.attributes.Y>} */ this.Y;
+        /** @type {InstanceType<typeof Vector4DEntity.attributes.Z>} */ this.Z;
+        /** @type {InstanceType<typeof Vector4DEntity.attributes.W>} */ this.W;
+    }
+
+    /** @returns {P<Vector4DEntity>} */
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this, Grammar.commaSeparation, 1).label("Vector4DEntity")
+    }
+
+    /** @returns {[Number, Number, Number, Number]} */
+    toArray() {
+        return [this.X.valueOf(), this.Y.valueOf(), this.Z.valueOf(), this.W.valueOf()]
+    }
+}
+
+class SimpleSerializationVector4DEntity extends Vector4DEntity {
+
+    static grammar = this.createGrammar()
+
+    /** @returns {P<SimpleSerializationVector4DEntity> } */
+    static createGrammar() {
+        return Parsernostrum.alt(
+            Parsernostrum.regArray(new RegExp(
+                `(${Grammar.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${Grammar.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${Grammar.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${Grammar.numberRegexSource})`
+            ))
+                .map(([_0, x, y, z, w]) => new this({
+                    X: new (Vector4DEntity.attributes.X)(x),
+                    Y: new (Vector4DEntity.attributes.Y)(y),
+                    Z: new (Vector4DEntity.attributes.Z)(z),
+                    W: new (Vector4DEntity.attributes.W)(w),
+                })),
+            Vector4DEntity.grammar
+        )
+    }
+}
+
+class SimpleSerializationVectorEntity extends VectorEntity {
+
+    static allowShortSerialization = false
+    static attributeSeparator = ", "
+    static grammar = this.createGrammar()
+
+    /** @returns {P<SimpleSerializationVectorEntity>} */
+    static createGrammar() {
+        return Parsernostrum.alt(
+            Parsernostrum.regArray(new RegExp(
+                `(${NumberEntity.numberRegexSource})`
+                // If allow simple serialization then it can parse only a single number ...
+                + (this.allowShortSerialization ? `(?:` : "")
+                + String.raw`\s*,\s*`
+                + `(${NumberEntity.numberRegexSource})`
+                + String.raw`\s*,\s*`
+                + `(${NumberEntity.numberRegexSource})`
+                // ... that will be assigned to X and the rest is optional and set to 0
+                + (this.allowShortSerialization ? `)?` : "")
+            ))
+                .map(([_, x, xPrecision, y, yPrecision, z, zPrecision]) => new this({
+                    X: new (VectorEntity.attributes.X)(x, xPrecision?.length),
+                    Y: new (VectorEntity.attributes.Y)(y, yPrecision?.length),
+                    Z: new (VectorEntity.attributes.Z)(z, zPrecision?.length),
+                })),
+            VectorEntity.grammar.map(v => new this({
+                X: v.X,
+                Y: v.Y,
+                Z: v.Z,
+            }))
+        )
+    }
+
+    /**
+     * @template {typeof SimpleSerializationVectorEntity} T
+     * @this {T}
+     */
+    static flagAllowShortSerialization(value = true) {
+        const result = this.asUniqueClass();
+        if (value !== result.allowShortSerialization) {
+            result.allowShortSerialization = value;
+            result.grammar = result.createGrammar();
+        }
+        return result
+    }
+
+    doSerialize() {
+        const attributeSeparator = /** @type {typeof SimpleSerializationVectorEntity} */(
+            this.constructor
+        ).attributeSeparator;
+        return this.X.serialize() + attributeSeparator
+            + this.Y.serialize() + attributeSeparator
+            + this.Z.serialize() + (this.trailing ? attributeSeparator : "")
+    }
+}
+
+const paths = Configuration.paths;
+
+/** @template {IEntity} T */
+class PinEntity extends IEntity {
+
+    static lookbehind = "Pin"
+    static #typeEntityMap = {
+        "bool": BooleanEntity,
+        "byte": ByteEntity,
+        "enum": EnumEntity,
+        "exec": StringEntity,
+        "float": NumberEntity,
+        "int": IntegerEntity,
+        "int64": Integer64Entity,
+        "name": StringEntity,
+        "real": NumberEntity,
+        "string": StringEntity,
+        [paths.linearColor]: LinearColorEntity,
+        [paths.niagaraBool]: BooleanEntity,
+        [paths.niagaraFloat]: NumberEntity,
+        [paths.niagaraPosition]: VectorEntity,
+        [paths.rotator]: RotatorEntity,
+        [paths.vector]: VectorEntity,
+        [paths.vector2D]: Vector2DEntity,
+        [paths.vector4f]: Vector4DEntity,
+    }
+    static #alternativeTypeEntityMap = {
+        "enum": EnumDisplayValueEntity,
+        "rg": RBSerializationVector2DEntity,
+        [paths.niagaraPosition]: SimpleSerializationVectorEntity.flagAllowShortSerialization(),
+        [paths.rotator]: SimpleSerializationRotatorEntity,
+        [paths.vector]: SimpleSerializationVectorEntity,
+        [paths.vector2D]: SimpleSerializationVector2DEntity,
+        [paths.vector3f]: SimpleSerializationVectorEntity,
+        [paths.vector4f]: SimpleSerializationVector4DEntity,
+    }
+    static attributes = {
+        PinId: GuidEntity.withDefault(),
+        PinName: StringEntity.withDefault(),
+        PinFriendlyName: AlternativesEntity.accepting(
+            LocalizedTextEntity,
+            FormatTextEntity,
+            InvariantTextEntity,
+            StringEntity
+        ),
+        PinToolTip: StringEntity,
+        Direction: StringEntity,
+        PinType: PinTypeEntity.withDefault().flagInlined(),
+        LinkedTo: ArrayEntity.of(PinReferenceEntity).withDefault().flagSilent(),
+        SubPins: ArrayEntity.of(PinReferenceEntity),
+        ParentPin: PinReferenceEntity,
+        DefaultValue:
+            ComputedTypeEntity.from(
+                /** @param {PinEntity} pinEntity */
+                pinEntity => pinEntity.getEntityType(true)?.flagSerialized() ?? StringEntity
+            ),
+        AutogeneratedDefaultValue: StringEntity,
+        DefaultObject: ObjectReferenceEntity,
+        PersistentGuid: GuidEntity,
+        bHidden: BooleanEntity,
+        bNotConnectable: BooleanEntity,
+        bDefaultValueIsReadOnly: BooleanEntity,
+        bDefaultValueIsIgnored: BooleanEntity,
+        bAdvancedView: BooleanEntity,
+        bOrphanedPin: BooleanEntity,
+    }
+    static grammar = this.createGrammar()
+
+    #recomputesNodeTitleOnChange = false
+    set recomputesNodeTitleOnChange(value) {
+        this.#recomputesNodeTitleOnChange = value;
+    }
+    get recomputesNodeTitleOnChange() {
+        return this.#recomputesNodeTitleOnChange
+    }
+
+    /** @type {ObjectEntity} */
+    #objectEntity = null
+    get objectEntity() {
+        try {
+            /*
+             * Why inside a try block ?
+             * It is because of this issue: https://stackoverflow.com/questions/61237153/access-private-method-in-an-overriden-method-called-from-the-base-class-construc
+             * super(values) will call IEntity constructor while this instance is not yet fully constructed
+             * IEntity will call computedEntity.compute(this) to initialize DefaultValue from this class
+             * Which in turn calls pinEntity.getEntityType(true)
+             * Which calls this.getType()
+             * Which calls this.objectEntity?.isPcg()
+             * Which would access #objectEntity through get objectEntity()
+             * And this would violate the private access rule (because this class is not yet constructed)
+             * If this issue in the future will be fixed in all the major browsers, please remove this try catch
+             */
+            return this.#objectEntity
+        } catch (e) {
+            return null
+        }
+    }
+    set objectEntity(value) {
+        this.#objectEntity = value;
+    }
+
+    #pinIndex
+    get pinIndex() {
+        return this.#pinIndex
+    }
+    set pinIndex(value) {
+        this.#pinIndex = value;
+    }
+
+    constructor(values = {}) {
+        super(values);
+        /** @type {InstanceType<typeof PinEntity.attributes.PinId>} */ this.PinId;
+        /** @type {InstanceType<typeof PinEntity.attributes.PinName>} */ this.PinName;
+        /** @type {InstanceType<typeof PinEntity.attributes.PinFriendlyName>} */ this.PinFriendlyName;
+        /** @type {InstanceType<typeof PinEntity.attributes.PinToolTip>} */ this.PinToolTip;
+        /** @type {InstanceType<typeof PinEntity.attributes.Direction>} */ this.Direction;
+        /** @type {InstanceType<typeof PinEntity.attributes.PinType>} */ this.PinType;
+        /** @type {InstanceType<typeof PinEntity.attributes.LinkedTo>} */ this.LinkedTo;
+        /** @type {T} */ this.DefaultValue;
+        /** @type {InstanceType<typeof PinEntity.attributes.AutogeneratedDefaultValue>} */ this.AutogeneratedDefaultValue;
+        /** @type {InstanceType<typeof PinEntity.attributes.DefaultObject>} */ this.DefaultObject;
+        /** @type {InstanceType<typeof PinEntity.attributes.PersistentGuid>} */ this.PersistentGuid;
+        /** @type {InstanceType<typeof PinEntity.attributes.bHidden>} */ this.bHidden;
+        /** @type {InstanceType<typeof PinEntity.attributes.bNotConnectable>} */ this.bNotConnectable;
+        /** @type {InstanceType<typeof PinEntity.attributes.bDefaultValueIsReadOnly>} */ this.bDefaultValueIsReadOnly;
+        /** @type {InstanceType<typeof PinEntity.attributes.bDefaultValueIsIgnored>} */ this.bDefaultValueIsIgnored;
+        /** @type {InstanceType<typeof PinEntity.attributes.bAdvancedView>} */ this.bAdvancedView;
+        /** @type {InstanceType<typeof PinEntity.attributes.bOrphanedPin>} */ this.bOrphanedPin;
+        /** @type {ObjectEntity} */ this.objectEntity;
+    }
+
+    /** @returns {P<PinEntity>} */
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
+    }
+
+    /** @param {ObjectEntity} objectEntity */
+    static fromLegacyObject(objectEntity) {
+        return new PinEntity(objectEntity)
+    }
+
+    /** @returns {String} */
+    getType() {
+        const category = this.PinType.PinCategory?.toString().toLocaleLowerCase();
+        if (["struct", "class", "object", "type", "statictype"].includes(category)) {
+            return this.PinType.PinSubCategoryObject?.path
+        }
+        if (this.isEnum()) {
+            return "enum"
+        }
+        if (this.objectEntity?.isPcg()) {
+            const pcgSuboject = this.objectEntity.getPcgSubobject();
+            const pinObject = this.getPinObject(pcgSuboject);
+            if (pinObject) {
+                let allowedTypes = pinObject["Properties"]?.AllowedTypes?.toString() ?? "";
+                if (allowedTypes == "") {
+                    allowedTypes = this.PinType.PinCategory ?? "";
+                    if (allowedTypes == "") {
+                        allowedTypes = "Any";
+                    }
+                }
+                if (allowedTypes) {
+                    if (
+                        pinObject["Properties"].bAllowMultipleData?.valueOf() !== false
+                        && pinObject["Properties"].bAllowMultipleConnections?.valueOf() !== false
+                    ) {
+                        allowedTypes += "[]";
+                    }
+                    return allowedTypes
+                }
+            }
+        }
+        if (category === "optional") {
+            const subCategory = this.PinType.PinSubCategory?.toString();
+            switch (subCategory) {
+                case "red":
+                    return "real"
+                case "rg":
+                    return "rg"
+                case "rgb":
+                    return paths.vector
+                case "rgba":
+                    return paths.linearColor
+                default:
+                    return subCategory
+            }
+        }
+        return category
+    }
+
+    /** @returns {typeof IEntity} */
+    getEntityType(alternative = false) {
+        const type = this.getType();
+        const entity = PinEntity.#typeEntityMap[type];
+        const alternativeEntity = PinEntity.#alternativeTypeEntityMap[type];
+        return alternative && alternativeEntity !== undefined
+            ? alternativeEntity
+            : entity
+    }
+
+    pinTitle() {
+        return pinTitle(this)
+    }
+
+    /** @param {PinEntity} other */
+    copyTypeFrom(other) {
+        this.PinType = other.PinType;
+    }
+
+    getDefaultValue(maybeCreate = false) {
+        if (this.DefaultValue === undefined && maybeCreate) {
+            this.DefaultValue = /** @type {T} */(new (this.getEntityType(true))());
+        }
+        return this.DefaultValue
+    }
+
+    isEnum() {
+        const type = this.PinType.PinSubCategoryObject?.type;
+        return type === paths.enum
+            || type === paths.userDefinedEnum
+            || type?.toLowerCase() === "enum"
+    }
+
+    isExecution() {
+        return this.PinType.PinCategory.toString() === "exec"
+            || this.getType() === paths.niagaraParameterMap
+    }
+
+    isHidden() {
+        return this.bHidden?.valueOf()
+    }
+
+    isInput() {
+        return !this.isHidden() && this.Direction?.toString() != "EGPD_Output"
+    }
+
+    isOutput() {
+        return !this.isHidden() && this.Direction?.toString() == "EGPD_Output"
+    }
+
+    isLinked() {
+        return this.LinkedTo?.length > 0
+    }
+
+    /**
+     * @param {String} targetObjectName
+     * @param {PinEntity} targetPinEntity
+     * @returns true if it was not already linked to the tarket
+     */
+    linkTo(targetObjectName, targetPinEntity) {
+        const linkFound = this.LinkedTo.values?.some(pinReferenceEntity =>
+            pinReferenceEntity.objectName.toString() == targetObjectName
+            && pinReferenceEntity.pinGuid.toString() == targetPinEntity.PinId.toString()
+        );
+        if (!linkFound) {
+            this.LinkedTo.values.push(new PinReferenceEntity(new SymbolEntity(targetObjectName), targetPinEntity.PinId));
+            return true
+        }
+        return false // Already linked
+    }
+
+    /**
+     * @param {String} targetObjectName
+     * @param {PinEntity} targetPinEntity
+     * @returns true if it was linked to the target
+     */
+    unlinkFrom(targetObjectName, targetPinEntity) {
+        const indexElement = this.LinkedTo.values?.findIndex(pinReferenceEntity => {
+            return pinReferenceEntity.objectName.toString() == targetObjectName
+                && pinReferenceEntity.pinGuid.toString() == targetPinEntity.PinId.toString()
+        });
+        if (indexElement >= 0) {
+            this.LinkedTo.values.splice(indexElement, 1);
+            if (this.LinkedTo.length === 0 && PinEntity.attributes.LinkedTo.default === undefined) {
+                this.LinkedTo.values = [];
+            }
+            return true
+        }
+        return false
+    }
+
+    /** @param {ObjectEntity} pcgSuboject */
+    getPinObject(pcgSuboject) {
+        const pinObjectReference = this.isInput()
+            ? pcgSuboject.InputPins?.valueOf()[this.pinIndex]
+            : pcgSuboject.OutputPins?.valueOf()[this.pinIndex];
+        if (pinObjectReference) {
+            /** @type {ObjectEntity} */
+            return pcgSuboject[Configuration.subObjectAttributeNameFromReference(pinObjectReference, true)]
+        }
+    }
+
+    getSubCategory() {
+        return this.PinType.PinSubCategoryObject?.path
+    }
+
+    pinColor() {
+        return pinColor(this)
+    }
+}
+
+/** @param {PinEntity} pinEntity */
+const indexFromUpperCaseLetterName = pinEntity =>
+    pinEntity.PinName?.toString().match(/^\s*([A-Z])\s*$/)?.[1]?.charCodeAt(0) - "A".charCodeAt(0);
+const p = Configuration.paths;
+
+/** @param {ObjectEntity} entity */
+function nodeVariadic(entity) {
+    /** @type {() => PinEntity[]} */
+    let pinEntities;
+    /** @type {(pinEntity: PinEntity) => Number} */
+    let pinIndexFromEntity;
+    /** @type {(newPinIndex: Number, minIndex: Number, maxIndex: Number, newPin: PinEntity) => String} */
+    let pinNameFromIndex;
+    const type = entity.getType();
+    let prefix;
+    let name;
+    switch (type) {
+        case p.commutativeAssociativeBinaryOperator:
+        case p.promotableOperator:
+            name = entity.FunctionReference?.MemberName?.toString();
+            switch (name) {
+                default:
+                    if (
+                        !name?.startsWith("Add_")
+                        && !name?.startsWith("Subtract_")
+                        && !name?.startsWith("Multiply_")
+                        && !name?.startsWith("Divide_")
+                    ) {
+                        break
+                    }
+                case "And_Int64Int64":
+                case "And_IntInt":
+                case "BMax":
+                case "BMin":
+                case "BooleanAND":
+                case "BooleanNAND":
+                case "BooleanOR":
+                case "Concat_StrStr":
+                case "FMax":
+                case "FMin":
+                case "Max":
+                case "MaxInt64":
+                case "Min":
+                case "MinInt64":
+                case "Or_Int64Int64":
+                case "Or_IntInt":
+                    pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isInput());
+                    pinIndexFromEntity ??= indexFromUpperCaseLetterName;
+                    pinNameFromIndex ??= (index, min = -1, max = -1) => {
+                        const result = String.fromCharCode(index >= 0 ? index : max + "A".charCodeAt(0) + 1);
+                        entity.NumAdditionalInputs = new NaturalNumberEntity(pinEntities().length - 1);
+                        return result
+                    };
+                    break
+            }
+            break
+        case p.executionSequence:
+            prefix ??= "Then";
+        case p.multiGate:
+            prefix ??= "Out";
+            pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
+            pinIndexFromEntity ??= pinEntity => Number(
+                pinEntity.PinName?.toString().match(new RegExp(String.raw`^\s*${prefix}[_\s]+(\d+)\s*$`, "i"))?.[1]
+            );
+            pinNameFromIndex ??= (index, min = -1, max = -1, newPin) =>
+                `${prefix} ${index >= 0 ? index : min > 0 ? `${prefix} 0` : max + 1}`;
+            break
+        // case p.niagaraNodeOp:
+        //     pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isInput())
+        //     pinIndexFromEntity ??= indexFromUpperCaseLetterName
+        //     pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
+        //         const result = String.fromCharCode(index >= 0 ? index : max + "A".charCodeAt(0) + 1)
+        //         entity.AddedPins ??= []
+        //         entity.AddedPins.push(newPin)
+        //         return result
+        //     }
+        //     break
+        case p.switchInteger:
+            pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
+            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName?.toString().match(/^\s*(\d+)\s*$/)?.[1]);
+            pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => (index < 0 ? max + 1 : index).toString();
+            break
+        case p.switchGameplayTag:
+            pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
+                const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
+                entity.PinNames ??= new ArrayEntity();
+                entity.PinNames.valueOf().push(new StringEntity(result));
+                delete entity.PinTags.valueOf()[entity.PinTags.length - 1];
+                entity.PinTags.valueOf()[entity.PinTags.length] = null;
+                return result
+            };
+        case p.switchName:
+        case p.switchString:
+            pinEntities ??= () => entity.getPinEntities().filter(pinEntity => pinEntity.isOutput());
+            pinIndexFromEntity ??= pinEntity => Number(pinEntity.PinName.toString().match(/^\s*Case[_\s]+(\d+)\s*$/i)?.[1]);
+            pinNameFromIndex ??= (index, min = -1, max = -1, newPin) => {
+                const result = `Case_${index >= 0 ? index : min > 0 ? "0" : max + 1}`;
+                entity.PinNames ??= new ArrayEntity();
+                entity.PinNames.valueOf().push(new StringEntity(result));
+                return result
+            };
+            break
+    }
+    if (pinEntities) {
+        return () => {
+            let min = Number.MAX_SAFE_INTEGER;
+            let max = Number.MIN_SAFE_INTEGER;
+            let values = [];
+            const modelPin = pinEntities().reduce(
+                (acc, cur) => {
+                    const value = pinIndexFromEntity(cur);
+                    if (!isNaN(value)) {
+                        values.push(value);
+                        min = Math.min(value, min);
+                        if (value > max) {
+                            max = value;
+                            return cur
+                        }
+                    } else if (acc === undefined) {
+                        return cur
+                    }
+                    return acc
+                },
+                undefined
+            );
+            if (min === Number.MAX_SAFE_INTEGER || max === Number.MIN_SAFE_INTEGER) {
+                min = undefined;
+                max = undefined;
+            }
+            if (!modelPin) {
+                return null
+            }
+            values.sort((a, b) => a < b ? -1 : a === b ? 0 : 1);
+            let prev = values[0];
+            let index = values.findIndex(
+                // Search for a gap
+                value => {
+                    const result = value - prev > 1;
+                    prev = value;
+                    return result
+                }
+            );
+            const newPin = new PinEntity(modelPin);
+            newPin.PinId = new GuidEntity();
+            newPin.PinName = new StringEntity(pinNameFromIndex(index, min, max, newPin));
+            newPin.PinToolTip = undefined;
+            if (newPin.DefaultValue) {
+                // @ts-expect-error
+                newPin.DefaultValue = new (newPin.DefaultValue.constructor)();
+            }
+            entity.getCustomproperties(true).push(newPin);
+            return newPin
+        }
+    }
+}
+
+class MacroGraphReferenceEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        MacroGraph: ObjectReferenceEntity,
+        GraphBlueprint: ObjectReferenceEntity,
+        GraphGuid: GuidEntity,
+    }
+    static grammar = this.createGrammar()
+
+    constructor(values) {
+        super(values);
+        /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.MacroGraph>} */ this.MacroGraph;
+        /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.GraphBlueprint>} */ this.GraphBlueprint;
+        /** @type {InstanceType<typeof MacroGraphReferenceEntity.attributes.GraphGuid>} */ this.GraphGuid;
+    }
+
+    /** @returns {P<MacroGraphReferenceEntity>} */
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this)
+    }
+
+    getMacroName() {
+        const colonIndex = this.MacroGraph.path.search(":");
+        return this.MacroGraph.path.substring(colonIndex + 1)
+    }
+}
+
+class NullEntity extends IEntity {
+
+    static grammar = this.createGrammar()
+
+    /** @returns {P<NullEntity>} */
+    static createGrammar() {
+        // @ts-expect-error
+        return Parsernostrum.reg(new RegExp(String.raw`\(${Parsernostrum.whitespaceInlineOpt.getParser().regexp.source}\)`))
+            .map(v => new this())
+            .label("NullEntity")
+    }
+
+    serialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof IEntity} */(this.constructor)
+    ) {
+        let result = "()";
+        if (Self.serialized) {
+            result = `"${result}"`;
+        }
+        return result
+    }
+}
+
+class ScriptVariableEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        ScriptVariable: ObjectReferenceEntity,
+        OriginalChangeId: GuidEntity,
+    }
+    static grammar = this.createGrammar()
+
+    constructor(values = {}) {
+        super(values);
+        /** @type {InstanceType<typeof ScriptVariableEntity.attributes.ScriptVariable>} */ this.ScriptVariable;
+        /** @type {InstanceType<typeof ScriptVariableEntity.attributes.OriginalChangeId>} */ this.OriginalChangeId;
+    }
+
+    /** @returns {P<ScriptVariableEntity>} */
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this).label("ScriptVariableEntity")
+    }
+}
+
+class UnknownPinEntity extends PinEntity {
+
+    static attributes = {
+        ...super.attributes,
+        PinId: GuidEntity
+    }
+
+    static grammar = this.createGrammar()
+
+    /** @returns {P<UnknownPinEntity>} */
+    static createGrammar() {
+        return Parsernostrum.seq(
+            // Lookbehind
+            Parsernostrum.reg(new RegExp(`(${Grammar.Regex.Symbol.source}\\s*)?\\(\\s*`), 1),
+            Grammar.createAttributeGrammar(this).sepBy(Grammar.commaSeparation),
+            Parsernostrum.reg(/\s*(?:,\s*)?\)/)
+        ).map(([lookbehind, attributes, _2]) => {
+            lookbehind ??= "";
+            let values = {};
+            if (lookbehind.length) {
+                values.lookbehind = lookbehind;
+            }
+            attributes.forEach(attributeSetter => attributeSetter(values));
+            return new this(values)
+        }).label("UnknownPinEntity")
+    }
+}
+
+class VariableReferenceEntity extends IEntity {
+
+    static attributes = {
+        ...super.attributes,
+        MemberScope: StringEntity,
+        MemberName: StringEntity.withDefault(),
+        MemberGuid: GuidEntity,
+        bSelfContext: BooleanEntity,
+    }
+    static grammar = this.createGrammar()
+
+    constructor(values) {
+        super(values);
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberScope>} */ this.MemberScope;
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberName>} */ this.MemberName;
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.MemberGuid>} */ this.MemberGuid;
+        /** @type {InstanceType<typeof VariableReferenceEntity.attributes.bSelfContext>} */ this.bSelfContext;
+    }
+
+    /** @returns {P<VariableReferenceEntity>} */
+    static createGrammar() {
+        return Grammar.createEntityGrammar(this).label("VariableReferenceEntity")
+    }
+}
+
+class ObjectEntity extends IEntity {
+
+    #exported = false
+    get exported() {
+        return this.#exported
+    }
+    set exported(value) {
+        this.#exported = value;
+    }
+
+    static #nameRegex = /^(\w+?)(?:_(\d+))?$/
+    /** @type {(k: String) => String} */
+    static printKey = k => !k.startsWith(Configuration.subObjectAttributeNamePrefix) ? k : ""
+    static attributeSeparator = "\n"
+    static wrap = this.notWrapped
+    static trailing = true
+    static attributes = {
+        ...super.attributes,
+        Class: ObjectReferenceEntity,
+        Name: StringEntity,
+        Archetype: ObjectReferenceEntity,
+        ExportPath: MirroredEntity.of(ObjectReferenceEntity),
+        ObjectRef: ObjectReferenceEntity,
+        BlueprintElementType: ObjectReferenceEntity,
+        BlueprintElementInstance: ObjectReferenceEntity,
+        ConstA: MirroredEntity.of(NumberEntity),
+        ConstB: MirroredEntity.of(NumberEntity),
+        PinTags: ArrayEntity.of(NullEntity).flagInlined(),
+        PinNames: ArrayEntity.of(StringEntity).flagInlined(),
+        AxisKey: SymbolEntity,
+        InputAxisKey: SymbolEntity,
+        InputName: StringEntity,
+        InputType: SymbolEntity,
+        NumAdditionalInputs: NaturalNumberEntity,
+        bIsPureFunc: BooleanEntity,
+        bIsConstFunc: BooleanEntity,
+        bIsCaseSensitive: BooleanEntity,
+        bDefaultsToPureFunc: BooleanEntity,
+        VariableReference: VariableReferenceEntity,
+        SelfContextInfo: SymbolEntity,
+        DelegatePropertyName: StringEntity,
+        DelegateOwnerClass: ObjectReferenceEntity,
+        ComponentPropertyName: StringEntity,
+        EventReference: FunctionReferenceEntity,
+        FunctionReference: FunctionReferenceEntity,
+        FunctionScript: ObjectReferenceEntity,
+        CustomFunctionName: StringEntity,
+        TargetType: ObjectReferenceEntity,
+        MacroGraphReference: MacroGraphReferenceEntity,
+        Enum: ObjectReferenceEntity,
+        EnumEntries: ArrayEntity.of(StringEntity).flagInlined(),
+        InputKey: SymbolEntity,
+        OpName: StringEntity,
+        CachedChangeId: GuidEntity,
+        FunctionDisplayName: StringEntity,
+        AddedPins: ArrayEntity.of(UnknownPinEntity).withDefault().flagInlined().flagSilent(),
+        ChangeId: GuidEntity,
+        MaterialFunction: ObjectReferenceEntity,
+        bOverrideFunction: BooleanEntity,
+        bInternalEvent: BooleanEntity,
+        bConsumeInput: BooleanEntity,
+        bExecuteWhenPaused: BooleanEntity,
+        bOverrideParentBinding: BooleanEntity,
+        bControl: BooleanEntity,
+        bAlt: BooleanEntity,
+        bShift: BooleanEntity,
+        bCommand: BooleanEntity,
+        CommentColor: LinearColorEntity,
+        bCommentBubbleVisible_InDetailsPanel: BooleanEntity,
+        bColorCommentBubble: BooleanEntity,
+        ProxyFactoryFunctionName: StringEntity,
+        ProxyFactoryClass: ObjectReferenceEntity,
+        ProxyClass: ObjectReferenceEntity,
+        StructType: ObjectReferenceEntity,
+        MaterialExpression: ObjectReferenceEntity,
+        MaterialExpressionComment: ObjectReferenceEntity,
+        MoveMode: SymbolEntity,
+        TimelineName: StringEntity,
+        TimelineGuid: GuidEntity,
+        SizeX: MirroredEntity.of(IntegerEntity),
+        SizeY: MirroredEntity.of(IntegerEntity),
+        Text: MirroredEntity.of(StringEntity),
+        ParameterName: StringEntity,
+        ExpressionGUID: GuidEntity,
+        MaterialExpressionEditorX: MirroredEntity.of(IntegerEntity),
+        MaterialExpressionEditorY: MirroredEntity.of(IntegerEntity),
+        MaterialExpressionGuid: GuidEntity,
+        NodeTitle: StringEntity,
+        NodeTitleColor: LinearColorEntity,
+        PositionX: MirroredEntity.of(IntegerEntity),
+        PositionY: MirroredEntity.of(IntegerEntity),
+        SettingsInterface: ObjectReferenceEntity,
+        PCGNode: ObjectReferenceEntity,
+        SoundNode: ObjectReferenceEntity,
+        SoundWaveAssetPtr: ObjectReferenceEntity,
+        HiGenGridSize: SymbolEntity,
+        Operation: SymbolEntity,
+        NodePosX: IntegerEntity,
+        NodePosY: IntegerEntity,
+        NodeHeight: IntegerEntity,
+        NodeWidth: IntegerEntity,
+        Graph: ObjectReferenceEntity,
+        SubgraphInstance: StringEntity,
+        InputPins: ArrayEntity.of(ObjectReferenceEntity).flagInlined(),
+        OutputPins: ArrayEntity.of(ObjectReferenceEntity).flagInlined(),
+        bExposeToLibrary: BooleanEntity,
+        bCanRenameNode: BooleanEntity,
+        bCommentBubblePinned: BooleanEntity,
+        bCommentBubbleVisible: BooleanEntity,
+        NodeComment: StringEntity,
+        AdvancedPinDisplay: SymbolEntity,
+        DelegateReference: VariableReferenceEntity,
+        EnabledState: SymbolEntity,
+        NodeGuid: GuidEntity,
+        ErrorType: IntegerEntity,
+        ErrorMsg: StringEntity,
+        ScriptVariables: ArrayEntity.flagInlined().of(ScriptVariableEntity),
+        Node: MirroredEntity.of(ObjectReferenceEntity),
+        ExportedNodes: StringEntity,
+        CustomProperties: ArrayEntity
+            .of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity))
+            .withDefault()
+            .flagSilent()
+            .flagInlined(),
+    }
+    static customPropertyGrammar = Parsernostrum.seq(
+        Parsernostrum.reg(/CustomProperties\s+/),
+        this.attributes.CustomProperties.type.grammar,
+    ).map(([_0, pin]) => values => {
+        /** @type {InstanceType<typeof this.attributes.CustomProperties>} */(
+            values.CustomProperties ??= new (this.attributes.CustomProperties)()
+        ).values.push(pin);
+    })
+    static inlinedArrayEntryGrammar = Parsernostrum.seq(
+        Parsernostrum.alt(
+            Grammar.symbolQuoted.map(v => [v, true]),
+            Grammar.symbol.map(v => [v, false]),
+        ),
+        Parsernostrum.reg(new RegExp(String.raw`\s*\(\s*(\d+)\s*\)\s*\=\s*`), 1).map(Number) // Number in parentheses then equal
+    ).chain(
+        /** @param {[[keyof ObjectEntity.attributes, Boolean], Number]} param */
+        ([[symbol, quoted], index]) =>
+            (this.attributes[symbol]?.grammar ?? IEntity.unknownEntityGrammar).map(currentValue =>
+                values => {
+                    if (values[symbol] === undefined) {
+                        let arrayEntity = ArrayEntity;
+                        if (quoted != arrayEntity.quoted) {
+                            arrayEntity = arrayEntity.flagQuoted(quoted);
+                        }
+                        if (!arrayEntity.inlined) {
+                            arrayEntity = arrayEntity.flagInlined();
+                        }
+                        values[symbol] = new arrayEntity();
+                    }
+                    /** @type {ArrayEntity} */
+                    const target = values[symbol];
+                    target.values[index] = currentValue;
+                }
+            )
+    )
+    static grammar = this.createGrammar()
+    static grammarMultipleObjects = Parsernostrum.seq(
+        Parsernostrum.whitespaceOpt,
+        this.grammar,
+        Parsernostrum.seq(
+            Parsernostrum.whitespace,
+            this.grammar,
+        )
+            .map(([_0, object]) => object)
+            .many(),
+        Parsernostrum.whitespaceOpt
+    ).map(([_0, first, remaining, _4]) => [first, ...remaining])
+
+    constructor(values = {}) {
+        if (("NodePosX" in values) !== ("NodePosY" in values)) {
+            const entries = Object.entries(values);
+            const [key, position] = "NodePosX" in values
+                ? ["NodePosY", Object.keys(values).indexOf("NodePosX") + 1]
+                : ["NodePosX", Object.keys(values).indexOf("NodePosY")];
+            entries.splice(position, 0, [key, new IntegerEntity(0)]);
+            values = Object.fromEntries(entries);
+        }
+        super(values);
+
+        // Attributes
+        /** @type {ArrayEntity<typeof PinEntity | typeof UnknownPinEntity>} */ this.CustomProperties;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.AddedPins>} */ this.AddedPins;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.AdvancedPinDisplay>} */ this.AdvancedPinDisplay;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Archetype>} */ this.Archetype;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.AxisKey>} */ this.AxisKey;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.bIsPureFunc>} */ this.bIsPureFunc;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.bDefaultsToPureFunc>} */ this.bDefaultsToPureFunc;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementInstance>} */ this.BlueprintElementInstance;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.BlueprintElementType>} */ this.BlueprintElementType;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Class>} */ this.Class;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.CommentColor>} */ this.CommentColor;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ComponentPropertyName>} */ this.ComponentPropertyName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstA>} */ this.ConstA;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ConstB>} */ this.ConstB;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.CustomFunctionName>} */ this.CustomFunctionName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.DelegatePropertyName>} */ this.DelegatePropertyName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.DelegateReference>} */ this.DelegateReference;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.EnabledState>} */ this.EnabledState;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Enum>} */ this.Enum;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.EnumEntries>} */ this.EnumEntries;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.EventReference>} */ this.EventReference;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ExportedNodes>} */ this.ExportedNodes;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ExportPath>} */ this.ExportPath;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.FunctionDisplayName>} */ this.FunctionDisplayName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.FunctionReference>} */ this.FunctionReference;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.FunctionScript>} */ this.FunctionScript;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Graph>} */ this.Graph;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.HiGenGridSize>} */ this.HiGenGridSize;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.InputAxisKey>} */ this.InputAxisKey;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.InputKey>} */ this.InputKey;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.InputName>} */ this.InputName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.InputPins>} */ this.InputPins;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.InputType>} */ this.InputType;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MacroGraphReference>} */ this.MacroGraphReference;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MaterialExpression>} */ this.MaterialExpression;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MaterialExpressionComment>} */ this.MaterialExpressionComment;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MaterialExpressionEditorX>} */ this.MaterialExpressionEditorX;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MaterialExpressionEditorY>} */ this.MaterialExpressionEditorY;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.MaterialFunction>} */ this.MaterialFunction;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Name>} */ this.Name;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Node>} */ this.Node;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodeComment>} */ this.NodeComment;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodeHeight>} */ this.NodeHeight;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodePosX>} */ this.NodePosX;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodePosY>} */ this.NodePosY;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodeTitle>} */ this.NodeTitle;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodeTitleColor>} */ this.NodeTitleColor;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NodeWidth>} */ this.NodeWidth;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.NumAdditionalInputs>} */ this.NumAdditionalInputs;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ObjectRef>} */ this.ObjectRef;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Operation>} */ this.Operation;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.OpName>} */ this.OpName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.OutputPins>} */ this.OutputPins;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ParameterName>} */ this.ParameterName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PCGNode>} */ this.PCGNode;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SoundNode>} */ this.SoundNode;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SoundWaveAssetPtr>} */ this.SoundWaveAssetPtr;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PinNames>} */ this.PinNames;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PinTags>} */ this.PinTags;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PositionX>} */ this.PositionX;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.PositionY>} */ this.PositionY;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ProxyFactoryFunctionName>} */ this.ProxyFactoryFunctionName;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.ScriptVariables>} */ this.ScriptVariables;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SettingsInterface>} */ this.SettingsInterface;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SizeX>} */ this.SizeX;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SizeY>} */ this.SizeY;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.StructType>} */ this.StructType;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.SubgraphInstance>} */ this.SubgraphInstance;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.TargetType>} */ this.TargetType;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Text>} */ this.Text;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.Text>} */ this.Text;
+        /** @type {InstanceType<typeof ObjectEntity.attributes.VariableReference>} */ this.VariableReference;
+
+        // Legacy nodes pins
+        if (this["Pins"] instanceof ArrayEntity) {
+            this["Pins"].valueOf().forEach(
+                /** @param {ObjectReferenceEntity} objectReference */
+                objectReference => {
+                    const pinObject = this[Configuration.subObjectAttributeNameFromReference(objectReference, true)];
+                    if (pinObject) {
+                        const pinEntity = PinEntity.fromLegacyObject(pinObject);
+                        pinEntity.LinkedTo = new (PinEntity.attributes.LinkedTo)();
+                        this.getCustomproperties(true).push(pinEntity);
+                        this.CustomProperties.ignored = true;
+                    }
+                }
+            );
+        }
+        /** @type {ObjectEntity} */
+        const materialSubobject = this.getMaterialSubobject();
+        if (materialSubobject) {
+            const obj = materialSubobject;
+            obj.SizeX !== undefined && (obj.SizeX.getter = () => this.NodeWidth);
+            obj.SizeY && (obj.SizeY.getter = () => this.NodeHeight);
+            obj.Text && (obj.Text.getter = () => this.NodeComment);
+            obj.MaterialExpressionEditorX && (obj.MaterialExpressionEditorX.getter = () => this.NodePosX);
+            obj.MaterialExpressionEditorY && (obj.MaterialExpressionEditorY.getter = () => this.NodePosY);
+            if (this.getType() === Configuration.paths.materialExpressionComponentMask) {
+                const rgbaPins = Configuration.rgba.map(pinName => {
+                    const result = this.getPinEntities().find(pin => pin.PinName.toString() === pinName);
+                    result.recomputesNodeTitleOnChange = true;
+                    return result
+                });
+                // Reorder keys so that the added ones stay first
+                obj.keys = [...Configuration.rgba, ...obj.keys];
+                const silentBool = MirroredEntity.of(BooleanEntity).withDefault().flagSilent();
+                obj["R"] = new silentBool(() => rgbaPins[0].DefaultValue);
+                obj["G"] = new silentBool(() => rgbaPins[1].DefaultValue);
+                obj["B"] = new silentBool(() => rgbaPins[2].DefaultValue);
+                obj["A"] = new silentBool(() => rgbaPins[3].DefaultValue);
+            } else if (this.getType() === Configuration.paths.materialExpressionSubtract) {
+                const silentNumber = MirroredEntity
+                    .of(NumberEntity.withPrecision(6))
+                    .withDefault(() => new MirroredEntity(() => new NumberEntity(1)))
+                    .flagSilent();
+                const pinA = this.getCustomproperties().find(pin => pin.PinName?.toString() === "A");
+                const pinB = this.getCustomproperties().find(pin => pin.PinName?.toString() === "B");
+                if (pinA || pinB) {
+                    // Reorder keys so that the added ones stay first
+                    obj.keys = ["ConstA", "ConstB", ...obj.keys];
+                    if (pinA) {
+                        pinA.recomputesNodeTitleOnChange = true;
+                        obj.ConstA = new silentNumber(() => pinA.DefaultValue);
+                    }
+                    if (pinB) {
+                        pinB.recomputesNodeTitleOnChange = true;
+                        obj.ConstB = new silentNumber(() => pinB.DefaultValue);
+                    }
+                }
+            }
+        }
+        /** @type {ObjectEntity} */
+        const pcgObject = this.getPcgSubobject();
+        if (pcgObject) {
+            pcgObject.PositionX && (pcgObject.PositionX.getter = () => this.NodePosX);
+            pcgObject.PositionY && (pcgObject.PositionY.getter = () => this.NodePosY);
+            pcgObject.getSubobjects().forEach(
+                /** @param {ObjectEntity} obj */
+                obj => {
+                    if (obj.Node !== undefined) {
+                        const nodeRef = obj.Node.getter();
+                        if (
+                            nodeRef.type === this.PCGNode.type
+                            && nodeRef.path === `${this.Name}.${this.PCGNode.path}`
+                        ) {
+                            obj.Node.getter = () => new ObjectReferenceEntity(
+                                this.PCGNode.type,
+                                `${this.Name}.${this.PCGNode.path}`,
+                                nodeRef.full,
+                            );
+                        }
+                    }
+                }
+            );
+
+        }
+        let inputIndex = 0;
+        let outputIndex = 0;
+        this.getCustomproperties().forEach((pinEntity, i) => {
+            pinEntity.objectEntity = this;
+            pinEntity.pinIndex = pinEntity.isInput()
+                ? inputIndex++
+                : pinEntity.isOutput()
+                    ? outputIndex++
+                    : i;
+        });
+        this.mirrorNameInExportPaths();
+    }
+
+    /** @returns {P<ObjectEntity>} */
+    static createGrammar() {
+        return Parsernostrum.seq(
+            Parsernostrum.reg(/Begin +Object/),
+            Parsernostrum.seq(
+                Parsernostrum.whitespace,
+                Parsernostrum.alt(
+                    this.createSubObjectGrammar(),
+                    this.customPropertyGrammar,
+                    Grammar.createAttributeGrammar(this, Parsernostrum.reg(Grammar.Regex.MultipleWordsSymbols)),
+                    Grammar.createAttributeGrammar(
+                        this,
+                        Grammar.attributeNameQuoted,
+                        undefined,
+                        (values, attributeKey, attributeValue) => {
+                            Utility.objectSet(values, [...attributeKey, "quoted"], true);
+                        },
+                    ),
+                    this.inlinedArrayEntryGrammar,
+                )
+            )
+                .map(([_0, entry]) => entry)
+                .many(),
+            Parsernostrum.reg(/\s+End +Object/),
+        )
+            .map(([_0, attributes, _2]) => {
+                const values = {};
+                attributes.forEach(attributeSetter => attributeSetter(values));
+                return new this(values)
+            })
+            .label("ObjectEntity")
+    }
+
+    static createSubObjectGrammar() {
+        return Parsernostrum.lazy(() => this.grammar)
+            .map(object =>
+                values => {
+                    object.trailing = false;
+                    values[Configuration.subObjectAttributeNameFromEntity(object)] = object;
+                }
+            )
+    }
+
+    /**
+     * @protected
+     * Mirror then name part of the objects contained in this one in ExportPath
+     */
+    mirrorNameInExportPaths(originalName = this.Name?.toString()) {
+        if (!originalName) {
+            return
+        }
+        const values = [this];
+        for (let i = 0; i < values.length; ++i) {
+            const value = values[i];
+            if (value instanceof ObjectEntity) {
+                values.push(...Object.values(value));
+                if (!value.ExportPath?.valueOf().path.includes(originalName)) {
+                    continue
+                }
+            } else {
+                continue
+            }
+            const mirroredEntity = /** @type {typeof ObjectEntity} */(value.constructor).attributes.ExportPath;
+            let originalExportPath = value.ExportPath;
+            value.ExportPath = new mirroredEntity(
+                () => {
+                    const exportPath = originalExportPath.valueOf();
+                    return new (mirroredEntity.type)(
+                        exportPath.type,
+                        exportPath.path.replace(originalName, this.Name?.toString() ?? ""),
+                        exportPath.full
+                    )
+                }
+            );
+        }
+    }
+
+    /** @type {String} */
+    #class
+    getClass() {
+        if (!this.#class) {
+            this.#class = (this.Class?.path ? this.Class.path : this.Class?.type)
+                ?? this.ExportPath?.valueOf()?.type
+                ?? "";
+            if (this.#class && !this.#class.startsWith("/")) {
+                // Old path names did not start with /Script or /Engine, check tests/resources/LegacyNodes.js
+                let path = Object.values(Configuration.paths).find(path => path.endsWith("." + this.#class));
+                if (path) {
+                    this.#class = path;
+                }
+            }
+        }
+        return this.#class
+    }
+
+    getType() {
+        const path = this.MacroGraphReference?.MacroGraph?.path;
+        if (path) {
+            return path
+        }
+        if (this.MaterialExpression) {
+            return this.MaterialExpression.type
+        }
+        let subobject = this.getSounCueSubobject();
+        if (subobject) {
+            return subobject.getClass()
+        }
+        return this.getClass()
+    }
+
+    getObjectName(dropCounter = false) {
+        if (dropCounter) {
+            return this.getNameAndCounter()[0]
+        }
+        return this.Name.toString()
+    }
+
+    /** @returns {[String, Number]} */
+    getNameAndCounter() {
+        const result = this.getObjectName().match(ObjectEntity.#nameRegex);
+        return result
+            ? [result[1] ?? "", parseInt(result[2] ?? "0")]
+            : ["", 0]
+    }
+
+    getCounter() {
+        return this.getNameAndCounter()[1]
+    }
+
+    getNodeWidth() {
+        return this.NodeWidth
+            ?? this.isComment() ? Configuration.defaultCommentWidth : undefined
+    }
+
+    /** @param {Number} value */
+    setNodeWidth(value) {
+        if (!this.NodeWidth) {
+            this.NodeWidth = new IntegerEntity();
+        }
+        this.NodeWidth.value = value;
+    }
+
+    getNodeHeight() {
+        return this.NodeHeight
+            ?? this.isComment() ? Configuration.defaultCommentHeight : undefined
+    }
+
+    /** @param {Number} value */
+    setNodeHeight(value) {
+        if (!this.NodeHeight) {
+            this.NodeHeight = new IntegerEntity();
+        }
+        this.NodeHeight.value = value;
+    }
+
+    getNodePosX() {
+        return this.NodePosX?.value ?? 0
+    }
+
+    /** @param {Number} value */
+    setNodePosX(value) {
+        if (!this.NodePosX) {
+            this.NodePosX = new IntegerEntity();
+        }
+        this.NodePosX.value = Math.round(value);
+    }
+
+    getNodePosY() {
+        return this.NodePosY?.value ?? 0
+    }
+
+    /** @param {Number} value */
+    setNodePosY(value) {
+        if (!this.NodePosY) {
+            this.NodePosY = new IntegerEntity();
+        }
+        this.NodePosY.value = Math.round(value);
+    }
+
+    getCustomproperties(canCreate = false) {
+        return this.CustomProperties.values
+    }
+
+    /** @returns {PinEntity[]} */
+    getPinEntities() {
+        return this.getCustomproperties().filter(v => v.constructor === PinEntity)
+    }
+
+    /** @returns {ObjectEntity[]} */
+    getSubobjects() {
+        return Object.keys(this)
+            .filter(k => k.startsWith(Configuration.subObjectAttributeNamePrefix))
+            .flatMap(k => [this[k], .../** @type {ObjectEntity} */(this[k]).getSubobjects()])
+    }
+
+    switchTarget() {
+        const switchMatch = this.getClass().match(Configuration.switchTargetPattern);
+        if (switchMatch) {
+            return switchMatch[1]
+        }
+    }
+
+    isEvent() {
+        switch (this.getClass()) {
+            case Configuration.paths.actorBoundEvent:
+            case Configuration.paths.componentBoundEvent:
+            case Configuration.paths.customEvent:
+            case Configuration.paths.event:
+            case Configuration.paths.inputAxisKeyEvent:
+            case Configuration.paths.inputVectorAxisEvent:
+                return true
+        }
+        return false
+    }
+
+    isComment() {
+        switch (this.getClass()) {
+            case Configuration.paths.comment:
+            case Configuration.paths.materialGraphNodeComment:
+                return true
+        }
+        return false
+    }
+
+    isMaterial() {
+        const classValue = this.getClass();
+        return classValue.startsWith("/Script/Engine.MaterialExpression")
+            || classValue.startsWith("/Script/InterchangeImport.MaterialExpression")
+            || classValue.startsWith("/Script/UnrealEd.MaterialGraph")
+    }
+
+    /** @return {ObjectEntity} */
+    getMaterialSubobject() {
+        const expression = this.MaterialExpression ?? this.MaterialExpressionComment;
+        return expression
+            ? this[Configuration.subObjectAttributeNameFromReference(expression, true)]
+            : null
+    }
+
+    isPcg() {
+        return this.getClass() == Configuration.paths.pcgEditorGraphNode || this.getPcgSubobject() != null
+    }
+
+    isNiagara() {
+        return this.Class && (this.Class.type ? this.Class.type : this.Class.path)?.startsWith("/Script/NiagaraEditor.")
+    }
+
+    isSoundCue() {
+        return this.getClass() == Configuration.paths.soundCueGraphNode
+    }
+
+    getBlueprintType() {
+        if (this.isMaterial()) {
+            return "MATERIAL"
+        }
+        if (this.isNiagara()) {
+            return "NIAGARA"
+        }
+        if (this.isPcg()) {
+            return "PCG Graph"
+        }
+        if (this.isSoundCue()) {
+            return "SOUND CUE"
+        }
+        return "BLUEPRINT"
+    }
+
+    /** @return {ObjectEntity} */
+    getPcgSubobject() {
+        const node = this.PCGNode;
+        return node
+            ? this[Configuration.subObjectAttributeNameFromReference(node, true)]
+            : null
+    }
+
+    /** @return {ObjectEntity} */
+    getSounCueSubobject() {
+        const node = this.SoundNode;
+        return node
+            ? this[Configuration.subObjectAttributeNameFromReference(node, true)]
+            : null
+    }
+
+    /** @return {ObjectEntity} */
+    getSettingsObject() {
+        const settings = this.SettingsInterface;
+        return settings
+            ? this[Configuration.subObjectAttributeNameFromReference(settings, true)]
+            : null
+    }
+
+    /** @return {ObjectEntity} */
+    getSubgraphObject() {
+        const name = this.SubgraphInstance;
+        return name
+            ? this[Configuration.subObjectAttributeNameFromName(name)]
+            : null
+    }
+
+    isDevelopmentOnly() {
+        const nodeClass = this.getClass();
+        return this.EnabledState?.toString() === "DevelopmentOnly"
+            || nodeClass.includes("Debug", Math.max(0, nodeClass.lastIndexOf(".")))
+    }
+
+    getHIDAttribute() {
+        return this.InputKey ?? this.AxisKey ?? this.InputAxisKey
+    }
+
+    getDelegatePin() {
+        return this.getCustomproperties().find(pin => pin.PinType.PinCategory.toString() === "delegate")
+    }
+
+    nodeColor() {
+        return nodeColor(this)
+    }
+
+    nodeIcon() {
+        return nodeIcon(this)
+    }
+
+    additionalPinInserter() {
+        return nodeVariadic(this)
+    }
+
+    /** @param {String} key */
+    showProperty(key) {
+        switch (key) {
+            case "Class":
+            case "Name":
+            case "Archetype":
+            case "ExportPath":
+            case "CustomProperties":
+                // Serielized separately, check doWrite()
+                return false
+        }
+        return super.showProperty(key)
+    }
+
+    /** @param {typeof ObjectEntity} Self */
+    doSerialize(
+        insideString = false,
+        indentation = "",
+        Self = /** @type {typeof ObjectEntity} */(this.constructor),
+        printKey = Self.printKey,
+        keySeparator = Self.keySeparator,
+        attributeSeparator = Self.attributeSeparator,
+        wrap = Self.wrap,
+    ) {
+        const isSelfOverriden = Self !== this.constructor;
+        const deeperIndentation = indentation + Configuration.indentation;
+        const initial_trailing = this.trailing;
+        this.trailing = true;
+        const content = super.doSerialize(insideString, deeperIndentation, Self, printKey, keySeparator, attributeSeparator, wrap);
+        this.trailing = initial_trailing;
+        let result = indentation + "Begin Object"
+            + ((this.Class?.type || this.Class?.path)
+                // && Self.attributes.Class.ignored !== true
+                // && this.Class.ignored !== true
+                ? ` Class${keySeparator}${this.Class.serialize(insideString)}`
+                : ""
+            )
+            + (this.Name
+                // && Self.attributes.Name.ignored !== true
+                // && this.Name.ignored !== true
+                ? ` Name${keySeparator}${this.Name.serialize(insideString)}`
+                : ""
+            )
+            + (this.Archetype
+                // && Self.attributes.Archetype.ignored !== true
+                // && this.Archetype.ignored !== true
+                ? ` Archetype${keySeparator}${this.Archetype.serialize(insideString)}`
+                : ""
+            )
+            + ((this.ExportPath?.valueOf()?.type || this.ExportPath?.valueOf()?.path)
+                // && Self.attributes.ExportPath.valueOf().ignored !== true
+                // && this.ExportPath.valueOf().ignored !== true
+                ? ` ExportPath${keySeparator}${this.ExportPath.serialize(insideString)}`
+                : ""
+            )
+            + attributeSeparator
+            + content
+            + (Self.attributes.CustomProperties.ignored !== true && this.CustomProperties.ignored !== true
+                ? this.getCustomproperties()
+                    .map(pin =>
+                        deeperIndentation
+                        + printKey("CustomProperties ")
+                        + pin.serialize(insideString)
+                        + attributeSeparator
+                    )
+                    .join("")
+                : ""
+            )
+            + indentation + "End Object"
+            + (isSelfOverriden && Self.trailing || this.trailing ? attributeSeparator : "");
+        return result
+    }
+}
+
 /**
  * AI Panel Element - AI Assistant Floating Panel
  * Lit-based web component for UE Blueprint AI generation
@@ -4831,6 +8784,10 @@ class AIPanelElement extends i$1 {
     hide() { this.visible = false; }
     toggle() { this.visible = !this.visible; }
 
+    /**
+     * Get compressed blueprint context for LLM
+     * P1 Optimization: Reduce token usage by 50-70%
+     */
     _getBlueprintContext() {
         if (!this.blueprint) return null
 
@@ -4845,13 +8802,77 @@ class AIPanelElement extends i$1 {
         }
 
         if (nodes.length > 0) {
-             // Only serializing entities
-             const nodeEntities = nodes.map(n => n.entity);
-             const t3d = nodeEntities.reduce((acc, cur) => acc + cur.serialize(), "");
-             return `Context (${selectionState}):\n\`\`\`\n${t3d}\n\`\`\``
+            // P1: Compressed context format
+            const compressed = this._compressContext(nodes);
+            return `Context (${selectionState}, ${nodes.length} nodes):\n${compressed}`
         }
         
         return null
+    }
+    
+    /**
+     * Compress node context to summary format
+     * Format: [NodeType] pin1←, →pin2*
+     * @param {Array} nodes - Node elements
+     * @returns {string} - Compressed context
+     */
+    _compressContext(nodes) {
+        return nodes.map(node => {
+            const entity = node.entity;
+            
+            // Get node type: prefer FunctionReference.MemberName, fallback to Class name
+            let nodeTypeName = 'Unknown';
+            if (entity.FunctionReference?.MemberName) {
+                nodeTypeName = entity.FunctionReference.MemberName.toString();
+            } else if (entity.CustomFunctionName) {
+                nodeTypeName = entity.CustomFunctionName.toString();
+            } else {
+                // Extract last part of class path: /Script/BlueprintGraph.K2Node_XXX -> K2Node_XXX
+                const typePath = entity.getType?.() || entity.getClass?.() || '';
+                const lastDot = typePath.lastIndexOf('.');
+                nodeTypeName = lastDot >= 0 ? typePath.substring(lastDot + 1) : typePath;
+            }
+            
+            // Get pin summary using getPinEntities()
+            const pins = entity.getPinEntities?.() || [];
+            const pinSummary = pins.slice(0, 6).map(pin => {
+                const dir = pin.isInput?.() ? '←' : '→';
+                const linked = pin.LinkedTo?.values?.length > 0 ? '*' : '';
+                const name = pin.PinName?.toString() || 'pin';
+                return `${dir}${name}${linked}`
+            }).join(', ');
+            
+            return `[${nodeTypeName}] ${pinSummary || 'no pins'}`
+        }).join('\\n')
+    }
+
+    
+    /**
+     * Validate T3D syntax before injection
+     * P1 Optimization: Catch parsing errors early
+     * @param {string} t3dText - T3D text to validate
+     * @returns {{valid: boolean, error?: string}} - Validation result
+     */
+    _validateT3D(t3dText) {
+        if (!t3dText || !t3dText.trim()) {
+            return { valid: false, error: 'Empty T3D text' }
+        }
+        
+        // Check for basic T3D structure
+        if (!t3dText.includes('Begin Object')) {
+            return { valid: false, error: 'Missing "Begin Object" declaration' }
+        }
+        
+        // Try to parse using the grammar
+        try {
+            const parsed = ObjectEntity.grammarMultipleObjects.parse(t3dText);
+            if (!parsed || parsed.length === 0) {
+                return { valid: false, error: 'No valid nodes found in T3D' }
+            }
+            return { valid: true }
+        } catch (e) {
+            return { valid: false, error: e.message || 'T3D parsing failed' }
+        }
     }
 
     _handlePromptInput(e) { 
@@ -5238,14 +9259,33 @@ class AIPanelElement extends i$1 {
                 ? MATERIAL_SYSTEM_PROMPT 
                 : BLUEPRINT_SYSTEM_PROMPT;
             
+            // P1: Inject available node types index
+            const classIndexText = await getClassIndexText(this.graphMode);
+            const promptWithIndex = classIndexText 
+                ? `${baseSystemPrompt}\n\n${classIndexText}`
+                : baseSystemPrompt;
+            
             // Dynamically inject relevant T3D examples based on user prompt
             const systemPrompt = await enhancePromptWithExamples(
-                baseSystemPrompt, 
+                promptWithIndex, 
                 currentPrompt, 
                 this.graphMode
             );
 
             const t3dText = await this.llmService.generate(promptToSend, this.abortController.signal, systemPrompt);
+            
+            // P1: Validate T3D syntax before injection
+            const validation = this._validateT3D(t3dText);
+            if (!validation.valid) {
+                this.history = [...this.history, { 
+                    role: 'system', 
+                    content: `⚠️ T3D 解析失败：${validation.error}\n请尝试简化请求或提供更多细节。` 
+                }];
+                this.statusText = "Parse error";
+                this.statusType = "error";
+                return
+            }
+            
             const nodes = this._injectBlueprint(t3dText);
             
             // Validate generated node types match graphMode

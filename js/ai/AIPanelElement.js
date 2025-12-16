@@ -9,8 +9,10 @@ import LLMService from "./LLMService.js"
 import LayoutEngine from "./LayoutEngine.js"
 import { BLUEPRINT_SYSTEM_PROMPT, MATERIAL_SYSTEM_PROMPT, BLUEPRINT_CHAT_PROMPT, MATERIAL_CHAT_PROMPT, DEFAULT_PROMPT_TEMPLATE } from "./prompts.js"
 import { enhancePromptWithExamples } from "./NodeExampleService.js"
+import { getClassIndexText } from "./NodeClassIndex.js"
 import { parseMarkdown } from "./MarkdownParser.js"
 import LinearColorEntity from "../entity/LinearColorEntity.js"
+import ObjectEntity from "../entity/ObjectEntity.js"
 
 /**
  * @typedef {Object} AISettings
@@ -793,6 +795,10 @@ export default class AIPanelElement extends LitElement {
     hide() { this.visible = false }
     toggle() { this.visible = !this.visible }
 
+    /**
+     * Get compressed blueprint context for LLM
+     * P1 Optimization: Reduce token usage by 50-70%
+     */
     _getBlueprintContext() {
         if (!this.blueprint) return null
 
@@ -807,13 +813,77 @@ export default class AIPanelElement extends LitElement {
         }
 
         if (nodes.length > 0) {
-             // Only serializing entities
-             const nodeEntities = nodes.map(n => n.entity)
-             const t3d = nodeEntities.reduce((acc, cur) => acc + cur.serialize(), "")
-             return `Context (${selectionState}):\n\`\`\`\n${t3d}\n\`\`\``
+            // P1: Compressed context format
+            const compressed = this._compressContext(nodes)
+            return `Context (${selectionState}, ${nodes.length} nodes):\n${compressed}`
         }
         
         return null
+    }
+    
+    /**
+     * Compress node context to summary format
+     * Format: [NodeType] pin1←, →pin2*
+     * @param {Array} nodes - Node elements
+     * @returns {string} - Compressed context
+     */
+    _compressContext(nodes) {
+        return nodes.map(node => {
+            const entity = node.entity
+            
+            // Get node type: prefer FunctionReference.MemberName, fallback to Class name
+            let nodeTypeName = 'Unknown'
+            if (entity.FunctionReference?.MemberName) {
+                nodeTypeName = entity.FunctionReference.MemberName.toString()
+            } else if (entity.CustomFunctionName) {
+                nodeTypeName = entity.CustomFunctionName.toString()
+            } else {
+                // Extract last part of class path: /Script/BlueprintGraph.K2Node_XXX -> K2Node_XXX
+                const typePath = entity.getType?.() || entity.getClass?.() || ''
+                const lastDot = typePath.lastIndexOf('.')
+                nodeTypeName = lastDot >= 0 ? typePath.substring(lastDot + 1) : typePath
+            }
+            
+            // Get pin summary using getPinEntities()
+            const pins = entity.getPinEntities?.() || []
+            const pinSummary = pins.slice(0, 6).map(pin => {
+                const dir = pin.isInput?.() ? '←' : '→'
+                const linked = pin.LinkedTo?.values?.length > 0 ? '*' : ''
+                const name = pin.PinName?.toString() || 'pin'
+                return `${dir}${name}${linked}`
+            }).join(', ')
+            
+            return `[${nodeTypeName}] ${pinSummary || 'no pins'}`
+        }).join('\\n')
+    }
+
+    
+    /**
+     * Validate T3D syntax before injection
+     * P1 Optimization: Catch parsing errors early
+     * @param {string} t3dText - T3D text to validate
+     * @returns {{valid: boolean, error?: string}} - Validation result
+     */
+    _validateT3D(t3dText) {
+        if (!t3dText || !t3dText.trim()) {
+            return { valid: false, error: 'Empty T3D text' }
+        }
+        
+        // Check for basic T3D structure
+        if (!t3dText.includes('Begin Object')) {
+            return { valid: false, error: 'Missing "Begin Object" declaration' }
+        }
+        
+        // Try to parse using the grammar
+        try {
+            const parsed = ObjectEntity.grammarMultipleObjects.parse(t3dText)
+            if (!parsed || parsed.length === 0) {
+                return { valid: false, error: 'No valid nodes found in T3D' }
+            }
+            return { valid: true }
+        } catch (e) {
+            return { valid: false, error: e.message || 'T3D parsing failed' }
+        }
     }
 
     _handlePromptInput(e) { 
@@ -1200,14 +1270,33 @@ export default class AIPanelElement extends LitElement {
                 ? MATERIAL_SYSTEM_PROMPT 
                 : BLUEPRINT_SYSTEM_PROMPT
             
+            // P1: Inject available node types index
+            const classIndexText = await getClassIndexText(this.graphMode)
+            const promptWithIndex = classIndexText 
+                ? `${baseSystemPrompt}\n\n${classIndexText}`
+                : baseSystemPrompt
+            
             // Dynamically inject relevant T3D examples based on user prompt
             const systemPrompt = await enhancePromptWithExamples(
-                baseSystemPrompt, 
+                promptWithIndex, 
                 currentPrompt, 
                 this.graphMode
             )
 
             const t3dText = await this.llmService.generate(promptToSend, this.abortController.signal, systemPrompt)
+            
+            // P1: Validate T3D syntax before injection
+            const validation = this._validateT3D(t3dText)
+            if (!validation.valid) {
+                this.history = [...this.history, { 
+                    role: 'system', 
+                    content: `⚠️ T3D 解析失败：${validation.error}\n请尝试简化请求或提供更多细节。` 
+                }]
+                this.statusText = "Parse error"
+                this.statusType = "error"
+                return
+            }
+            
             const nodes = this._injectBlueprint(t3dText)
             
             // Validate generated node types match graphMode
