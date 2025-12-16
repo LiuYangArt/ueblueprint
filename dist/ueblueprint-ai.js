@@ -609,21 +609,26 @@ class AIPanelElement extends i {
 
         .generating .status-bar {
             animation: pulse 1.5s infinite;
-        }
     `
 
     constructor() {
         super();
         this.visible = true;
+        this.history = []; // Chat history
         this.prompt = "";
-        this.isGenerating = false;
         this.statusText = "Ready";
         this.statusType = "";
+        this.isGenerating = false;
         this.mode = "chat"; // Default to chat mode
+        this.model = localStorage.getItem("ueb-ai-model") || "";
+        this.provider = localStorage.getItem("ueb-ai-provider") || "";
         this.quickModels = [];
-        this.model = "";
-        this.provider = "";
-        this.history = []; // Chat history
+        this.settings = {
+            baseUrl: "",
+            apiKey: "",
+            model: "",
+            provider: "openai" // Default provider
+        };
         this.abortController = null;
 
         // Dragging state
@@ -649,8 +654,12 @@ class AIPanelElement extends i {
                 const settings = e.detail;
                 this.llmService.updateConfig(settings);
                 this.quickModels = settings.quickModels || [];
-                this.model = settings.model || "";
-                this.provider = settings.provider || "";
+                // If model/provider are not set from localStorage, or if they are no longer valid,
+                // fall back to settings.
+                if (!this.model || !this.provider) {
+                    this.model = settings.model || "";
+                    this.provider = settings.provider || "";
+                }
                 this.requestUpdate();
             }
         });
@@ -684,8 +693,13 @@ class AIPanelElement extends i {
                 
                 // Update local state
                 this.quickModels = settings.quickModels || [];
-                this.model = settings.model || "";
-                this.provider = settings.provider || "";
+                
+                // If model/provider are not set from localStorage, or if they are no longer valid,
+                // fall back to settings.
+                if (!this.model || !this.provider) {
+                    this.model = settings.model || "";
+                    this.provider = settings.provider || "";
+                }
                 
                 // If current global model is in quickModels, ensure we have the full config
                 // (Though LLMService already has valid config from updateConfig(settings) which includes baseUrl)
@@ -825,21 +839,23 @@ Use concise language.`;
     }
 
     _handleModelSelect(e) {
-        const index = parseInt(e.target.value);
-        if (isNaN(index)) return
-
-        const qm = this.quickModels[index];
-        if (qm) {
-            this.model = qm.model;
-            this.provider = qm.provider;
+        const index = e.target.value;
+        if (index !== "" && this.quickModels[index]) {
+            const selected = this.quickModels[index];
+            this.model = selected.model;
+            this.provider = selected.provider;
+            
+            // Persist selection
+            localStorage.setItem("ueb-ai-model", this.model);
+            localStorage.setItem("ueb-ai-provider", this.provider);
             
             // Update LLM Service config for immediate use
             // Note: We don't have the API Key for this provider if it differs from the global one.
             // Assumption: User uses a compatible key or the same key provider.
             const configUpdate = {
-                model: qm.model,
-                baseUrl: qm.baseUrl, // Use the stored baseUrl for this quick model
-                provider: qm.provider
+                model: selected.model,
+                provider: selected.provider,
+                baseUrl: selected.baseUrl // Use the stored baseUrl for this quick model
             };
             
             this.llmService.updateConfig(configUpdate);
