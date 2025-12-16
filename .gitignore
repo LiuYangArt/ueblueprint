@@ -6,5 +6,5 @@ localhost*
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-docs
+
 *.code-workspace
