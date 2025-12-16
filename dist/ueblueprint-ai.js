@@ -945,7 +945,11 @@ Use concise language.`;
 
     render() {
         return x`
-            <div class="ai-panel ${this.isGenerating ? "generating" : ""}">
+            <div class="ai-panel ${this.isGenerating ? "generating" : ""}"
+                @mousedown=${e => e.stopPropagation()}
+                @click=${e => e.stopPropagation()}
+                @wheel=${e => e.stopPropagation()}
+            >
                 <div class="panel-header" @mousedown=${this._handleDragStart}>
                     <div>
                         <button class="settings-btn" @click=${this._openSettings} title="Settings">⚙</button>
