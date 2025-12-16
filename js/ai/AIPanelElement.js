@@ -465,11 +465,62 @@ export default class AIPanelElement extends LitElement {
             }]
             this._scrollToBottom()
         })
+        
+        // Observe blueprint type changes to sync graphMode
+        this._setupBlueprintTypeObserver()
+    }
+    
+    /**
+     * Set up observer to sync graphMode with blueprint.blueprintType
+     */
+    _setupBlueprintTypeObserver() {
+        // Wait for blueprint to be set
+        const checkAndObserve = () => {
+            if (this.blueprint) {
+                // Initial sync
+                this._syncGraphModeFromBlueprint()
+                
+                // Watch for data-type attribute changes
+                this._blueprintObserver = new MutationObserver((mutations) => {
+                    for (const mutation of mutations) {
+                        if (mutation.attributeName === 'data-type') {
+                            this._syncGraphModeFromBlueprint()
+                        }
+                    }
+                })
+                this._blueprintObserver.observe(this.blueprint, { 
+                    attributes: true, 
+                    attributeFilter: ['data-type'] 
+                })
+            } else {
+                // Retry later if blueprint not set yet
+                setTimeout(checkAndObserve, 100)
+            }
+        }
+        checkAndObserve()
+    }
+    
+    /**
+     * Sync graphMode based on current blueprint type
+     */
+    _syncGraphModeFromBlueprint() {
+        if (!this.blueprint) return
+        
+        const blueprintType = this.blueprint.blueprintType
+        if (blueprintType === "MATERIAL") {
+            this.graphMode = "material"
+        } else if (blueprintType === "BLUEPRINT" || !blueprintType) {
+            this.graphMode = "blueprint"
+        }
+        // Other types (NIAGARA, PCG, etc.) stay as blueprint mode for now
     }
 
     disconnectedCallback() {
         super.disconnectedCallback()
         document.removeEventListener("keydown", this._keydownHandler)
+        if (this._blueprintObserver) {
+            this._blueprintObserver.disconnect()
+        }
     }
 
     _setupKeyboardShortcut() {

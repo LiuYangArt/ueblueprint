@@ -83,54 +83,65 @@ const MATERIAL_SYSTEM_PROMPT = `You are an expert Unreal Engine 5 Material Edito
 ### Core Rules
 1. **Output Format**: Return ONLY the raw T3D text. Do not wrap in markdown code blocks. Do not add explanations.
 2. **Node Structure**: Material nodes have a TWO-LEVEL structure:
-   - Outer wrapper: \`MaterialGraphNode\`
-   - Inner expression: \`MaterialExpression*\` subobject
-3. **GUIDs**: generate unique 32-character hex strings for \`NodeGuid\` and \`MaterialExpressionGuid\`.
-4. **Layout**:
-   - Use \`NodePosX\` and \`NodePosY\` on the outer MaterialGraphNode.
-   - Also set \`MaterialExpressionEditorX\` and \`MaterialExpressionEditorY\` on the inner expression.
-5. **Connections**: Use \`A=(Expression="NodeName.ExpressionName")\` format for input connections.
+   - Outer wrapper: MaterialGraphNode with ExportPath
+   - Inner expression: MaterialExpression* subobject declared twice (forward declaration + definition)
+3. **GUIDs**: generate unique 32-character uppercase hex strings for NodeGuid and MaterialExpressionGuid.
+4. **Pins**: Each node MUST have CustomProperties Pin entries for all inputs and outputs.
+5. **Layout**: Use NodePosX/NodePosY and matching MaterialExpressionEditorX/Y values.
 
-### Common Material Expressions
+### Required Node Format
 
-**Constant**
-Inner Class: /Script/Engine.MaterialExpressionConstant
-Property: R=1.0 (the constant value)
-
-**Add**
-Inner Class: /Script/Engine.MaterialExpressionAdd
-Inputs: A=(Expression=...), B=(Expression=...)
-
-**Multiply**
-Inner Class: /Script/Engine.MaterialExpressionMultiply
-Inputs: A=(Expression=...), B=(Expression=...)
-
-**Texture Sample**
-Inner Class: /Script/Engine.MaterialExpressionTextureSample
-Property: Texture=/Script/Engine.Texture2D'...'
-
-**Vector Parameter**
-Inner Class: /Script/Engine.MaterialExpressionVectorParameter
-Properties: ParameterName="ColorParam", DefaultValue=(R=1,G=0,B=0,A=1)
-
-**Scalar Parameter**
-Inner Class: /Script/Engine.MaterialExpressionScalarParameter
-Properties: ParameterName="FloatParam", DefaultValue=1.0
-
-### Example Output
-Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_0"
-    Begin Object Class=/Script/Engine.MaterialExpressionConstant Name="MaterialExpressionConstant_0"
+Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_X" ExportPath=/Script/UnrealEd.MaterialGraphNode'"/Engine/Transient.Material:MaterialGraph_0.MaterialGraphNode_X"'
+    Begin Object Class=/Script/Engine.MaterialExpressionXXX Name="MaterialExpressionXXX_0" ExportPath=/Script/Engine.MaterialExpressionXXX'"/Engine/Transient.Material:MaterialGraph_0.MaterialGraphNode_X.MaterialExpressionXXX_0"'
     End Object
-    Begin Object Name="MaterialExpressionConstant_0"
+    Begin Object Name="MaterialExpressionXXX_0" ExportPath=/Script/Engine.MaterialExpressionXXX'"/Engine/Transient.Material:MaterialGraph_0.MaterialGraphNode_X.MaterialExpressionXXX_0"'
+        [Properties...]
+        MaterialExpressionEditorX=-200
+        MaterialExpressionEditorY=0
+        MaterialExpressionGuid=[32-char GUID]
+    End Object
+    MaterialExpression=/Script/Engine.MaterialExpressionXXX'"MaterialExpressionXXX_0"'
+    NodePosX=-200
+    NodePosY=0
+    NodeGuid=[32-char GUID]
+    CustomProperties Pin (PinId=[GUID],PinName="Output",Direction="EGPD_Output",PinType.PinCategory="",...)
+End Object
+
+### Common Expressions
+
+**Constant** (scalar value):
+- Class: MaterialExpressionConstant
+- Property: R=1.0
+
+**Constant3Vector** (RGB color):
+- Class: MaterialExpressionConstant3Vector
+- Property: Constant=(R=1,G=0,B=0,A=0)
+
+**Multiply**:
+- Class: MaterialExpressionMultiply
+- Inputs come from connections, not properties
+
+**Add**:
+- Class: MaterialExpressionAdd
+
+### Example: Constant Node
+
+Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_0" ExportPath=/Script/UnrealEd.MaterialGraphNode'"/Engine/Transient.M_Test:MaterialGraph_0.MaterialGraphNode_0"'
+    Begin Object Class=/Script/Engine.MaterialExpressionConstant Name="MaterialExpressionConstant_0" ExportPath=/Script/Engine.MaterialExpressionConstant'"/Engine/Transient.M_Test:MaterialGraph_0.MaterialGraphNode_0.MaterialExpressionConstant_0"'
+    End Object
+    Begin Object Name="MaterialExpressionConstant_0" ExportPath=/Script/Engine.MaterialExpressionConstant'"/Engine/Transient.M_Test:MaterialGraph_0.MaterialGraphNode_0.MaterialExpressionConstant_0"'
         R=1.000000
         MaterialExpressionEditorX=-200
         MaterialExpressionEditorY=0
-        MaterialExpressionGuid=00000000000000000000000000000001
+        MaterialExpressionGuid=A1B2C3D4E5F6789012345678ABCDEF01
+        bCollapsed=False
     End Object
     MaterialExpression=/Script/Engine.MaterialExpressionConstant'"MaterialExpressionConstant_0"'
     NodePosX=-200
     NodePosY=0
-    NodeGuid=00000000000000000000000000000002
+    NodeGuid=12345678901234567890123456789012
+    CustomProperties Pin (PinId=AABBCCDD11223344AABBCCDD11223344,PinName="Value",PinType.PinCategory="optional",PinType.PinSubCategory="red",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="1.0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=True,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+    CustomProperties Pin (PinId=EEFF00112233445566778899AABBCCDD,PinName="Output",PinFriendlyName=NSLOCTEXT("MaterialGraphNode","Space"," "),Direction="EGPD_Output",PinType.PinCategory="",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
 End Object
 `;
 
@@ -900,11 +911,62 @@ class AIPanelElement extends i {
             }];
             this._scrollToBottom();
         });
+        
+        // Observe blueprint type changes to sync graphMode
+        this._setupBlueprintTypeObserver();
+    }
+    
+    /**
+     * Set up observer to sync graphMode with blueprint.blueprintType
+     */
+    _setupBlueprintTypeObserver() {
+        // Wait for blueprint to be set
+        const checkAndObserve = () => {
+            if (this.blueprint) {
+                // Initial sync
+                this._syncGraphModeFromBlueprint();
+                
+                // Watch for data-type attribute changes
+                this._blueprintObserver = new MutationObserver((mutations) => {
+                    for (const mutation of mutations) {
+                        if (mutation.attributeName === 'data-type') {
+                            this._syncGraphModeFromBlueprint();
+                        }
+                    }
+                });
+                this._blueprintObserver.observe(this.blueprint, { 
+                    attributes: true, 
+                    attributeFilter: ['data-type'] 
+                });
+            } else {
+                // Retry later if blueprint not set yet
+                setTimeout(checkAndObserve, 100);
+            }
+        };
+        checkAndObserve();
+    }
+    
+    /**
+     * Sync graphMode based on current blueprint type
+     */
+    _syncGraphModeFromBlueprint() {
+        if (!this.blueprint) return
+        
+        const blueprintType = this.blueprint.blueprintType;
+        if (blueprintType === "MATERIAL") {
+            this.graphMode = "material";
+        } else if (blueprintType === "BLUEPRINT" || !blueprintType) {
+            this.graphMode = "blueprint";
+        }
+        // Other types (NIAGARA, PCG, etc.) stay as blueprint mode for now
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         document.removeEventListener("keydown", this._keydownHandler);
+        if (this._blueprintObserver) {
+            this._blueprintObserver.disconnect();
+        }
     }
 
     _setupKeyboardShortcut() {
