@@ -8,6 +8,8 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js"
 import LLMService from "./LLMService.js"
 import LayoutEngine from "./LayoutEngine.js"
 import { BLUEPRINT_SYSTEM_PROMPT, MATERIAL_SYSTEM_PROMPT, BLUEPRINT_CHAT_PROMPT, MATERIAL_CHAT_PROMPT, DEFAULT_PROMPT_TEMPLATE } from "./prompts.js"
+import { getSlimPrompt } from "./slimPrompts.js"
+import { convertSlimIRToT3D } from "./SlimIRToT3D.js"
 import { enhancePromptWithExamples } from "./NodeExampleService.js"
 import { getClassIndexText } from "./NodeClassIndex.js"
 import { parseMarkdown } from "./MarkdownParser.js"
@@ -47,7 +49,9 @@ export default class AIPanelElement extends LitElement {
         pendingImages: { type: Array },
         debug: { type: Boolean },
         systemPrompt: { type: String },
-        providerConfigs: { type: Object }
+        providerConfigs: { type: Object },
+        // Slim IR mode (experimental) - generates compact JSON then converts to T3D
+        useSlimIR: { type: Boolean }
     }
 
     static styles = css`
@@ -590,6 +594,7 @@ export default class AIPanelElement extends LitElement {
         this.systemPrompt = DEFAULT_PROMPT_TEMPLATE
         this.abortController = null
         this.pendingImages = [] // Images pending to be sent with next message
+        this.useSlimIR = localStorage.getItem("ueb-ai-slim-ir") !== "false" // Default enabled
 
         // Dragging state
         this._isDragging = false
@@ -1281,6 +1286,24 @@ export default class AIPanelElement extends LitElement {
         try {
             // Config is already updated via event listener or initial load
             const context = this._getBlueprintContext()
+            
+            // === Slim IR Mode ===
+            // Use compact JSON generation then convert to T3D
+            if (this.useSlimIR) {
+                this.statusText = "Generating (Slim IR)..."
+                const result = await this._handleSlimIRGenerate(currentPrompt, context)
+                const nodeCount = result.nodes?.length || 0
+                const content = this.debug 
+                    ? `Generated ${nodeCount} nodes via Slim IR.\n\n\`\`\`json\n${JSON.stringify(result.slimIR, null, 2)}\n\`\`\`\n\n\`\`\`\n${result.t3dText}\n\`\`\`` 
+                    : `✅ Generated ${nodeCount} node${nodeCount !== 1 ? 's' : ''} (Slim IR).`
+                
+                this.history = [...this.history, { role: 'assistant', content }]
+                this.statusText = "Generation complete!"
+                this.statusType = "success"
+                return
+            }
+            
+            // === Legacy T3D Mode ===
             let promptToSend = currentPrompt
             
             if (context) {
@@ -1416,6 +1439,77 @@ export default class AIPanelElement extends LitElement {
                 }
             }
         }
+    }
+
+    /**
+     * Handle generation using Slim IR mode
+     * Generates compact JSON, converts to T3D, then injects
+     * @param {string} userPrompt - Original user prompt
+     * @param {string} context - Blueprint context
+     */
+    async _handleSlimIRGenerate(userPrompt, context) {
+        let promptToSend = userPrompt
+        if (context) {
+            promptToSend = `Current graph context:\n${context}\n\nTask: ${userPrompt}`
+        }
+
+        // Use simplified Slim IR prompt
+        const systemPrompt = getSlimPrompt(this.graphMode)
+        
+        console.group('%c[Slim IR Generation]', 'color: #00d4ff; font-weight: bold')
+        console.log('Mode:', this.graphMode)
+        console.log('Prompt:', userPrompt)
+        console.log('System prompt size:', systemPrompt.length, 'bytes')
+        
+        // Get LLM response (should be JSON)
+        const responseText = await this.llmService.generate(promptToSend, this.abortController.signal, systemPrompt)
+        
+        console.log('LLM response:', responseText)
+        
+        // Parse JSON response
+        let slimIR
+        try {
+            // Try to extract JSON from response (in case LLM adds extra text)
+            const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+            if (!jsonMatch) {
+                throw new Error('No JSON object found in response')
+            }
+            slimIR = JSON.parse(jsonMatch[0])
+        } catch (parseErr) {
+            console.error('Failed to parse Slim IR JSON:', parseErr)
+            console.log('Raw response:', responseText)
+            console.groupEnd()
+            throw new Error(`Failed to parse Slim IR: ${parseErr.message}`)
+        }
+        
+        console.log('Parsed Slim IR:', slimIR)
+        console.log('Slim IR size:', JSON.stringify(slimIR).length, 'bytes')
+        
+        // Convert Slim IR to T3D
+        const conversionResult = convertSlimIRToT3D(slimIR, this.graphMode)
+        
+        if (!conversionResult.success) {
+            console.error('Slim IR conversion failed:', conversionResult.errors)
+            console.groupEnd()
+            throw new Error(`Slim IR conversion failed: ${conversionResult.errors.join(', ')}`)
+        }
+        
+        const t3dText = conversionResult.t3d
+        console.log('Generated T3D:', t3dText)
+        console.log('T3D size:', t3dText.length, 'bytes')
+        console.log('Expansion ratio:', (t3dText.length / JSON.stringify(slimIR).length).toFixed(1) + 'x')
+        console.groupEnd()
+        
+        // Inject and process nodes
+        const nodes = this._injectBlueprint(t3dText)
+        
+        if (nodes && nodes.length > 0) {
+            setTimeout(() => {
+                LayoutEngine.process(nodes)
+            }, 50)
+        }
+        
+        return { nodes, t3dText, slimIR }
     }
 
     render() {

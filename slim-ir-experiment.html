@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Slim IR Experiment</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #00d4ff;
+        }
+        .section {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .section h2 {
+            color: #4ecca3;
+            margin-top: 0;
+        }
+        pre {
+            background: #0f0f23;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .ir { color: #ffd700; }
+        .t3d { color: #4ecca3; }
+        .stats { color: #ff6b6b; }
+        button {
+            background: #4ecca3;
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px 10px 0;
+        }
+        button:hover {
+            background: #45b393;
+        }
+        .success { color: #4ecca3; }
+        .error { color: #ff6b6b; }
+        #result {
+            font-weight: bold;
+            font-size: 18px;
+            padding: 10px;
+        }
+        .copy-btn {
+            background: #6c5ce7;
+            font-size: 12px;
+            padding: 6px 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Slim IR → T3D Experiment</h1>
+    
+    <div class="section">
+        <h2>目标</h2>
+        <p>验证能否从紧凑的 JSON 格式（Slim IR）生成有效的 T3D 文本，并被解析器正确解析。</p>
+        <button onclick="runExperiment()">▶ 运行实验</button>
+        <button class="copy-btn" onclick="copyT3D()">📋 复制 T3D</button>
+        <div id="result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>输入：Slim IR (<span id="irSize">-</span> bytes)</h2>
+        <pre id="irOutput" class="ir"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>输出：T3D (<span id="t3dSize">-</span> bytes)</h2>
+        <pre id="t3dOutput" class="t3d"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>统计</h2>
+        <pre id="stats" class="stats"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>解析验证</h2>
+        <pre id="parseResult"></pre>
+    </div>
+
+    <script type="module">
+        import { convertSlimIRToT3D, EXAMPLE_SLIM_IR } from './js/ai/SlimIRExperiment.js'
+        import Grammar from './js/parser/Grammar.js'
+        
+        window.generatedT3D = ''
+        
+        window.runExperiment = function() {
+            const ir = EXAMPLE_SLIM_IR
+            const irJson = JSON.stringify(ir, null, 2)
+            const irSize = JSON.stringify(ir).length
+            
+            document.getElementById('irOutput').textContent = irJson
+            document.getElementById('irSize').textContent = irSize
+            
+            try {
+                // Convert to T3D
+                const t3d = convertSlimIRToT3D(ir)
+                window.generatedT3D = t3d
+                document.getElementById('t3dOutput').textContent = t3d
+                document.getElementById('t3dSize').textContent = t3d.length
+                
+                // Stats
+                const stats = [
+                    `Slim IR: ${irSize} bytes`,
+                    `T3D: ${t3d.length} bytes`,
+                    `节点数: ${ir.nodes.length}`,
+                    `连接数: ${ir.connections.length}`,
+                    ``,
+                    `💡 Slim IR 比 T3D 小 ${((1 - irSize/t3d.length) * 100).toFixed(1)}%`,
+                    `💡 LLM 只需生成 ${irSize} bytes 而不是 ~${t3d.length} bytes`
+                ]
+                document.getElementById('stats').textContent = stats.join('\n')
+                
+                // Try to parse
+                try {
+                    const parsed = Grammar.parse(t3d)
+                    if (parsed && parsed.length > 0) {
+                        document.getElementById('parseResult').innerHTML = 
+                            `<span class="success">✅ 解析成功！生成了 ${parsed.length} 个节点</span>\n\n` +
+                            parsed.map(n => `- ${n.entity?.getType?.() || n.constructor.name}`).join('\n')
+                        document.getElementById('result').innerHTML = 
+                            '<span class="success">✅ 实验成功！Slim IR → T3D 转换可行</span>'
+                    } else {
+                        document.getElementById('parseResult').innerHTML = 
+                            '<span class="error">⚠️ 解析返回空结果</span>'
+                        document.getElementById('result').innerHTML = 
+                            '<span class="error">⚠️ 解析返回空</span>'
+                    }
+                } catch (parseErr) {
+                    document.getElementById('parseResult').innerHTML = 
+                        `<span class="error">❌ 解析失败: ${parseErr.message}</span>\n\n` +
+                        `请检查 T3D 格式是否正确`
+                    document.getElementById('result').innerHTML = 
+                        '<span class="error">❌ 解析失败，需要调整 T3D 格式</span>'
+                }
+                
+            } catch (err) {
+                document.getElementById('result').innerHTML = 
+                    `<span class="error">❌ 转换失败: ${err.message}</span>`
+                console.error(err)
+            }
+        }
+        
+        window.copyT3D = function() {
+            if (window.generatedT3D) {
+                navigator.clipboard.writeText(window.generatedT3D)
+                alert('T3D 已复制到剪贴板！\n\n你可以在 ai-demo.html 中粘贴测试')
+            } else {
+                alert('请先运行实验')
+            }
+        }
+    </script>
+</body>
+</html>
