@@ -9,8 +9,7 @@ localhost*
 
 *.code-workspace
 
-# Build output
-dist/
+
 
 # Logs
 npm-debug.log*
@@ -30,7 +29,6 @@ Thumbs.db
 
 # Temporary Debug Files
 debug_output.txt
-debug.html
 reproduce_issue.js
 test_regex.js
 verify_fix.js
