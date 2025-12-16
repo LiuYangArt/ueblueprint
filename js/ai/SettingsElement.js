@@ -58,6 +58,7 @@ export default class SettingsElement extends LitElement {
         dragOverIndex: { type: Number, state: true },
         showModelDropdown: { type: Boolean, state: true },
         modelFilter: { type: String, state: true },
+        debug: { type: Boolean },
     }
 
     static styles = css`
@@ -416,6 +417,7 @@ export default class SettingsElement extends LitElement {
         this.dragOverIndex = -1
         this.showModelDropdown = false
         this.modelFilter = ""
+        this.debug = false
     }
 
     connectedCallback() {
@@ -434,6 +436,7 @@ export default class SettingsElement extends LitElement {
                 this.model = settings.model ?? "gpt-4o"
                 this.temperature = settings.temperature ?? 0.5
                 this.quickModels = settings.quickModels ?? []
+                this.debug = settings.debug ?? false
             }
             
             // Load models cache
@@ -516,7 +519,8 @@ export default class SettingsElement extends LitElement {
                 baseUrl: this.baseUrl,
                 model: this.model,
                 temperature: this.temperature,
-                quickModels: this.quickModels
+                quickModels: this.quickModels,
+                debug: this.debug
             }
             localStorage.setItem("ueblueprint-api-settings", JSON.stringify(settings))
             
@@ -691,6 +695,11 @@ export default class SettingsElement extends LitElement {
         this.model = m
         this.modelFilter = m
         this.showModelDropdown = false
+        this._saveSettings()
+    }
+
+    _handleDebugChange(e) {
+        this.debug = e.target.checked
         this._saveSettings()
     }
 
@@ -877,6 +886,21 @@ export default class SettingsElement extends LitElement {
                                 </div>
                             </div>
                         ` : ''}
+                    </div>
+                        
+                        <div class="setting-row" style="margin-top: 16px; border-top: 1px solid #3a3a3a; padding-top: 12px;">
+                             <div class="input-row" style="align-items: center;">
+                                 <input 
+                                     type="checkbox" 
+                                     id="debug-switch"
+                                     .checked=${this.debug}
+                                     @change=${this._handleDebugChange}
+                                     style="width: auto; margin-right: 8px;"
+                                 >
+                                 <label for="debug-switch" class="setting-label" style="margin-bottom: 0; cursor: pointer;">Debug Mode</label>
+                             </div>
+                             <span class="setting-description" style="margin-left: 20px; display: block;">Show generation logs in chat history</span>
+                        </div>
                     </div>
 
                     </div>

@@ -651,7 +651,8 @@ class AIPanelElement extends i$1 {
         showModal: { type: Boolean },
         modalConfig: { type: Object },
         // Pending images for next message (base64 data URLs)
-        pendingImages: { type: Array }
+        pendingImages: { type: Array },
+        debug: { type: Boolean }
     }
 
     static styles = i$4`
@@ -1189,6 +1190,7 @@ class AIPanelElement extends i$1 {
             model: "",
             provider: "openai" // Default provider
         };
+        this.debug = false;
         this.abortController = null;
         this.pendingImages = []; // Images pending to be sent with next message
 
@@ -1215,6 +1217,7 @@ class AIPanelElement extends i$1 {
                 const settings = e.detail;
                 this.llmService.updateConfig(settings);
                 this.quickModels = settings.quickModels || [];
+                this.debug = settings.debug || false;
                 // If model/provider are not set from localStorage, or if they are no longer valid,
                 // fall back to settings.
                 if (!this.model || !this.provider) {
@@ -1315,6 +1318,7 @@ class AIPanelElement extends i$1 {
                 
                 // Update local state
                 this.quickModels = settings.quickModels || [];
+                this.debug = settings.debug || false;
                 
                 // If model/provider are not set from localStorage, or if they are no longer valid,
                 // fall back to settings.
@@ -1695,7 +1699,9 @@ class AIPanelElement extends i$1 {
         }
 
         // Add user prompt to history
-        this.history = [...this.history, { role: 'user', content: this.prompt }];
+        if (this.debug) {
+            this.history = [...this.history, { role: 'user', content: this.prompt }];
+        }
         const currentPrompt = this.prompt;
         this.prompt = ""; // Clear prompt
         this.requestUpdate();
@@ -1745,10 +1751,12 @@ class AIPanelElement extends i$1 {
             }
 
             // Add success response to history
-            this.history = [...this.history, { 
-                role: 'assistant', 
-                content: `Generated ${nodes?.length || 0} nodes.\n\n\`\`\`\n${t3dText}\n\`\`\`` 
-            }];
+            if (this.debug) {
+                this.history = [...this.history, { 
+                    role: 'assistant', 
+                    content: `Generated ${nodes?.length || 0} nodes.\n\n\`\`\`\n${t3dText}\n\`\`\`` 
+                }];
+            }
 
             this.statusText = "Generation complete!";
             this.statusType = "success";
@@ -1996,6 +2004,7 @@ class SettingsElement extends i$1 {
         dragOverIndex: { type: Number, state: true },
         showModelDropdown: { type: Boolean, state: true },
         modelFilter: { type: String, state: true },
+        debug: { type: Boolean },
     }
 
     static styles = i$4`
@@ -2354,6 +2363,7 @@ class SettingsElement extends i$1 {
         this.dragOverIndex = -1;
         this.showModelDropdown = false;
         this.modelFilter = "";
+        this.debug = false;
     }
 
     connectedCallback() {
@@ -2372,6 +2382,7 @@ class SettingsElement extends i$1 {
                 this.model = settings.model ?? "gpt-4o";
                 this.temperature = settings.temperature ?? 0.5;
                 this.quickModels = settings.quickModels ?? [];
+                this.debug = settings.debug ?? false;
             }
             
             // Load models cache
@@ -2454,7 +2465,8 @@ class SettingsElement extends i$1 {
                 baseUrl: this.baseUrl,
                 model: this.model,
                 temperature: this.temperature,
-                quickModels: this.quickModels
+                quickModels: this.quickModels,
+                debug: this.debug
             };
             localStorage.setItem("ueblueprint-api-settings", JSON.stringify(settings));
             
@@ -2629,6 +2641,11 @@ class SettingsElement extends i$1 {
         this.model = m;
         this.modelFilter = m;
         this.showModelDropdown = false;
+        this._saveSettings();
+    }
+
+    _handleDebugChange(e) {
+        this.debug = e.target.checked;
         this._saveSettings();
     }
 
@@ -2815,6 +2832,21 @@ class SettingsElement extends i$1 {
                                 </div>
                             </div>
                         ` : ''}
+                    </div>
+                        
+                        <div class="setting-row" style="margin-top: 16px; border-top: 1px solid #3a3a3a; padding-top: 12px;">
+                             <div class="input-row" style="align-items: center;">
+                                 <input 
+                                     type="checkbox" 
+                                     id="debug-switch"
+                                     .checked=${this.debug}
+                                     @change=${this._handleDebugChange}
+                                     style="width: auto; margin-right: 8px;"
+                                 >
+                                 <label for="debug-switch" class="setting-label" style="margin-bottom: 0; cursor: pointer;">Debug Mode</label>
+                             </div>
+                             <span class="setting-description" style="margin-left: 20px; display: block;">Show generation logs in chat history</span>
+                        </div>
                     </div>
 
                     </div>

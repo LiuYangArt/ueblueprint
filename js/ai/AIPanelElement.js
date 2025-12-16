@@ -40,7 +40,8 @@ export default class AIPanelElement extends LitElement {
         showModal: { type: Boolean },
         modalConfig: { type: Object },
         // Pending images for next message (base64 data URLs)
-        pendingImages: { type: Array }
+        pendingImages: { type: Array },
+        debug: { type: Boolean }
     }
 
     static styles = css`
@@ -578,6 +579,7 @@ export default class AIPanelElement extends LitElement {
             model: "",
             provider: "openai" // Default provider
         }
+        this.debug = false
         this.abortController = null
         this.pendingImages = [] // Images pending to be sent with next message
 
@@ -604,6 +606,7 @@ export default class AIPanelElement extends LitElement {
                 const settings = e.detail
                 this.llmService.updateConfig(settings)
                 this.quickModels = settings.quickModels || []
+                this.debug = settings.debug || false
                 // If model/provider are not set from localStorage, or if they are no longer valid,
                 // fall back to settings.
                 if (!this.model || !this.provider) {
@@ -704,6 +707,7 @@ export default class AIPanelElement extends LitElement {
                 
                 // Update local state
                 this.quickModels = settings.quickModels || []
+                this.debug = settings.debug || false
                 
                 // If model/provider are not set from localStorage, or if they are no longer valid,
                 // fall back to settings.
@@ -1084,7 +1088,9 @@ export default class AIPanelElement extends LitElement {
         }
 
         // Add user prompt to history
-        this.history = [...this.history, { role: 'user', content: this.prompt }]
+        if (this.debug) {
+            this.history = [...this.history, { role: 'user', content: this.prompt }]
+        }
         const currentPrompt = this.prompt
         this.prompt = "" // Clear prompt
         this.requestUpdate()
@@ -1134,10 +1140,12 @@ export default class AIPanelElement extends LitElement {
             }
 
             // Add success response to history
-            this.history = [...this.history, { 
-                role: 'assistant', 
-                content: `Generated ${nodes?.length || 0} nodes.\n\n\`\`\`\n${t3dText}\n\`\`\`` 
-            }]
+            if (this.debug) {
+                this.history = [...this.history, { 
+                    role: 'assistant', 
+                    content: `Generated ${nodes?.length || 0} nodes.\n\n\`\`\`\n${t3dText}\n\`\`\`` 
+                }]
+            }
 
             this.statusText = "Generation complete!"
             this.statusType = "success"
