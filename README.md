@@ -3,13 +3,11 @@
 下载整个项目
 <br><img width="699" height="663" alt="image" src="https://github.com/user-attachments/assets/d7ccbb21-0782-4fdd-9b9b-335a49410d18" />
 
-0_install.bat 安装脚本
-1_run_server.bat 运行脚本
+- 0_install.bat 安装脚本
+- 1_run_server.bat 运行脚本
+- 运行后打开http://localhost:8080/ai-demo.html  ai功能测试页
+- 需要使用自己的api key， 目前接了[yunwu](https://yunwu.ai/register?aff=VE3i) | [gptgod](https://gptgod.site/#/register?invite_code=5ax35dxlk4bys0j7jnzqypwkc) ， 使用openai兼容模式的api应该都可以
 
-运行后打开http://localhost:8080/ai-demo.html  ai功能测试页
-
-需要使用自己的api key， 目前接了yunwu | gptgod ， 使用openai兼容模式的api应该都可以
-[yunwu](https://yunwu.ai/register?aff=VE3i) | [gptgod](https://gptgod.site/#/register?invite_code=5ax35dxlk4bys0j7jnzqypwkc)
 
 ## 使用
 - 支持蓝图模式和材质模式
