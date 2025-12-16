@@ -55,7 +55,9 @@ export default class SettingsElement extends LitElement {
         availableModels: { type: Array, state: true },
         isLoadingModels: { type: Array, state: true },
         quickModels: { type: Array, state: true },
-        dragOverIndex: { type: Number, state: true }
+        dragOverIndex: { type: Number, state: true },
+        showModelDropdown: { type: Boolean, state: true },
+        modelFilter: { type: String, state: true },
     }
 
     static styles = css`
@@ -349,8 +351,50 @@ export default class SettingsElement extends LitElement {
             display: inline-block;
         }
         
+        
         .add-quick-btn:hover {
             color: #5a8c9c;
+        }
+
+        .model-selector {
+            position: relative;
+            flex: 1;
+        }
+        
+        .model-dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #252525;
+            border: 1px solid #3a3a3a;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+            margin-top: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            display: none;
+        }
+
+        .model-dropdown-list.show {
+            display: block;
+        }
+
+        .model-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #2a2a2a;
+            font-size: 13px;
+        }
+        
+        .model-option:hover {
+            background: #333;
+        }
+
+        .model-option.selected {
+            background: #4a7c8c;
+            color: white;
         }
     `
 
@@ -370,6 +414,8 @@ export default class SettingsElement extends LitElement {
         this.modelsCache = {}
         this.quickModels = []
         this.dragOverIndex = -1
+        this.showModelDropdown = false
+        this.modelFilter = ""
     }
 
     connectedCallback() {
@@ -614,6 +660,40 @@ export default class SettingsElement extends LitElement {
 
 
 
+    _handleModelFilterInput(e) {
+        this.modelFilter = e.target.value
+        this.showModelDropdown = true
+        // If user clears input, still show dropdown
+    }
+
+    _handleModelInputFocus() {
+        this.modelFilter = this.model
+        this.showModelDropdown = true
+    }
+    
+    _handleModelInputBlur() {
+        // Small delay to allow click event on option to fire before closing
+        setTimeout(() => {
+            this.showModelDropdown = false
+            // If we didn't select a new model (dropdown closed), revert display to current model
+            // But if the user typed a custom model name and we want to support that?
+            // For now, let's strictly support selection from list OR custom input if list is empty.
+            // But wait, what if the user types something valid that is in the list but didn't click?
+            // Let's just reset to this.model for visual consistency
+            if (!this.showModelDropdown) {
+                 this.modelFilter = this.model
+                 this.requestUpdate()
+            }
+        }, 200)
+    }
+
+    _handleModelSelect(m) {
+        this.model = m
+        this.modelFilter = m
+        this.showModelDropdown = false
+        this._saveSettings()
+    }
+
     async _handleTest() {
         if (!this.apiKey) {
             this.testStatus = "error:Please enter an API key"
@@ -734,12 +814,32 @@ export default class SettingsElement extends LitElement {
                                         placeholder="Enter model name"
                                     >
                                 ` : html`
-                                    <select class="setting-select" @change=${this._handleModelChange}>
-                                        ${this.availableModels.map(m => html`
-                                            <option value=${m} ?selected=${this.model === m}>${m}</option>
-                                        `)}
-                                        ${this.availableModels.length === 0 ? html`<option value="">No models available</option>` : ''}
-                                    </select>
+                                    <div class="model-selector">
+                                        <input
+                                            type="text"
+                                            class="setting-input"
+                                            .value=${this.showModelDropdown ? this.modelFilter : this.model}
+                                            @input=${this._handleModelFilterInput}
+                                            @focus=${this._handleModelInputFocus}
+                                            @blur=${this._handleModelInputBlur}
+                                            placeholder="Select or search model..."
+                                        >
+                                        <div class="model-dropdown-list ${this.showModelDropdown ? 'show' : ''}">
+                                            ${this.availableModels
+                                                .filter(m => !this.modelFilter || m.toLowerCase().includes(this.modelFilter.toLowerCase()))
+                                                .map(m => html`
+                                                    <div 
+                                                        class="model-option ${this.model === m ? 'selected' : ''}"
+                                                        @mousedown=${() => this._handleModelSelect(m)}
+                                                    >
+                                                        ${m}
+                                                    </div>
+                                                `)}
+                                            ${this.availableModels.filter(m => !this.modelFilter || m.toLowerCase().includes(this.modelFilter.toLowerCase())).length === 0 ? html`
+                                                <div class="model-option" style="cursor: default; color: #888;">No matching models</div>
+                                            ` : ''}
+                                        </div>
+                                    </div>
                                 `}
                                 <button 
                                     class="test-btn" 
