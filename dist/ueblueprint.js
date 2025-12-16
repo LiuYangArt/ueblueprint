@@ -11334,15 +11334,19 @@ class BlueprintTemplate extends ITemplate {
                 <h2>UEBlueprint</h2>
                 <p>A stand alone implementation of the UE's Blueprint visual language editor.</p>
                 <p>
+                    Supports LLM chat and generation features.
+                </p>
+                <p>
                     Version: ${Configuration.VERSION}<br />
-                    Author: barsdeveloper<br />
+                    Original Author: barsdeveloper<br />
+                    Fork Author: LiuYangArt<br />
                     License: MIT<br />
 
                     <a target="_blank" href="https://github.com/barsdeveloper/ueblueprint">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#e3b341" style="vertical-align: bottom">
-                            <path d="M 12 0.587 L 16 8 L 24 9 L 18 15 L 20 24 L 12 19 L 4 24 L 6 15 L 0 9 L 8 8 Z M 0 0"></path>
-                        </svg>
-                        https://github.com/barsdeveloper/ueblueprint
+                        Origin: barsdeveloper/ueblueprint
+                    </a><br />
+                    <a target="_blank" href="https://github.com/LiuYangArt/ueblueprint">
+                         Fork: LiuYangArt/ueblueprint
                     </a>
                 </p>
             </dialog>
