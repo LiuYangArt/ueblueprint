@@ -723,6 +723,29 @@ class AIPanelElement extends i {
     hide() { this.visible = false; }
     toggle() { this.visible = !this.visible; }
 
+    _getBlueprintContext() {
+        if (!this.blueprint) return null
+
+        // Try to get selected nodes first
+        let nodes = this.blueprint.getNodes(true);
+        let selectionState = "Selected nodes";
+        
+        // If no selection, get all nodes
+        if (nodes.length === 0) {
+            nodes = this.blueprint.getNodes(false);
+            selectionState = "All nodes";
+        }
+
+        if (nodes.length > 0) {
+             // Only serializing entities
+             const nodeEntities = nodes.map(n => n.entity);
+             const t3d = nodeEntities.reduce((acc, cur) => acc + cur.serialize(), "");
+             return `Context (${selectionState}):\n\`\`\`\n${t3d}\n\`\`\``
+        }
+        
+        return null
+    }
+
     _handlePromptInput(e) { 
         this.prompt = e.target.value; 
         // Auto-resize textarea
@@ -764,27 +787,7 @@ class AIPanelElement extends i {
         this.abortController = new AbortController();
 
         try {
-            // Gather context from blueprint
-            let context = "Context: No blueprint nodes available.";
-            if (this.blueprint) {
-                // Try to get selected nodes first
-                let nodes = this.blueprint.getNodes(true);
-                let selectionState = "Selected nodes";
-                
-                // If no selection, get all nodes
-                if (nodes.length === 0) {
-                    nodes = this.blueprint.getNodes(false);
-                    selectionState = "All nodes";
-                }
-
-                if (nodes.length > 0) {
-                    // Use Blueprint's serialization logic roughly
-                    // Only serializing entities
-                    const nodeEntities = nodes.map(n => n.entity);
-                    const t3d = nodeEntities.reduce((acc, cur) => acc + cur.serialize(), "");
-                    context = `Context (${selectionState}):\n\`\`\`\n${t3d}\n\`\`\``;
-                }
-            }
+            const context = this._getBlueprintContext() || "Context: No blueprint nodes available.";
 
             // Construct prompt
             const systemPrompt = `You are a helper for Unreal Engine Blueprints.
@@ -937,7 +940,14 @@ Use concise language.`;
 
         try {
             // Config is already updated via event listener or initial load
-            const t3dText = await this.llmService.generate(currentPrompt, this.abortController.signal);
+            const context = this._getBlueprintContext();
+            let promptToSend = currentPrompt;
+            
+            if (context) {
+                promptToSend = `${context}\n\nTask: ${currentPrompt}`;
+            }
+
+            const t3dText = await this.llmService.generate(promptToSend, this.abortController.signal);
             const nodes = this._injectBlueprint(t3dText);
             
             if (nodes && nodes.length > 0) {
