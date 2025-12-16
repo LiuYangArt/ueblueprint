@@ -7,7 +7,7 @@
   "types": "types.js",
   "scripts": {
     "build": "rollup --config && sass scss/export.scss:dist/css/ueb-style.css && sass scss/export.scss:dist/css/ueb-style.min.css --style=compressed",
-    "start": "npx http-server"
+    "start": "npx http-server -c-1"
   },
   "repository": {
     "type": "git",

@@ -20,10 +20,7 @@ export default class AIPanelElement extends LitElement {
 
     static properties = {
         visible: { type: Boolean, reflect: true },
-        mode: { type: String },
         prompt: { type: String },
-        temperature: { type: Number },
-        model: { type: String },
         isGenerating: { type: Boolean },
         statusText: { type: String },
         statusType: { type: String }, // 'error', 'success', or ''
@@ -273,10 +270,7 @@ export default class AIPanelElement extends LitElement {
     constructor() {
         super()
         this.visible = true // Default to visible per user request
-        this.mode = "text"
         this.prompt = ""
-        this.temperature = 0.5
-        this.model = "gpt-4o"
         this.isGenerating = false
         this.statusText = "Ready"
         this.statusType = ""
@@ -327,12 +321,7 @@ export default class AIPanelElement extends LitElement {
 
     _loadSettings() {
         try {
-            const savePanel = localStorage.getItem("ueblueprint-ai-settings")
-            if (savePanel) {
-                const settings = JSON.parse(savePanel)
-                this.temperature = settings.temperature ?? 0.5
-                this.model = settings.model ?? "gpt-4o"
-            }
+            // Only need to load API settings which now include model/temp
             const savedApi = localStorage.getItem("ueblueprint-api-settings")
             if (savedApi) {
                 this.llmService.updateConfig(JSON.parse(savedApi))
@@ -343,34 +332,15 @@ export default class AIPanelElement extends LitElement {
     }
 
     _saveSettings() {
-        try {
-            const settings = {
-                temperature: this.temperature,
-                model: this.model
-            }
-            localStorage.setItem("ueblueprint-ai-settings", JSON.stringify(settings))
-            this.llmService.updateConfig(settings)
-        } catch (e) {
-            console.warn("Failed to save AI settings:", e)
-        }
+        // No local settings to save anymore, everything is in global API settings
     }
 
     show() { this.visible = true }
     hide() { this.visible = false }
     toggle() { this.visible = !this.visible }
 
-    _handleModeChange(mode) { this.mode = mode }
     _handlePromptInput(e) { this.prompt = e.target.value }
-    
-    _handleTemperatureChange(e) {
-        this.temperature = parseFloat(e.target.value)
-        this._saveSettings()
-    }
 
-    _handleModelChange(e) {
-        this.model = e.target.value
-        this._saveSettings()
-    }
 
     /* ... drag handlers ... */
     _handleDragStart(e) {
@@ -433,11 +403,7 @@ export default class AIPanelElement extends LitElement {
         this.abortController = new AbortController()
 
         try {
-            this.llmService.updateConfig({
-                model: this.model,
-                temperature: this.temperature
-            })
-
+            // Config is already updated via event listener or initial load
             const t3dText = await this.llmService.generate(this.prompt, this.abortController.signal)
             const nodes = this._injectBlueprint(t3dText)
             
