@@ -925,8 +925,8 @@ class AIPanelElement extends i$1 {
 
         .prompt-input {
             width: 100%;
-            min-height: 60px;
-            max-height: 150px;
+            min-height: 100px;
+            max-height: 300px;
             padding: 10px;
             background: #1a1a1a;
             border: 1px solid #3a3a3a;
@@ -1227,13 +1227,7 @@ class AIPanelElement extends i$1 {
 
     _setupKeyboardShortcut() {
         this._keydownHandler = (e) => {
-            if (e.altKey && e.code === "KeyA") {
-                e.preventDefault();
-                this.toggle();
-            }
-            if (e.key === "Escape" && this.visible) {
-                this.hide();
-            }
+            // Shortcuts disabled
         };
         document.addEventListener("keydown", this._keydownHandler);
     }
@@ -1306,6 +1300,9 @@ class AIPanelElement extends i$1 {
     }
 
     _handleKeyDown(e) {
+        // Stop propagation to prevent graph interactions (Arrow keys, Del, etc.)
+        e.stopPropagation();
+
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             this._handleSubmit();
