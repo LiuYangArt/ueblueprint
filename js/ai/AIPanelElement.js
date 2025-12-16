@@ -862,7 +862,7 @@ export default class AIPanelElement extends LitElement {
      * Validate T3D syntax before injection
      * P1 Optimization: Catch parsing errors early
      * @param {string} t3dText - T3D text to validate
-     * @returns {{valid: boolean, error?: string}} - Validation result
+     * @returns {{valid: boolean, error?: string, parsed?: any}} - Validation result
      */
     _validateT3D(t3dText) {
         if (!t3dText || !t3dText.trim()) {
@@ -874,15 +874,37 @@ export default class AIPanelElement extends LitElement {
             return { valid: false, error: 'Missing "Begin Object" declaration' }
         }
         
+        // Check for truncation (missing End Object)
+        const beginCount = (t3dText.match(/Begin Object/g) || []).length
+        const endCount = (t3dText.match(/End Object/g) || []).length
+        if (beginCount !== endCount) {
+            return { valid: false, error: `Truncated T3D: ${beginCount} "Begin Object" but ${endCount} "End Object"` }
+        }
+        
         // Try to parse using the grammar
         try {
             const parsed = ObjectEntity.grammarMultipleObjects.parse(t3dText)
-            if (!parsed || parsed.length === 0) {
+            
+            // Check if parse returned valid result
+            if (parsed === undefined || parsed === null) {
+                return { valid: false, error: 'Parser returned empty result' }
+            }
+            
+            if (!Array.isArray(parsed)) {
+                return { valid: false, error: `Parser returned non-array: ${typeof parsed}` }
+            }
+            
+            if (parsed.length === 0) {
                 return { valid: false, error: 'No valid nodes found in T3D' }
             }
-            return { valid: true }
+            
+            return { valid: true, parsed }
         } catch (e) {
-            return { valid: false, error: e.message || 'T3D parsing failed' }
+            // Extract more useful error info
+            const errorMsg = e.message || 'T3D parsing failed'
+            const stack = e.stack ? e.stack.split('\n').slice(0, 3).join('\n') : ''
+            console.error('[T3D Validation] Parse exception:', e)
+            return { valid: false, error: `${errorMsg}${stack ? '\n' + stack : ''}` }
         }
     }
 
@@ -1285,25 +1307,20 @@ export default class AIPanelElement extends LitElement {
 
             const t3dText = await this.llmService.generate(promptToSend, this.abortController.signal, systemPrompt)
             
-            // P1: Validate T3D syntax before injection
+            // P1: Validate T3D syntax (soft validation - warn but still try)
             const validation = this._validateT3D(t3dText)
             if (!validation.valid) {
                 // Log full error details to console for debugging
-                console.group('%c[T3D Parse Error]', 'color: #ff6b6b; font-weight: bold')
-                console.error('Error:', validation.error)
+                console.group('%c[T3D Pre-Validation Warning]', 'color: #ffa94d; font-weight: bold')
+                console.warn('Pre-validation failed:', validation.error)
                 console.log('%cGenerated T3D:', 'color: #ffa94d')
                 console.log(t3dText)
                 console.log('%cPrompt:', 'color: #69db7c')
                 console.log(currentPrompt)
+                console.log('%cAttempting injection anyway...', 'color: #74c0fc')
                 console.groupEnd()
                 
-                this.history = [...this.history, { 
-                    role: 'system', 
-                    content: `⚠️ T3D 解析失败：${validation.error}\n请尝试简化请求或提供更多细节。` 
-                }]
-                this.statusText = "Parse error"
-                this.statusType = "error"
-                return
+                // Don't block - still try to inject, _injectBlueprint has its own error handling
             }
             
             const nodes = this._injectBlueprint(t3dText)
