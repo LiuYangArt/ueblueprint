@@ -81,33 +81,69 @@ Your goal is to generate valid T3D format text for UE5 Material nodes based on t
 CRITICAL RULES:
 1. OUTPUT ONLY THE T3D TEXT. No markdown, no explanations.
 2. Use "MaterialGraphNode" as the wrapper object for expressions.
-3. Inside "MaterialGraphNode", define "MaterialExpression" pointing to the specific expression component.
+3. Inside "MaterialGraphNode", you MUST define the MaterialExpression with a nested Begin Object structure.
 4. Each Node MUST have a unique "NodeGuid" (32-digit uppercase hex).
-5. "NodePosX" and "NodePosY" must be set.
-6. DO NOT include "Begin Map". Start directly with "Begin Object".
+5. Each Pin MUST have a unique "PinId" (32-digit uppercase hex).
+6. "NodePosX" and "NodePosY" must be set. Use increments of ~200 for X spacing.
+7. DO NOT include "Begin Map". Start directly with "Begin Object".
+8. MUST include "CustomProperties Pin" definitions for each input/output.
+
+PIN CONNECTION FORMAT FOR MATERIALS:
+- For MaterialExpression inputs, use expression references inside the MaterialExpression definition.
+- Example: A=(Expression=MaterialExpressionConstant3Vector'"MaterialExpressionConstant3Vector_0"',OutputIndex=0,Mask=1,MaskR=1,MaskG=1,MaskB=1)
+- OutputIndex=0 means first output, OutputIndex=1 means second output, etc.
 
 COMMON MATERIAL NODES:
 - Constant: MaterialExpressionConstant (R=value)
 - Constant3Vector: MaterialExpressionConstant3Vector (Constant=(R=,G=,B=,A=))
+- Add: MaterialExpressionAdd (A=expr, B=expr)
+- Multiply: MaterialExpressionMultiply (A=expr, B=expr)
+- Lerp: MaterialExpressionLinearInterpolate (A=expr, B=expr, Alpha=expr)
+- Time: MaterialExpressionTime
+- Sine: MaterialExpressionSine
+- Desaturation: MaterialExpressionDesaturation
 - TextureSample: MaterialExpressionTextureSample
-- Add: MaterialExpressionAdd
-- Multiply: MaterialExpressionMultiply
-- Lerp: MaterialExpressionLinearInterpolate
 - TexCoord: MaterialExpressionTextureCoordinate
+- ScalarParameter: MaterialExpressionScalarParameter (ParameterName="Name",DefaultValue=0.0)
 
-MATERIAL NODE WRAPPER FORMAT:
+COMPLETE EXAMPLE - Constant3Vector with proper Pin definitions:
 Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_0"
-   Begin Object Class=/Script/Engine.MaterialExpressionAdd Name="MaterialExpressionAdd_0"
-   End Object
-   Begin Object Name="MaterialExpressionAdd_0"
-       MaterialExpressionEditorX=-400
-       MaterialExpressionEditorY=-200
-       MaterialExpressionGuid=ABCD1234ABCD1234ABCD1234ABCD1234
-   End Object
-   MaterialExpression=/Script/Engine.MaterialExpressionAdd'"MaterialExpressionAdd_0"'
-   NodePosX=-400
-   NodePosY=-200
-   NodeGuid=12345678ABCDEF0123456789ABCDEF01
+    Begin Object Class=/Script/Engine.MaterialExpressionConstant3Vector Name="MaterialExpressionConstant3Vector_0"
+    End Object
+    Begin Object Name="MaterialExpressionConstant3Vector_0"
+        Constant=(R=1.0,G=0.5,B=0.2,A=0.0)
+        MaterialExpressionEditorX=-400
+        MaterialExpressionEditorY=-200
+        MaterialExpressionGuid=A1B2C3D4E5F6789012345678ABCDEF01
+    End Object
+    MaterialExpression=/Script/Engine.MaterialExpressionConstant3Vector'"MaterialExpressionConstant3Vector_0"'
+    NodePosX=-400
+    NodePosY=-200
+    NodeGuid=AAAA1111BBBB2222CCCC3333DDDD4444
+    CustomProperties Pin (PinId=11111111111111111111111111111111,PinName="Constant",PinType.PinCategory="optional",PinType.PinSubCategory="rgb",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="1.0,0.5,0.2",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=True,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+    CustomProperties Pin (PinId=22222222222222222222222222222222,PinName="Output",PinFriendlyName=" ",Direction="EGPD_Output",PinType.PinCategory="mask",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+
+EXAMPLE - LinearInterpolate connecting two colors:
+Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_1"
+    Begin Object Class=/Script/Engine.MaterialExpressionLinearInterpolate Name="MaterialExpressionLinearInterpolate_0"
+    End Object
+    Begin Object Name="MaterialExpressionLinearInterpolate_0"
+        A=(Expression=MaterialExpressionConstant3Vector'"MaterialExpressionConstant3Vector_0"',OutputIndex=0,Mask=1,MaskR=1,MaskG=1,MaskB=1)
+        B=(Expression=MaterialExpressionConstant3Vector'"MaterialExpressionConstant3Vector_1"',OutputIndex=0,Mask=1,MaskR=1,MaskG=1,MaskB=1)
+        Alpha=(Expression=MaterialExpressionScalarParameter'"MaterialExpressionScalarParameter_0"',OutputIndex=0)
+        MaterialExpressionEditorX=-200
+        MaterialExpressionEditorY=-200
+        MaterialExpressionGuid=B2C3D4E5F6789012345678ABCDEF0123
+    End Object
+    MaterialExpression=/Script/Engine.MaterialExpressionLinearInterpolate'"MaterialExpressionLinearInterpolate_0"'
+    NodePosX=-200
+    NodePosY=-200
+    NodeGuid=BBBB2222CCCC3333DDDD4444EEEE5555
+    CustomProperties Pin (PinId=33333333333333333333333333333333,PinName="A",PinType.PinCategory="optional",PinType.PinSubCategory="rgb",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+    CustomProperties Pin (PinId=44444444444444444444444444444444,PinName="B",PinType.PinCategory="optional",PinType.PinSubCategory="rgb",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+    CustomProperties Pin (PinId=55555555555555555555555555555555,PinName="Alpha",PinType.PinCategory="optional",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+    CustomProperties Pin (PinId=66666666666666666666666666666666,PinName="Output",PinFriendlyName=" ",Direction="EGPD_Output",PinType.PinCategory="mask",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
 End Object
 `
 

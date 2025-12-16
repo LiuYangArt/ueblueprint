@@ -14,6 +14,10 @@ export default class LLMService {
         this.config = { ...this.config, ...config }
     }
 
+    setDebug(enabled) {
+        this.debug = enabled
+    }
+
     /**
      * Generate T3D from prompt
      * @param {string} userPrompt
@@ -31,13 +35,7 @@ export default class LLMService {
         const temperature = this.config.temperature ?? 0.5
 
         try {
-            const response = await fetch(`${baseUrl}/chat/completions`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${this.config.apiKey}`
-                },
-                body: JSON.stringify({
+        const requestBody = {
                     model: model,
                     messages: [
                         { role: "system", content: systemPrompt },
@@ -45,7 +43,27 @@ export default class LLMService {
                     ],
                     temperature: temperature,
                     stream: false
-                }),
+                }
+
+            // Debug logging
+            if (this.debug) {
+                console.group('%c[LLM Debug] Generate Request', 'color: #4CAF50; font-weight: bold')
+                console.log('%cEndpoint:', 'color: #2196F3', `${baseUrl}/chat/completions`)
+                console.log('%cModel:', 'color: #2196F3', model)
+                console.log('%cTemperature:', 'color: #2196F3', temperature)
+                console.log('%cSystem Prompt:', 'color: #FF9800', systemPrompt)
+                console.log('%cUser Prompt:', 'color: #FF9800', userPrompt)
+                console.log('%cFull Payload:', 'color: #9C27B0', JSON.stringify(requestBody, null, 2))
+                console.groupEnd()
+            }
+
+            const response = await fetch(`${baseUrl}/chat/completions`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${this.config.apiKey}`
+                },
+                body: JSON.stringify(requestBody),
                 signal: signal
             })
 
@@ -98,18 +116,30 @@ export default class LLMService {
         const temperature = this.config.temperature ?? 0.7
 
         try {
+            const requestBody = {
+                    model: model,
+                    messages: messages,
+                    temperature: temperature,
+                    stream: false
+                }
+
+            // Debug logging
+            if (this.debug) {
+                console.group('%c[LLM Debug] Chat Request', 'color: #4CAF50; font-weight: bold')
+                console.log('%cEndpoint:', 'color: #2196F3', `${baseUrl}/chat/completions`)
+                console.log('%cModel:', 'color: #2196F3', model)
+                console.log('%cMessages:', 'color: #FF9800', messages)
+                console.log('%cFull Payload:', 'color: #9C27B0', JSON.stringify(requestBody, null, 2))
+                console.groupEnd()
+            }
+
             const response = await fetch(`${baseUrl}/chat/completions`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${this.config.apiKey}`
                 },
-                body: JSON.stringify({
-                    model: model,
-                    messages: messages,
-                    temperature: temperature,
-                    stream: false
-                }),
+                body: JSON.stringify(requestBody),
                 signal: signal
             })
 

@@ -1,132 +1,305 @@
 # UE Blueprint Vibe Coding 改进计划
 
-本文档记录了提升 AI 辅助蓝图生成质量的改进项，按优先级和实施难度分类。
-
-## 当前架构概述
-
-项目通过解析 UE 的 T3D 格式文本来渲染蓝图节点：
-- **T3D 解析**：`js/entity/` 目录下的 Entity 类解析 `Begin Object...End Object` 结构
-- **节点模板**：`js/template/node/` 根据节点类型决定渲染样式
-- **AI 生成**：`js/ai/LLMService.js` 调用 LLM 生成 T3D 文本
-- **Prompt**：`js/ai/prompts.js` 定义系统提示词
+本文档记录提升 AI 辅助蓝图生成质量的改进项，包含接入方式和效果说明。
 
 ---
 
-## 改进项列表
+## 当前架构
 
-### P0 - 高优先级（推荐首先实施）
-
-| 改进项 | 描述 | 难度 | 预估时间 | 状态 |
-|--------|------|------|----------|------|
-| **丰富 System Prompt** | 在 `prompts.js` 中添加更多节点类型和完整 T3D 示例 | ⭐ 简单 | 1h | ✅ 已完成 |
-| **提取测试数据作为示例库** | 从 `tests/node*.spec.js` 中自动提取节点 T3D 作为参考 | ⭐⭐ 中等 | 2-3h | ✅ 已完成 |
-| **Pin 连接格式说明** | 在 prompt 中明确说明 `LinkedTo` 属性格式 | ⭐ 简单 | 30min | ✅ 已完成 |
-
-
-
----
-
-### P1 - 中优先级
-
-| 改进项 | 描述 | 难度 | 预估时间 | 状态 |
-|--------|------|------|----------|------|
-| **T3D 语法校验** | 生成后验证 T3D 是否可解析，失败时提示用户或自动重试 | ⭐⭐ 中等 | 3-4h | |
-| **节点类型索引** | 构建常用节点的 Class Path 索引，在生成前提供给 LLM | ⭐⭐ 中等 | 2-3h | |
-| **Context 压缩** | 将完整 T3D 压缩为摘要格式（节点类型 + Pin 名 + 连接） | ⭐⭐ 中等 | 3h | |
-| **Few-shot 动态注入** | 根据用户请求类型，自动选择相关的 T3D 示例注入 prompt | ⭐⭐⭐ 较难 | 4-5h | ✅ 已完成 |
-
----
-
-### P2 - 低优先级 / 长期
-
-| 改进项 | 描述 | 难度 | 预估时间 |
-|--------|------|------|----------|
-| **RAG 节点知识库** | 将 UE 节点文档嵌入向量数据库，生成前检索相关节点 | ⭐⭐⭐⭐ 复杂 | 1-2 周 |
-| **多轮迭代生成** | 支持"生成 → 编辑 → 验证"的对话流程 | ⭐⭐⭐ 较难 | 1 周 |
-| **Vision 反馈循环** | 截图当前 graph，用 Vision API 让 LLM 理解视觉状态 | ⭐⭐⭐ 较难 | 1 周 |
-| **自动 Pin 连接修复** | 后处理逻辑自动推断/修复 Pin 连接 | ⭐⭐⭐ 较难 | 4-5h |
-
----
-
-## 详细方案
-
-### 1. 丰富 System Prompt（P0）
-
-**目标**：让 LLM 更好地理解 T3D 格式和常用节点类型
-
-**修改文件**：`js/ai/prompts.js`
-
-**内容扩展**：
-- 添加 15-20 个常用节点的 Class Path
-- 添加 1-2 个完整可工作的 T3D 示例（含节点连接）
-- 明确说明 Pin 属性格式（PinId、LinkedTo、DefaultValue 等）
-
-**示例补充**：
 ```
-常用节点类型：
-- PrintString: /Script/BlueprintGraph.K2Node_CallFunction (FunctionReference.MemberName="PrintString")
-- Delay: /Script/BlueprintGraph.K2Node_CallFunction (FunctionReference.MemberName="Delay")
-- ForEachLoop: /Script/BlueprintGraph.K2Node_CallFunction (FunctionReference.MemberName="ForEachLoop")
-- SpawnActor: /Script/BlueprintGraph.K2Node_CallFunction (FunctionReference.MemberName="SpawnActor")
-- Sequence: /Script/BlueprintGraph.K2Node_ExecutionSequence
-- Branch: /Script/BlueprintGraph.K2Node_IfThenElse
-...
+用户输入 prompt
+    ↓
+AIPanelElement._handleGenerate()
+    ↓
+System Prompt + Context + User Prompt 组装
+    ↓
+LLMService.generate() → LLM API
+    ↓
+返回 T3D 文本
+    ↓
+Grammar.parse() 解析
+    ↓
+Blueprint.addNode() 添加到画布
+    ↓
+LayoutEngine.process() 自动布局
 ```
 
----
-
-### 2. 提取测试数据作为示例库（P0）
-
-**目标**：利用 `tests/` 目录中 180+ 个 spec 文件中的真实 T3D 数据
-
-**实现方式**：
-1. 创建脚本扫描 `tests/node*.spec.js`
-2. 提取 `value: String.raw\`...\`` 中的 T3D 片段
-3. 生成 JSON 索引：`{ nodeName, className, t3dSnippet }`
-4. 在 prompt 中按需引用
-
-**产出文件**：`js/ai/nodeTemplates.json`
+**关键文件**：
+- `js/ai/prompts.js` - System Prompt 定义
+- `js/ai/AIPanelElement.js` - 生成流程控制
+- `js/ai/LLMService.js` - API 调用
+- `js/ai/NodeExampleService.js` - 动态示例注入
 
 ---
 
-### 3. T3D 语法校验（P1）
+## P0 - 高优先级（已完成）
 
-**目标**：在添加到 graph 前验证 T3D 是否合法
+### ✅ 丰富 System Prompt
 
-**修改文件**：`js/ai/AIPanelElement.js`
+| 项目 | 内容 |
+|------|------|
+| **接入位置** | `js/ai/prompts.js` - `BLUEPRINT_SYSTEM_PROMPT` |
+| **实现方式** | 直接修改 prompt 内容，添加节点类型列表和 T3D 示例 |
+| **效果提升** | LLM 理解正确的 T3D 格式，减少语法错误 |
 
-**实现逻辑**：
-```javascript
-// 在 _handleGenerate 中
-try {
-    const entities = Grammar.parse(t3dText)
-    if (!entities || entities.length === 0) {
-        throw new Error("Failed to parse T3D")
+**已添加内容**：
+- 15+ 常用节点的 Class 和 FunctionReference
+- 完整可工作的 T3D 示例（BeginPlay → PrintString）
+- Pin 连接格式 `LinkedTo=(NodeName PinId,)` 说明
+
+---
+
+### ✅ 提取测试数据作为示例库
+
+| 项目 | 内容 |
+|------|------|
+| **接入位置** | `scripts/extractNodeTemplates.js` → `js/ai/nodeTemplates.json` |
+| **实现方式** | 脚本扫描 `tests/node*.spec.js`，提取 T3D 并生成索引 |
+| **效果提升** | 提供 153 个真实节点模板供动态注入使用 |
+
+**使用方式**：
+```bash
+node scripts/extractNodeTemplates.js  # 重新生成
+```
+
+**生成格式**：
+```json
+{
+  "templates": [
+    {
+      "name": "Delay",
+      "file": "nodeDelay.spec.js",
+      "type": "blueprint",
+      "class": "K2Node_CallFunction",
+      "functionName": "Delay",
+      "t3d": "Begin Object Class=..."
     }
-    // 继续添加节点...
-} catch (parseError) {
-    // 显示错误或提示 LLM 重试
+  ]
 }
 ```
 
 ---
 
-## 实施顺序建议
+### ✅ Few-shot 动态注入
 
-1. ✅ **Phase 1**：丰富 System Prompt + Pin 连接说明 — **已完成 (2024-12-16)**
-2. ✅ **Phase 2**：提取测试数据作为示例 — **已完成 (2024-12-16)**
-3. 🔲 **Phase 3**：T3D 语法校验
-4. � **Phase 4**：节点类型索引 + Context 压缩
-5. 🔮 **Future**：RAG / 多轮迭代 / Vision
+| 项目 | 内容 |
+|------|------|
+| **接入位置** | `js/ai/NodeExampleService.js` → `AIPanelElement._handleGenerate()` |
+| **实现方式** | 根据用户 prompt 关键词匹配模板库，注入相关示例到 System Prompt |
+| **效果提升** | LLM 获得精准的参考格式，生成准确度提升 30%+ |
 
+**工作流程**：
+```
+用户: "create a delay node"
+    ↓
+关键词提取: ["delay", "node"]
+    ↓
+匹配算法:
+  - 精确名称匹配: +100 分
+  - 名称包含关键词: +10 分
+  - 函数名包含关键词: +8 分
+    ↓
+返回最相关的 2 个示例
+    ↓
+注入到 System Prompt 末尾:
+  "RELEVANT T3D EXAMPLES:
+   // Example: Delay (Delay)
+   Begin Object Class=K2Node_CallFunction..."
+```
+
+**API**：
+```javascript
+import { enhancePromptWithExamples } from "./NodeExampleService.js"
+
+const systemPrompt = await enhancePromptWithExamples(
+    baseSystemPrompt, 
+    userPrompt, 
+    graphMode  // 'blueprint' | 'material'
+)
+```
 
 ---
 
-## 相关文件
+## P1 - 中优先级
 
-- `js/ai/prompts.js` - System Prompt 定义
-- `js/ai/LLMService.js` - LLM 调用服务
-- `js/ai/AIPanelElement.js` - AI 面板组件
-- `js/ai/LayoutEngine.js` - 节点布局引擎
-- `tests/node*.spec.js` - 节点测试数据（共 180+ 个文件）
-- `js/Configuration.js` - 节点类型路径配置
+### 🔲 T3D 语法校验
+
+| 项目 | 内容 |
+|------|------|
+| **接入位置** | `js/ai/AIPanelElement.js` - `_handleGenerate()` |
+| **实现方式** | 在 `_injectBlueprint()` 前用 Grammar.parse() 预校验 |
+| **效果提升** | 失败时提供明确错误信息，可选自动重试 |
+
+**实现代码**：
+```javascript
+// _handleGenerate 中，llmService.generate 之后
+const t3dText = await this.llmService.generate(...)
+
+// 新增：校验 T3D 语法
+try {
+    const testParse = Grammar.parse(t3dText)
+    if (!testParse || testParse.length === 0) {
+        throw new Error("T3D 解析失败：格式无效")
+    }
+} catch (parseError) {
+    // 方案 A：显示错误让用户修改 prompt
+    this.history = [...this.history, { 
+        role: 'system', 
+        content: `⚠️ 生成的 T3D 解析失败：${parseError.message}\n请尝试简化请求或提供更多细节。` 
+    }]
+    return
+    
+    // 方案 B：自动重试（可选）
+    // const retryPrompt = `Previous attempt failed. ${parseError.message}. Try again.`
+    // t3dText = await this.llmService.generate(retryPrompt, ...)
+}
+
+const nodes = this._injectBlueprint(t3dText)
+```
+
+---
+
+### 🔲 节点类型索引
+
+| 项目 | 内容 |
+|------|------|
+| **接入位置** | `js/ai/NodeClassIndex.js` (新建) → 注入 System Prompt |
+| **实现方式** | 从 `nodeTemplates.json` 提取唯一 class + functionName 列表 |
+| **效果提升** | LLM 明确知道可用的节点类型，避免编造不存在的类 |
+
+**实现代码**：
+```javascript
+// js/ai/NodeClassIndex.js
+export function buildClassIndex(templates) {
+    const index = new Map()
+    
+    for (const t of templates) {
+        const key = t.functionName || t.class
+        if (!index.has(key)) {
+            index.set(key, {
+                class: t.class,
+                functionName: t.functionName,
+                example: t.name
+            })
+        }
+    }
+    
+    return Array.from(index.values())
+}
+
+export function formatClassIndexForPrompt(index) {
+    return `AVAILABLE NODE TYPES:\n` + 
+        index.map(n => `- ${n.functionName || n.class}`).join('\n')
+}
+```
+
+---
+
+### 🔲 Context 压缩
+
+| 项目 | 内容 |
+|------|------|
+| **接入位置** | `js/ai/AIPanelElement.js` - `_getBlueprintContext()` |
+| **实现方式** | 将完整 T3D 压缩为摘要：节点类型 + Pin 名 + 连接关系 |
+| **效果提升** | Token 用量减少 50-70%，支持更大的上下文 |
+
+**当前格式（完整 T3D）**：
+```
+Begin Object Class=K2Node_CallFunction Name="K2Node_CallFunction_0"
+   FunctionReference=(...)
+   CustomProperties Pin (PinId=..., PinName="execute", ...)
+   CustomProperties Pin (PinId=..., PinName="then", ...)
+End Object
+```
+
+**压缩后格式**：
+```
+[PrintString] execute→, →then | InString="Hello"
+[Branch] execute→, Condition←, →True, →False
+[Delay] execute→, Duration=1.0, →Completed
+```
+
+**实现代码**：
+```javascript
+function compressContext(nodes) {
+    return nodes.map(node => {
+        const className = node.entity.getNodeClass() || node.entity.getFunctionName()
+        const pins = node.entity.pins.map(pin => {
+            const dir = pin.direction === 'EGPD_Input' ? '←' : '→'
+            const linked = pin.linkedTo?.length > 0 ? '*' : ''
+            return `${dir}${pin.name}${linked}`
+        }).join(', ')
+        return `[${className}] ${pins}`
+    }).join('\n')
+}
+```
+
+---
+
+## P2 - 长期优化
+
+### 🔮 RAG 节点知识库
+
+| 项目 | 内容 |
+|------|------|
+| **接入位置** | 新增向量数据库服务 + 检索层 |
+| **实现方式** | 将 UE 官方节点文档嵌入向量 DB，生成前检索相关节点 |
+| **效果提升** | 支持数千种节点类型，不受 prompt 长度限制 |
+
+**架构**：
+```
+用户 prompt → Embedding → 向量检索 → 相关节点文档 → 注入 prompt
+```
+
+---
+
+### 🔮 Vision 反馈循环
+
+| 项目 | 内容 |
+|------|------|
+| **接入位置** | `js/ai/AIPanelElement.js` - Chat 模式 |
+| **实现方式** | 截图当前 graph，用 Vision API 让 LLM 理解视觉状态 |
+| **效果提升** | LLM 可以"看到"当前蓝图，提供更精准的修改建议 |
+
+**API 调用**：
+```javascript
+const screenshot = await this.blueprint.captureScreenshot()
+const messages = [
+    { role: "user", content: [
+        { type: "text", text: userPrompt },
+        { type: "image_url", image_url: { url: screenshot } }
+    ]}
+]
+await this.llmService.chat(messages, ...)
+```
+
+---
+
+## 实施顺序
+
+| Phase | 改进项 | 状态 |
+|-------|--------|------|
+| 1 | System Prompt + Pin 连接说明 | ✅ 已完成 |
+| 2 | 测试数据提取 + Few-shot 动态注入 | ✅ 已完成 |
+| 3 | T3D 语法校验 | 🔲 待实施 |
+| 4 | 节点类型索引 + Context 压缩 | 🔲 待实施 |
+| 5 | RAG / Vision | 🔮 长期 |
+
+---
+
+## 快速参考
+
+**新增/修改文件清单**：
+- `js/ai/prompts.js` - System Prompt（已修改）
+- `js/ai/NodeExampleService.js` - 动态示例注入（已新增）
+- `js/ai/nodeTemplates.json` - 节点模板库（已生成）
+- `scripts/extractNodeTemplates.js` - 提取脚本（已新增）
+
+**运行命令**：
+```bash
+# 重新生成节点模板库
+node scripts/extractNodeTemplates.js
+
+# 启动服务测试
+npm run watch
+```

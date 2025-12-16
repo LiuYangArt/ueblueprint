@@ -610,6 +610,7 @@ export default class AIPanelElement extends LitElement {
                 this.llmService.updateConfig(settings)
                 this.quickModels = settings.quickModels || []
                 this.debug = settings.debug || false
+                this.llmService.setDebug(this.debug)
                 this.systemPrompt = settings.systemPrompt || DEFAULT_PROMPT_TEMPLATE
                 // If model/provider are not set from localStorage, or if they are no longer valid,
                 // fall back to settings.
@@ -706,6 +707,7 @@ export default class AIPanelElement extends LitElement {
                 // Update local state
                 this.quickModels = settings.quickModels || []
                 this.debug = settings.debug || false
+                this.llmService.setDebug(this.debug)
                 this.systemPrompt = settings.systemPrompt || DEFAULT_PROMPT_TEMPLATE
                 
                 // If model/provider are not set from localStorage, or if they are no longer valid,

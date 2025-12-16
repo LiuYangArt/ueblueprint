@@ -46,6 +46,7 @@ Configuration:
 <ueb-blueprint>
     <template>
 
+
 # UE Blueprint Vibe-Coding LLM Rules
 
 > 本文档定义了 LLM 在生成 Unreal Engine 蓝图代码时必须遵循的规则与格式规范。
@@ -62,6 +63,8 @@ Configuration:
 **技术栈**: JavaScript (ES Modules) · Lit · SCSS · Rollup
 
 ---
+
+material 和 blueprint 是两个模式， 有独立的system prompt ， context 规则
 
 ## 2. T3D 格式规范 (Blueprint Text Format)
 
