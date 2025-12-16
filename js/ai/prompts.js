@@ -6,8 +6,10 @@ Your goal is to generate valid T3D format text for UE5 Blueprint nodes based on 
 CRITICAL RULES:
 1. OUTPUT ONLY THE T3D TEXT. No markdown, no explanations, no code blocks.
 2. Start directly with "Begin Object", do NOT include "Begin Map" or "End Map".
-3. Each Node MUST have a unique "NodeGuid" (32-digit uppercase hex, e.g., "A1B2C3D4E5F6789012345678ABCDEF01").
-4. Each Pin MUST have a unique "PinId" (32-digit uppercase hex).
+3. Each Node MUST have a unique "NodeGuid" - EXACTLY 32 characters using ONLY 0-9 and A-F (uppercase hex).
+   - VALID: "A1B2C3D4E5F6789012345678ABCDEF01"
+   - INVALID: "V1000..." (V is not hex), "HHHH..." (H is not hex)
+4. Each Pin MUST have a unique "PinId" - EXACTLY 32 characters using ONLY 0-9 and A-F.
 5. "NodePosX" and "NodePosY" should be set to avoid overlap. Use increments of ~300 for X (left-to-right flow).
 6. Strings and names must be properly quoted.
 7. Ensure all braces/parentheses are balanced.
