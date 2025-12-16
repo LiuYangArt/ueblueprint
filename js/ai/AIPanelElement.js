@@ -10,6 +10,7 @@ import LayoutEngine from "./LayoutEngine.js"
 import { BLUEPRINT_SYSTEM_PROMPT, MATERIAL_SYSTEM_PROMPT, BLUEPRINT_CHAT_PROMPT, MATERIAL_CHAT_PROMPT, DEFAULT_PROMPT_TEMPLATE } from "./prompts.js"
 import { enhancePromptWithExamples } from "./NodeExampleService.js"
 import { parseMarkdown } from "./MarkdownParser.js"
+import LinearColorEntity from "../entity/LinearColorEntity.js"
 
 /**
  * @typedef {Object} AISettings
@@ -1268,7 +1269,38 @@ export default class AIPanelElement extends LitElement {
         const pasteHandler = this.blueprint.template.getPasteInputObject()
         const nodes = pasteHandler.pasted(t3dText)
         if (!nodes || nodes.length === 0) throw new Error("Failed to parse blueprint text or no nodes generated")
+        
+        // Post-process: Set material node link colors to white/gray (like UE Material Editor)
+        this._postProcessMaterialLinkColors(nodes)
+        
         return nodes
+    }
+    
+    /**
+     * Post-process material nodes to set their link colors to white/gray
+     * This matches UE Material Editor's behavior where all links are white
+     * @param {NodeElement[]} nodes 
+     */
+    _postProcessMaterialLinkColors(nodes) {
+        // Material link color: rgb(200, 200, 200) - light gray/white
+        const materialLinkColor = new LinearColorEntity({ R: 200/255, G: 200/255, B: 200/255, A: 1 })
+        
+        for (const node of nodes) {
+            if (!node.entity?.isMaterial()) continue
+            
+            // Get all pins and their connected links
+            const pins = node.getPinElements()
+            for (const pin of pins) {
+                // Update pin color for material nodes
+                pin.color = materialLinkColor
+                
+                // Update all links connected to this pin
+                const links = this.blueprint.getLinks(pin)
+                for (const link of links) {
+                    link.color = materialLinkColor
+                }
+            }
+        }
     }
 
     render() {
