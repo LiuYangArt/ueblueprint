@@ -6,8 +6,8 @@ import IEntity from "./IEntity.js"
 export default class ObjectReferenceEntity extends IEntity {
 
     static typeReference = P.reg(
-        // @ts-expect-error
-        new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
+        // Fallback to simple regexes to avoid potential circular dependency issues with Grammar.js during static init
+        new RegExp(`(?:\\/(?:[a-zA-Z_]\\w*(?:[\\.:][a-zA-Z_]\\w*)*)){2,}|[a-zA-Z_]\\w*`)
     )
     static fullReferenceGrammar = this.createFullReferenceGrammar()
     static grammar = this.createGrammar()
@@ -63,22 +63,24 @@ export default class ObjectReferenceEntity extends IEntity {
 
     /** @returns {P<ObjectReferenceEntity>} */
     static createFullReferenceGrammar() {
-        return P.regArray(
-            new RegExp(
-                // @ts-expect-error
-                "(" + this.typeReference.getParser().regexp.source + ")"
-                + "(?:"
-                + `'"(${Grammar.Regex.InsideString.source})"'`
-                + "|"
-                + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
-                + ")"
-            )
-        ).map(([full, type, fullQuotedPath, simpleQuotedPath]) => {
-            let fullQuoted = fullQuotedPath ? true : false
-            let quotes = fullQuoted ? [`'"`, `"'`] : ["'", "'"]
+        return P.alt(
+            P.seq(
+                this.typeReference,
+                P.reg(/'"/),
+                P.reg(Grammar.Regex.InsideString),
+                P.reg(/"'/)
+            ).map(([type, _1, path, _2]) => [type, path, true]),
+            P.seq(
+                this.typeReference,
+                P.reg(/'/),
+                P.reg(Grammar.Regex.InsideSingleQuotedString),
+                P.reg(/'/)
+            ).map(([type, _1, path, _2]) => [type, path, false])
+        ).map(([type, path, isDouble]) => {
+            let quotes = isDouble ? [`'"`, `"'`] : ["'", "'"]
             return new this(
                 type,
-                fullQuoted ? fullQuotedPath : simpleQuotedPath,
+                path,
                 (t, p) => t + quotes[0] + p + quotes[1]
             )
         })
