@@ -16,9 +16,8 @@ async function loadNodeTemplates() {
     }
     
     try {
-        // Use relative path from the current module
-        const baseUrl = new URL('.', import.meta.url).href
-        const response = await fetch(baseUrl + 'nodeTemplates.json')
+        // Use absolute path from site root since compiled code runs from /dist
+        const response = await fetch('/js/ai/nodeTemplates.json')
         if (!response.ok) {
             console.warn('Failed to load node templates:', response.status)
             return { templates: [] }
