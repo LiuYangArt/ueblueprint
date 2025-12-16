@@ -1288,6 +1288,15 @@ export default class AIPanelElement extends LitElement {
             // P1: Validate T3D syntax before injection
             const validation = this._validateT3D(t3dText)
             if (!validation.valid) {
+                // Log full error details to console for debugging
+                console.group('%c[T3D Parse Error]', 'color: #ff6b6b; font-weight: bold')
+                console.error('Error:', validation.error)
+                console.log('%cGenerated T3D:', 'color: #ffa94d')
+                console.log(t3dText)
+                console.log('%cPrompt:', 'color: #69db7c')
+                console.log(currentPrompt)
+                console.groupEnd()
+                
                 this.history = [...this.history, { 
                     role: 'system', 
                     content: `⚠️ T3D 解析失败：${validation.error}\n请尝试简化请求或提供更多细节。` 
