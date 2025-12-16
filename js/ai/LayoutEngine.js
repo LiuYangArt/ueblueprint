@@ -149,16 +149,53 @@ export default class LayoutEngine {
     /**
      * Apply coordinates to nodes
      */
+    /**
+     * Apply coordinates to nodes
+     */
     static _applyCoordinates(layers, blueprint) {
         const SPACING_X = 120
         const SPACING_Y = 150
-        const START_X = 0
-        const START_Y = 0
+        
+        let initialX = 0
+        let initialY = 0
 
-        let currentX = START_X
+        if (blueprint) {
+            const processedNodes = new Set()
+            layers.flat().forEach(n => processedNodes.add(n))
+
+            // 1. Determine Reference Nodes
+            // Prioritize selected nodes that are NOT part of the new batch
+            let referenceNodes = blueprint.getNodes(true).filter(n => !processedNodes.has(n))
+            
+            if (referenceNodes.length === 0) {
+                // No selection, use all existing nodes (excluding new ones)
+                referenceNodes = blueprint.getNodes().filter(n => !processedNodes.has(n))
+            }
+
+            // 2. Calculate Bounding Box of reference nodes
+            if (referenceNodes.length > 0) {
+                let minX = Infinity
+                let maxY = -Infinity
+
+                referenceNodes.forEach(node => {
+                    const x = node.entity.getNodePosX()
+                    const y = node.entity.getNodePosY()
+                    // Use approximated height if sizeY not ready (e.g. 120 default)
+                    const h = node.sizeY > 0 ? node.sizeY : 120
+
+                    if (x < minX) minX = x
+                    if ((y + h) > maxY) maxY = y + h
+                })
+
+                if (minX !== Infinity) initialX = minX
+                if (maxY !== -Infinity) initialY = maxY + 200 // Vertical Padding
+            }
+        }
+
+        let currentX = initialX
 
         layers.forEach(layer => {
-            let currentY = START_Y
+            let currentY = initialY
             let maxLayerWidth = 0
 
             layer.forEach(node => {
