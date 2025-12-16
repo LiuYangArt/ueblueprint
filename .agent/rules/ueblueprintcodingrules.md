@@ -13,6 +13,9 @@ trigger: always_on
 - 使用context7 mcp检索unreal的api
 
 
+开发中的测试页面
+http://localhost:8080/ai-demo.html
+
 # UE Blueprint Vibe-Coding LLM Rules
 
 > 本文档定义了 LLM 在生成 Unreal Engine 蓝图代码时必须遵循的规则与格式规范。
