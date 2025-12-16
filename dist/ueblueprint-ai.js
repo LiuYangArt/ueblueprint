@@ -357,7 +357,11 @@ class AIPanelElement extends i {
         prompt: { type: String },
         isGenerating: { type: Boolean },
         statusText: { type: String },
-        statusType: { type: String }, // 'error', 'success', or ''
+        statusType: { type: String },
+        quickModels: { type: Array },
+        model: { type: String },
+        provider: { type: String },
+        mode: { type: String }
     }
 
     static styles = i$3`
@@ -605,9 +609,14 @@ class AIPanelElement extends i {
         super();
         this.visible = true; // Default to visible per user request
         this.prompt = "";
+        this.prompt = "";
         this.isGenerating = false;
         this.statusText = "Ready";
         this.statusType = "";
+        this.mode = "text";
+        this.quickModels = [];
+        this.model = "";
+        this.provider = "";
         this.abortController = null;
 
         // Dragging state
@@ -630,7 +639,12 @@ class AIPanelElement extends i {
         this._setupKeyboardShortcut();
         document.body.addEventListener("ueb-ai-settings-saved", (e) => {
             if (this.llmService) {
-                this.llmService.updateConfig(e.detail);
+                const settings = e.detail;
+                this.llmService.updateConfig(settings);
+                this.quickModels = settings.quickModels || [];
+                this.model = settings.model || "";
+                this.provider = settings.provider || "";
+                this.requestUpdate();
             }
         });
     }
@@ -655,10 +669,19 @@ class AIPanelElement extends i {
 
     _loadSettings() {
         try {
-            // Only need to load API settings which now include model/temp
+            // Load global settings
             const savedApi = localStorage.getItem("ueblueprint-api-settings");
             if (savedApi) {
-                this.llmService.updateConfig(JSON.parse(savedApi));
+                const settings = JSON.parse(savedApi);
+                this.llmService.updateConfig(settings);
+                
+                // Update local state
+                this.quickModels = settings.quickModels || [];
+                this.model = settings.model || "";
+                this.provider = settings.provider || "";
+                
+                // If current global model is in quickModels, ensure we have the full config
+                // (Though LLMService already has valid config from updateConfig(settings) which includes baseUrl)
             }
         } catch (e) {
             console.warn("Failed to load AI settings:", e);
@@ -674,6 +697,32 @@ class AIPanelElement extends i {
     toggle() { this.visible = !this.visible; }
 
     _handlePromptInput(e) { this.prompt = e.target.value; }
+
+    _handleModeChange(newMode) {
+        this.mode = newMode;
+    }
+
+    _handleModelSelect(e) {
+        const index = parseInt(e.target.value);
+        if (isNaN(index)) return
+
+        const qm = this.quickModels[index];
+        if (qm) {
+            this.model = qm.model;
+            this.provider = qm.provider;
+            
+            // Update LLM Service config for immediate use
+            // Note: We don't have the API Key for this provider if it differs from the global one.
+            // Assumption: User uses a compatible key or the same key provider.
+            const configUpdate = {
+                model: qm.model,
+                baseUrl: qm.baseUrl, // Use the stored baseUrl for this quick model
+                provider: qm.provider
+            };
+            
+            this.llmService.updateConfig(configUpdate);
+        }
+    }
 
 
     /* ... drag handlers ... */
@@ -808,24 +857,22 @@ class AIPanelElement extends i {
                         @input=${this._handlePromptInput}
                     ></textarea>
 
-                    <div class="config-row">
-                        <span class="config-label">Temperature</span>
-                        <input
-                            type="number"
-                            class="config-input"
-                            min="0" max="2" step="0.1"
-                            .value=${this.temperature}
-                            @change=${this._handleTemperatureChange}
-                        >
-                    </div>
+
 
                     <div class="config-row">
                         <span class="config-label">Model</span>
-                        <select class="model-select" @change=${this._handleModelChange}>
-                            <option value="gpt-4o" ?selected=${this.model === "gpt-4o"}>gpt-4o | OpenAI</option>
-                            <option value="gpt-4o-mini" ?selected=${this.model === "gpt-4o-mini"}>gpt-4o-mini | OpenAI</option>
-                            <option value="deepseek-chat" ?selected=${this.model === "deepseek-chat"}>deepseek-chat | DeepSeek</option>
-                            <option value="gemini-2.5-flash" ?selected=${this.model === "gemini-2.5-flash"}>gemini-2.5-flash | Yunwu</option>
+                        <select class="model-select" @change=${this._handleModelSelect}>
+                            ${this.quickModels.length > 0 ? 
+                                this.quickModels.map((m, index) => x`
+                                    <option 
+                                        value=${index} 
+                                        ?selected=${this.model === m.model && this.provider === m.provider}
+                                    >
+                                        ${m.model} | ${m.provider}
+                                    </option>
+                                `) : 
+                                x`<option value="">No presets - add in Settings</option>`
+                            }
                         </select>
                     </div>
 
