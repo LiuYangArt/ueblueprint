@@ -4,9 +4,11 @@
  */
 
 import { LitElement, html, css } from "lit"
+import { unsafeHTML } from "lit/directives/unsafe-html.js"
 import LLMService from "./LLMService.js"
 import LayoutEngine from "./LayoutEngine.js"
 import { BLUEPRINT_SYSTEM_PROMPT, MATERIAL_SYSTEM_PROMPT, BLUEPRINT_CHAT_PROMPT, MATERIAL_CHAT_PROMPT } from "./prompts.js"
+import { parseMarkdown } from "./MarkdownParser.js"
 
 /**
  * @typedef {Object} AISettings
@@ -286,6 +288,63 @@ export default class AIPanelElement extends LitElement {
             background: none;
             border: none;
             padding: 4px;
+        }
+
+        /* Markdown styles in messages */
+        .message p {
+            margin: 0 0 8px 0;
+        }
+        .message p:last-child {
+            margin-bottom: 0;
+        }
+        .message code {
+            background: #1a1a1a;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+        }
+        .message pre {
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 8px 0;
+            overflow-x: auto;
+        }
+        .message pre code {
+            background: none;
+            padding: 0;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .message strong {
+            color: #fff;
+        }
+        .message em {
+            font-style: italic;
+            color: #b0b0b0;
+        }
+        .message h2, .message h3, .message h4 {
+            margin: 12px 0 6px 0;
+            color: #fff;
+        }
+        .message h2 { font-size: 16px; }
+        .message h3 { font-size: 14px; }
+        .message h4 { font-size: 13px; }
+        .message ul {
+            margin: 6px 0;
+            padding-left: 20px;
+        }
+        .message li {
+            margin: 4px 0;
+        }
+        .message a {
+            color: #6ab0c7;
+            text-decoration: none;
+        }
+        .message a:hover {
+            text-decoration: underline;
         }
 
         /* Input Area at Bottom */
@@ -1145,7 +1204,9 @@ export default class AIPanelElement extends LitElement {
                         </div>
                     ` : this.history.map(msg => html`
                         <div class="message ${msg.role}">
-                            ${msg.content}
+                            ${msg.role === 'assistant' 
+                                ? unsafeHTML(parseMarkdown(msg.content))
+                                : msg.content}
                             ${msg.images && msg.images.length > 0 ? html`
                                 <div class="message-images">
                                     ${msg.images.map(img => html`
