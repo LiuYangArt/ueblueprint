@@ -36,8 +36,8 @@ const SYSTEM_PROMPT = `You are an expert Unreal Engine 5 Blueprint developer. Yo
 3. **GUIDs**: generate unique 32-character hex strings for \`NodeGuid\` and \`PinId\`.
 4. **Layout**:
    - \`NodePosX\` and \`NodePosY\` are REQUIRED.
-   - Place Event/Entry nodes on the far left (e.g., X=-800).
-   - Place execution flow nodes sequentially to the right (X=0, X=400, X=800...). Maintain large gap (approx 400 units) between nodes horizontally.
+   - Place Event/Entry nodes on the far left (e.g., X=-600).
+   - Place execution flow nodes sequentially to the right (X=0, X=250, X=500...).
 5. **Pins**:
    - Include ALL necessary pins for the node type.
    - Use correct \`PinCategory\` (exec, bool, int, real, object, etc.).
@@ -308,7 +308,7 @@ class LayoutEngine {
      * Apply coordinates to nodes
      */
     static _applyCoordinates(layers, blueprint) {
-        const SPACING_X = 400;
+        const SPACING_X = 120;
         const SPACING_Y = 150;
         const START_X = 0;
         const START_Y = 0;
@@ -919,6 +919,12 @@ Use concise language.`;
             return
         }
 
+        // Add user prompt to history
+        this.history = [...this.history, { role: 'user', content: this.prompt }];
+        const currentPrompt = this.prompt;
+        this.prompt = ""; // Clear prompt
+        this.requestUpdate();
+
         this.isGenerating = true;
         this.statusText = "Generating...";
         this.statusType = "";
@@ -927,7 +933,7 @@ Use concise language.`;
 
         try {
             // Config is already updated via event listener or initial load
-            const t3dText = await this.llmService.generate(this.prompt, this.abortController.signal);
+            const t3dText = await this.llmService.generate(currentPrompt, this.abortController.signal);
             const nodes = this._injectBlueprint(t3dText);
             
             if (nodes && nodes.length > 0) {
@@ -936,20 +942,30 @@ Use concise language.`;
                  }, 50);
             }
 
+            // Add success response to history
+            this.history = [...this.history, { 
+                role: 'assistant', 
+                content: `Generated ${nodes?.length || 0} nodes.\n\n\`\`\`\n${t3dText}\n\`\`\`` 
+            }];
+
             this.statusText = "Generation complete!";
             this.statusType = "success";
         } catch (error) {
             if (error.name === 'AbortError') {
                 this.statusText = "Generation stopped";
                 this.statusType = "";
+                this.history = [...this.history, { role: 'system', content: "Generation stopped by user." }];
             } else {
                 this.statusText = `Error: ${error.message}`;
                 this.statusType = "error";
                 console.error("Generation failed:", error);
+                this.history = [...this.history, { role: 'assistant', content: `Error generating blueprint: ${error.message}` }];
             }
         } finally {
             this.isGenerating = false;
             this.abortController = null;
+            this.requestUpdate();
+            this._scrollToBottom();
         }
     }
 

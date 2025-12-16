@@ -150,7 +150,7 @@ export default class LayoutEngine {
      * Apply coordinates to nodes
      */
     static _applyCoordinates(layers, blueprint) {
-        const SPACING_X = 400
+        const SPACING_X = 120
         const SPACING_Y = 150
         const START_X = 0
         const START_Y = 0

@@ -583,6 +583,12 @@ Use concise language.`
             return
         }
 
+        // Add user prompt to history
+        this.history = [...this.history, { role: 'user', content: this.prompt }]
+        const currentPrompt = this.prompt
+        this.prompt = "" // Clear prompt
+        this.requestUpdate()
+
         this.isGenerating = true
         this.statusText = "Generating..."
         this.statusType = ""
@@ -591,7 +597,7 @@ Use concise language.`
 
         try {
             // Config is already updated via event listener or initial load
-            const t3dText = await this.llmService.generate(this.prompt, this.abortController.signal)
+            const t3dText = await this.llmService.generate(currentPrompt, this.abortController.signal)
             const nodes = this._injectBlueprint(t3dText)
             
             if (nodes && nodes.length > 0) {
@@ -600,20 +606,30 @@ Use concise language.`
                  }, 50)
             }
 
+            // Add success response to history
+            this.history = [...this.history, { 
+                role: 'assistant', 
+                content: `Generated ${nodes?.length || 0} nodes.\n\n\`\`\`\n${t3dText}\n\`\`\`` 
+            }]
+
             this.statusText = "Generation complete!"
             this.statusType = "success"
         } catch (error) {
             if (error.name === 'AbortError') {
                 this.statusText = "Generation stopped"
                 this.statusType = ""
+                this.history = [...this.history, { role: 'system', content: "Generation stopped by user." }]
             } else {
                 this.statusText = `Error: ${error.message}`
                 this.statusType = "error"
                 console.error("Generation failed:", error)
+                this.history = [...this.history, { role: 'assistant', content: `Error generating blueprint: ${error.message}` }]
             }
         } finally {
             this.isGenerating = false
             this.abortController = null
+            this.requestUpdate()
+            this._scrollToBottom()
         }
     }
 

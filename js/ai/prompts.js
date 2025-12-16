@@ -10,8 +10,8 @@ export const SYSTEM_PROMPT = `You are an expert Unreal Engine 5 Blueprint develo
 3. **GUIDs**: generate unique 32-character hex strings for \`NodeGuid\` and \`PinId\`.
 4. **Layout**:
    - \`NodePosX\` and \`NodePosY\` are REQUIRED.
-   - Place Event/Entry nodes on the far left (e.g., X=-800).
-   - Place execution flow nodes sequentially to the right (X=0, X=400, X=800...). Maintain large gap (approx 400 units) between nodes horizontally.
+   - Place Event/Entry nodes on the far left (e.g., X=-600).
+   - Place execution flow nodes sequentially to the right (X=0, X=250, X=500...).
 5. **Pins**:
    - Include ALL necessary pins for the node type.
    - Use correct \`PinCategory\` (exec, bool, int, real, object, etc.).
