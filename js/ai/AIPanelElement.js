@@ -1088,9 +1088,7 @@ export default class AIPanelElement extends LitElement {
         }
 
         // Add user prompt to history
-        if (this.debug) {
-            this.history = [...this.history, { role: 'user', content: this.prompt }]
-        }
+        this.history = [...this.history, { role: 'user', content: this.prompt }]
         const currentPrompt = this.prompt
         this.prompt = "" // Clear prompt
         this.requestUpdate()
@@ -1140,12 +1138,16 @@ export default class AIPanelElement extends LitElement {
             }
 
             // Add success response to history
-            if (this.debug) {
-                this.history = [...this.history, { 
-                    role: 'assistant', 
-                    content: `Generated ${nodes?.length || 0} nodes.\n\n\`\`\`\n${t3dText}\n\`\`\`` 
-                }]
-            }
+            // Add success response to history
+            const nodeCount = nodes?.length || 0
+            const content = this.debug 
+                ? `Generated ${nodeCount} nodes.\n\n\`\`\`\n${t3dText}\n\`\`\`` 
+                : `✅ Generated ${nodeCount} node${nodeCount !== 1 ? 's' : ''}.`
+
+            this.history = [...this.history, { 
+                role: 'assistant', 
+                content: content 
+            }]
 
             this.statusText = "Generation complete!"
             this.statusType = "success"
