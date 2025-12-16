@@ -16,6 +16,36 @@ trigger: always_on
 开发中的测试页面
 http://localhost:8080/ai-demo.html
 
+---
+### Use in a web page
+
+You can check `index.html` for a working example, the main steps are the following:
+1. Make the `dist` directory available in your website by copying it or installing through npm `npm i ueblueprint`.
+2. Include `dist/css/ueb-style.min.css` stylesheet in your page.
+3. Define eventual CSS variables.
+```HTML
+<style>
+    ueb-blueprint {
+        --ueb-height: 500px;
+    }
+</style>
+```
+4. Import the class Blueprint in JavaScript (this library uses modules).
+```HTML
+<script type="module">
+    import { Blueprint } from "./dist/ueblueprint.min.js"
+</script>
+```
+5. Define your blueprint by writing the code inside a `template`, inside a `ueb-blueprint` element.
+Configuration:
+    - Height: `<ueb-blueprint style="--ueb-height: 500px">`
+    - Light mode: `<ueb-blueprint class="ueb-light-mode">`
+    - Initial zoom: `<ueb-blueprint data-zoom="-4">`
+    - Graph type: `<ueb-blueprint data-type="MATERIAL FUNCTION">`
+```HTML
+<ueb-blueprint>
+    <template>
+
 # UE Blueprint Vibe-Coding LLM Rules
 
 > 本文档定义了 LLM 在生成 Unreal Engine 蓝图代码时必须遵循的规则与格式规范。

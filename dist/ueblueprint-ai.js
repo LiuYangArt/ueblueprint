@@ -2298,13 +2298,17 @@ class SettingsElement extends i$1 {
         super();
         this.visible = false;
         this.provider = "openai";
+        // Current active values (syncs with providerConfigs[provider])
         this.apiKey = "";
         this.baseUrl = PROVIDERS.openai.baseUrl;
         this.model = "gpt-4o";
         this.temperature = 0.5;
+        
+        // Multi-provider storage
+        this.providerConfigs = {};
+        
         this.testStatus = "";
         this.isTesting = false;
-        this.availableModels = [];
         this.availableModels = [];
         this.isLoadingModels = false;
         this.modelsCache = {};
@@ -2323,20 +2327,61 @@ class SettingsElement extends i$1 {
     _loadSettings() {
         try {
             const saved = localStorage.getItem("ueblueprint-api-settings");
+            let settings = {};
             if (saved) {
-                const settings = JSON.parse(saved);
-                this.provider = settings.provider ?? "openai";
-                this.apiKey = settings.apiKey ?? "";
-                this.baseUrl = settings.baseUrl ?? PROVIDERS[this.provider]?.baseUrl ?? "";
-                this.model = settings.model ?? "gpt-4o";
-                this.temperature = settings.temperature ?? 0.5;
-                this.quickModels = settings.quickModels ?? [];
-                this.debug = settings.debug ?? false;
-                this.systemPrompt = settings.systemPrompt ?? DEFAULT_PROMPT_TEMPLATE;
-            } else {
-                this.systemPrompt = DEFAULT_PROMPT_TEMPLATE;
+                settings = JSON.parse(saved);
             }
-            
+
+            // Global settings
+            this.provider = settings.provider ?? "openai";
+            this.quickModels = settings.quickModels ?? [];
+            this.debug = settings.debug ?? false;
+            this.systemPrompt = settings.systemPrompt ?? DEFAULT_PROMPT_TEMPLATE;
+
+            // Load provider configs
+            if (settings.providerConfigs) {
+                this.providerConfigs = settings.providerConfigs;
+            } else {
+                // Migration: Create default configs from what we have or defaults
+                // If we have legacy flat settings, assign them to the saved provider
+                // or default to OpenAI if none saving
+                this.providerConfigs = {};
+                
+                // Initialize all providers with defaults
+                for (const [key, config] of Object.entries(PROVIDERS)) {
+                    this.providerConfigs[key] = {
+                        apiKey: "",
+                        baseUrl: config.baseUrl,
+                        model: config.models[0] || "",
+                        temperature: 0.5
+                    };
+                }
+
+                // If migration is needed (settings exist but no providerConfigs)
+                if (saved) {
+                    const legacyProvider = settings.provider || "openai";
+                    this.providerConfigs[legacyProvider] = {
+                        apiKey: settings.apiKey || "",
+                        baseUrl: settings.baseUrl || PROVIDERS[legacyProvider]?.baseUrl || "",
+                        model: settings.model || PROVIDERS[legacyProvider]?.models?.[0] || "",
+                        temperature: settings.temperature ?? 0.5
+                    };
+                }
+            }
+
+            // Ensure current provider has a config object
+            if (!this.providerConfigs[this.provider]) {
+                 this.providerConfigs[this.provider] = {
+                    apiKey: "",
+                    baseUrl: PROVIDERS[this.provider]?.baseUrl || "",
+                    model: PROVIDERS[this.provider]?.models?.[0] || "",
+                    temperature: 0.5
+                };
+            }
+
+            // Sync current state with active provider config
+            this._applyProviderConfig(this.provider);
+
             // Load models cache
             const cache = localStorage.getItem("ueblueprint-api-models-cache");
             if (cache) {
@@ -2347,7 +2392,32 @@ class SettingsElement extends i$1 {
             
         } catch (e) {
             console.warn("Failed to load API settings:", e);
+            // Fallback initialization
+            this.providerConfigs = {};
+            for (const [key, config] of Object.entries(PROVIDERS)) {
+                this.providerConfigs[key] = {
+                    apiKey: "",
+                    baseUrl: config.baseUrl,
+                    model: config.models[0] || "",
+                    temperature: 0.5
+                };
+            }
         }
+    }
+
+    _applyProviderConfig(provider) {
+        const config = this.providerConfigs[provider] || {};
+        this.apiKey = config.apiKey || "";
+        this.baseUrl = config.baseUrl || PROVIDERS[provider]?.baseUrl || "";
+        this.model = config.model || PROVIDERS[provider]?.models?.[0] || "";
+        this.temperature = config.temperature ?? 0.5;
+    }
+
+    _updateProviderConfig(provider, updates) {
+        if (!this.providerConfigs[provider]) {
+             this.providerConfigs[provider] = {};
+        }
+        this.providerConfigs[provider] = { ...this.providerConfigs[provider], ...updates };
     }
 
     _updateAvailableModels() {
@@ -2393,7 +2463,7 @@ class SettingsElement extends i$1 {
                     }
                     if (!this.model && models.length > 0) {
                         this.model = models[0];
-                         // Save immediately if we auto-selected
+                        this._updateProviderConfig(this.provider, { model: this.model });
                         this._saveSettings();
                     }
                 }
@@ -2411,15 +2481,26 @@ class SettingsElement extends i$1 {
 
     _saveSettings() {
         try {
-            const settings = {
-                provider: this.provider,
+            // Update current provider config state before saving to be sure
+            this._updateProviderConfig(this.provider, {
                 apiKey: this.apiKey,
                 baseUrl: this.baseUrl,
                 model: this.model,
-                temperature: this.temperature,
+                temperature: this.temperature
+            });
+
+            const settings = {
+                provider: this.provider,
+                providerConfigs: this.providerConfigs, // Save all configs
                 quickModels: this.quickModels,
                 debug: this.debug,
-                systemPrompt: this.systemPrompt
+                systemPrompt: this.systemPrompt,
+                
+                // Legacy fields for backward compatibility (optional, but good for safety)
+                apiKey: this.apiKey,
+                baseUrl: this.baseUrl,
+                model: this.model,
+                temperature: this.temperature
             };
             localStorage.setItem("ueblueprint-api-settings", JSON.stringify(settings));
             
@@ -2441,11 +2522,22 @@ class SettingsElement extends i$1 {
     }
 
     _handleProviderChange(e) {
-        this.provider = e.target.value;
-        const config = PROVIDERS[this.provider];
-        if (config && this.provider !== "custom") {
-            this.baseUrl = config.baseUrl;
+        const newProvider = e.target.value;
+        this.provider = newProvider;
+        
+        // Ensure config exists
+        if (!this.providerConfigs[this.provider]) {
+             this.providerConfigs[this.provider] = {
+                apiKey: "",
+                baseUrl: PROVIDERS[this.provider]?.baseUrl || "",
+                model: PROVIDERS[this.provider]?.models?.[0] || "",
+                temperature: 0.5
+            };
         }
+
+        // Apply new provider settings to UI state
+        this._applyProviderConfig(this.provider);
+        
         this.testStatus = "";
         
         this._updateAvailableModels();
@@ -2456,12 +2548,12 @@ class SettingsElement extends i$1 {
         if ((!this.modelsCache[this.provider] || this.modelsCache[this.provider].length === 0) && this.apiKey) {
             this._fetchModels();
         } else {
-             // Reset model logic: if we have models, pick first if current is invalid
-             // Just ensure this.model is in the list
+             // Reset model logic
              if (this.availableModels.length > 0 && !this.availableModels.includes(this.model)) {
                  this.model = this.availableModels[0];
+                 this._updateProviderConfig(this.provider, { model: this.model });
                  this._saveSettings();
-             } else if (this.availableModels.length === 0) {
+             } else if (this.availableModels.length === 0 && !this.model) {
                  this.model = "";
                  this._saveSettings();
              }
@@ -2471,17 +2563,20 @@ class SettingsElement extends i$1 {
     _handleApiKeyChange(e) {
         this.apiKey = e.target.value;
         this.testStatus = "";
+        this._updateProviderConfig(this.provider, { apiKey: this.apiKey });
         this._saveSettings();
     }
 
     _handleBaseUrlChange(e) {
         this.baseUrl = e.target.value;
         this.testStatus = "";
+        this._updateProviderConfig(this.provider, { baseUrl: this.baseUrl });
         this._saveSettings();
     }
 
     _handleModelChange(e) {
         this.model = e.target.value;
+        this._updateProviderConfig(this.provider, { model: this.model });
         this._saveSettings();
     }
 
@@ -2511,20 +2606,40 @@ class SettingsElement extends i$1 {
     }
 
     _handleQuickModelClick(qm) {
+        this.provider;
         this.provider = qm.provider;
-        // Restore baseUrl if saved, or from provider config
+        
+        // 1. Ensure config object exists
+        if (!this.providerConfigs[this.provider]) {
+             this.providerConfigs[this.provider] = {
+                apiKey: "",
+                baseUrl: PROVIDERS[this.provider]?.baseUrl || "",
+                model: PROVIDERS[this.provider]?.models?.[0] || "",
+                temperature: 0.5
+            };
+        }
+
+        // 2. Apply saved config (API Key, etc.)
+        this._applyProviderConfig(this.provider);
+
+        // 3. Override with specific quick model details
+        // Restore baseUrl if saved in quick model (mostly for custom)
         if (qm.baseUrl && this.provider === 'custom') {
             this.baseUrl = qm.baseUrl;
-        } else {
-            this.baseUrl = PROVIDERS[this.provider]?.baseUrl || qm.baseUrl || "";
         }
         
-        // Update models list for this provider
-        this._updateAvailableModels();
-        
-        // Set model
+        // Set the model from the quick shortcut
         this.model = qm.model;
         
+        // Update state to match
+        this._updateAvailableModels();
+        
+        // Update the provider config to reflect this new model selection
+        this._updateProviderConfig(this.provider, { 
+            model: this.model,
+            baseUrl: this.baseUrl
+        });
+
         // Save
         this._saveSettings();
     }
