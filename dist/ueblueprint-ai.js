@@ -387,14 +387,18 @@ class AIPanelElement extends i {
             border: 1px solid #3a3a3a;
             border-radius: 8px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            width: 420px;
-            height: 600px;
+            width: 500px;
+            height: 80vh;
+            min-width: 320px;
+            min-height: 400px;
+            max-width: 90vw;
+            max-height: 95vh;
+            resize: both;
             display: flex;
             flex-direction: column;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: #e0e0e0;
             overflow: hidden;
-            transition: height 0.3s ease;
         }
 
         .panel-header {

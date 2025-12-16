@@ -10,6 +10,7 @@ trigger: always_on
 - 原仓库 https://github.com/barsdeveloper/ueblueprint
 - 每次改动完执行  npm run build 进行编译
 - 绝对禁止把api key等私密数据硬编码到代码中，或把配置文件上传到github
+- 使用context7 mcp检索unreal的api
 
 
 # UE Blueprint Vibe-Coding LLM Rules

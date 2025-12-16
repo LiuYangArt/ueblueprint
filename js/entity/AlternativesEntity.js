@@ -16,6 +16,7 @@ export default class AlternativesEntity extends IEntity {
     }
 
     static createGrammar() {
+        if (!this.alternatives) return this.unknownEntityGrammar;
         const grammars = this.alternatives.map(entity => entity.grammar)
         if (this.alternatives.length == 0 || grammars.includes(this.unknownEntityGrammar)) {
             return this.unknownEntityGrammar

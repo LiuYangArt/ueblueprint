@@ -148,7 +148,8 @@ export default class ObjectEntity extends IEntity {
         CustomProperties: ArrayEntity
             .of(AlternativesEntity.accepting(PinEntity, UnknownPinEntity))
             .withDefault()
-            .flagSilent(),
+            .flagSilent()
+            .flagInlined(),
     }
     static customPropertyGrammar = P.seq(
         P.reg(/CustomProperties\s+/),
