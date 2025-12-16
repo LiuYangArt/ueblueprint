@@ -26,10 +26,3 @@ Thumbs.db
 
 # Agent/AI
 .agent/
-
-# Temporary Debug Files
-debug_output.txt
-reproduce_issue.js
-test_regex.js
-verify_fix.js
-validate_material_t3d.js
