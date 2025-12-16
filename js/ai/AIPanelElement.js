@@ -27,11 +27,13 @@ export default class AIPanelElement extends LitElement {
         quickModels: { type: Array },
         model: { type: String },
         provider: { type: String },
-        mode: { type: String }
+        // "chat" or "generate" (which covers text/image/node generation)
+        mode: { type: String }, 
+        // Array of { role: 'user' | 'assistant', content: string }
+        history: { type: Array }
     }
 
     static styles = css`
-        /* ... existing styles ... */
         :host {
             position: fixed;
             top: 50px;
@@ -49,35 +51,45 @@ export default class AIPanelElement extends LitElement {
             border: 1px solid #3a3a3a;
             border-radius: 8px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            width: 400px;
+            width: 420px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: #e0e0e0;
             overflow: hidden;
+            transition: height 0.3s ease;
         }
 
         .panel-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end; /* Align controls to right */
             align-items: center;
             padding: 8px 12px;
             background: #252525;
             border-bottom: 1px solid #3a3a3a;
             cursor: move;
+            flex-shrink: 0;
+            height: 24px; /* Fixed header height */
         }
 
         .tabs {
             display: flex;
-            gap: 4px;
+            gap: 2px;
+            background: #1a1a1a;
+            padding: 2px;
+            border-radius: 4px;
+            border: 1px solid #3a3a3a;
         }
 
         .tab {
-            padding: 6px 16px;
+            padding: 4px 12px;
             background: transparent;
             border: none;
-            border-radius: 4px;
+            border-radius: 3px;
             color: #888;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             transition: all 0.2s;
         }
 
@@ -91,77 +103,115 @@ export default class AIPanelElement extends LitElement {
             color: white;
         }
 
-        .close-btn {
+        .close-btn, .settings-btn {
             background: none;
             border: none;
             color: #888;
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
-            padding: 4px 8px;
+            padding: 4px;
             border-radius: 4px;
         }
 
-        .close-btn:hover {
+        .close-btn:hover, .settings-btn:hover {
             background: #333;
             color: #fff;
         }
 
-        .panel-body {
+        /* Chat History Area */
+        .chat-history {
+            flex-grow: 1;
             padding: 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #1e1e1e;
         }
 
-        .preset-row {
+        .message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: #2d4a54;
+            color: #fff;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            color: #e0e0e0;
+            border-bottom-left-radius: 2px;
+        }
+
+        .message.system {
+            align-self: center;
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+            background: none;
+            border: none;
+            padding: 4px;
+        }
+
+        /* Input Area at Bottom */
+        .input-area {
+            padding: 12px;
+            background: #252525;
+            border-top: 1px solid #3a3a3a;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .config-row {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .preset-select {
             flex: 1;
-            padding: 8px 12px;
-            background: #2a2a2a;
+        }
+
+        .model-select {
+            flex: 1;
+            max-width: 200px;
+            padding: 4px 8px;
+            background: #1a1a1a;
             border: 1px solid #3a3a3a;
             border-radius: 4px;
             color: #ccc;
-            font-size: 13px;
-        }
-
-        .icon-btn {
-            width: 32px;
-            height: 32px;
-            background: #2a2a2a;
-            border: 1px solid #3a3a3a;
-            border-radius: 4px;
-            color: #888;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-        }
-
-        .icon-btn:hover {
-            background: #333;
-            color: #ccc;
+            font-size: 12px;
         }
 
         .prompt-input {
             width: 100%;
-            min-height: 100px;
-            padding: 12px;
-            background: #2a2a2a;
+            min-height: 60px;
+            max-height: 150px;
+            padding: 10px;
+            background: #1a1a1a;
             border: 1px solid #3a3a3a;
-            border-radius: 4px;
+            border-radius: 6px;
             color: #e0e0e0;
             font-size: 14px;
-            resize: vertical;
+            resize: none;
+            font-family: inherit;
             box-sizing: border-box;
-            margin-bottom: 12px;
-        }
-
-        .prompt-input::placeholder {
-            color: #666;
         }
 
         .prompt-input:focus {
@@ -169,97 +219,54 @@ export default class AIPanelElement extends LitElement {
             border-color: #4a7c8c;
         }
 
-        .config-row {
+        .action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .send-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            background: #4a7c8c;
+            border: none;
+            color: white;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            margin-bottom: 8px;
-            gap: 12px;
-        }
-
-        .config-label {
-            width: 90px;
-            color: #888;
-            font-size: 13px;
-        }
-
-        .config-input {
-            flex: 1;
-            padding: 6px 10px;
-            background: #2a2a2a;
-            border: 1px solid #3a3a3a;
-            border-radius: 4px;
-            color: #e0e0e0;
-            font-size: 13px;
-            text-align: right;
-        }
-
-        .model-select {
-            flex: 1;
-            padding: 6px 10px;
-            background: #2a2a2a;
-            border: 1px solid #3a3a3a;
-            border-radius: 4px;
-            color: #e0e0e0;
-            font-size: 13px;
-        }
-
-        .generate-btn {
-            width: 100%;
-            padding: 12px;
-            background: #4a4a4a;
-            border: none;
-            border-radius: 4px;
-            color: #e0e0e0;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            margin-top: 8px;
-            letter-spacing: 1px;
+            justify-content: center;
+            font-size: 16px;
             transition: background 0.2s;
         }
 
-        .generate-btn:hover:not(:disabled) {
-            background: #5a5a5a;
+        .send-btn:hover:not(:disabled) {
+            background: #5a8c9c;
         }
 
-        .generate-btn:disabled {
-            opacity: 0.6;
+        .send-btn:disabled {
+            background: #3a3a3a;
             cursor: not-allowed;
-        }
-
-        .generate-btn.generating {
-            background: #4a7c8c;
-        }
-
-        .settings-btn {
-            background: none;
-            border: none;
-            color: #888;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 4px 8px;
-        }
-
-        .settings-btn:hover {
-            color: #ccc;
+            opacity: 0.5;
         }
 
         .status-bar {
-            padding: 8px 12px;
-            background: #252525;
+            padding: 4px 12px;
+            background: #1a1a1a;
             border-top: 1px solid #3a3a3a;
-            font-size: 12px;
-            color: #888;
+            font-size: 11px;
+            color: #666;
             text-align: center;
+            flex-shrink: 0;
+            min-height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .status-bar.error {
-            color: #e57373;
-        }
-
-        .status-bar.success {
-            color: #81c784;
-        }
+        .status-bar.error { color: #e57373; }
+        .status-bar.success { color: #81c784; }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
@@ -273,16 +280,16 @@ export default class AIPanelElement extends LitElement {
 
     constructor() {
         super()
-        this.visible = true // Default to visible per user request
-        this.prompt = ""
+        this.visible = true
         this.prompt = ""
         this.isGenerating = false
         this.statusText = "Ready"
         this.statusType = ""
-        this.mode = "text"
+        this.mode = "chat" // Default to chat mode
         this.quickModels = []
         this.model = ""
         this.provider = ""
+        this.history = [] // Chat history
         this.abortController = null
 
         // Dragging state
@@ -362,7 +369,122 @@ export default class AIPanelElement extends LitElement {
     hide() { this.visible = false }
     toggle() { this.visible = !this.visible }
 
-    _handlePromptInput(e) { this.prompt = e.target.value }
+    _handlePromptInput(e) { 
+        this.prompt = e.target.value 
+        // Auto-resize textarea
+        const el = e.target
+        el.style.height = 'auto'
+        el.style.height = Math.min(el.scrollHeight, 120) + 'px'
+    }
+
+    _handleKeyDown(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            this._handleSubmit()
+        }
+    }
+
+    _handleSubmit() {
+        if (this.mode === 'chat') {
+            this._handleChat()
+        } else {
+            this._handleGenerate()
+        }
+    }
+
+    async _handleChat() {
+        if (this.isGenerating || !this.prompt.trim()) return
+
+        const userMsg = this.prompt.trim()
+        this.history = [...this.history, { role: 'user', content: userMsg }]
+        this.prompt = ""
+        this.requestUpdate()
+
+        // Reset textarea height
+        const textarea = this.shadowRoot.querySelector('.prompt-input')
+        if (textarea) textarea.style.height = 'auto'
+
+        this.isGenerating = true
+        this.statusText = "Thinking..."
+        this.statusType = ""
+        this.abortController = new AbortController()
+
+        try {
+            // Gather context from blueprint
+            let context = "Context: No blueprint nodes available."
+            if (this.blueprint) {
+                // Try to get selected nodes first
+                let nodes = this.blueprint.getNodes(true)
+                let selectionState = "Selected nodes"
+                
+                // If no selection, get all nodes
+                if (nodes.length === 0) {
+                    nodes = this.blueprint.getNodes(false)
+                    selectionState = "All nodes"
+                }
+
+                if (nodes.length > 0) {
+                    // Use Blueprint's serialization logic roughly
+                    // Only serializing entities
+                    const nodeEntities = nodes.map(n => n.entity)
+                    const t3d = nodeEntities.reduce((acc, cur) => acc + cur.serialize(), "")
+                    context = `Context (${selectionState}):\n\`\`\`\n${t3d}\n\`\`\``
+                }
+            }
+
+            // Construct prompt
+            const systemPrompt = `You are a helper for Unreal Engine Blueprints.
+${context}
+Answer the user's question based on the provided blueprint context if relevant.
+Use concise language.`
+            
+            let fullPrompt = `${systemPrompt}\n\n`
+            // Append recent history (limited to last few turns to save context)
+            const recentHistory = this.history.slice(-6) 
+            for (const msg of recentHistory) {
+                if (msg === recentHistory[recentHistory.length - 1]) continue 
+                fullPrompt += `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}\n`
+            }
+            fullPrompt += `User: ${userMsg}\nAssistant:`
+
+            // Stream response placeholder
+            this.history = [...this.history, { role: 'assistant', content: "" }]
+            const assistantMsgIndex = this.history.length - 1
+            
+            const responseText = await this.llmService.generate(fullPrompt, this.abortController.signal)
+            
+            // Update the assistant message
+            const updatedHistory = [...this.history]
+            updatedHistory[assistantMsgIndex].content = responseText
+            this.history = updatedHistory
+            
+            this.statusText = "Reply received"
+            this.statusType = "success"
+
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                this.statusText = "Stopped"
+            } else {
+                this.statusText = "Error"
+                this.statusType = "error"
+                this.history = [...this.history, { role: 'system', content: `Error: ${error.message}` }]
+            }
+        } finally {
+            this.isGenerating = false
+            this.abortController = null
+            this.requestUpdate()
+            this._scrollToBottom()
+        }
+    }
+
+    _scrollToBottom() {
+        setTimeout(() => {
+            const historyEl = this.shadowRoot.querySelector('.chat-history')
+            if (historyEl) {
+                historyEl.scrollTop = historyEl.scrollHeight
+            }
+        }, 10)
+    }
 
     _handleModeChange(newMode) {
         this.mode = newMode
@@ -491,65 +613,73 @@ export default class AIPanelElement extends LitElement {
         return html`
             <div class="ai-panel ${this.isGenerating ? "generating" : ""}">
                 <div class="panel-header" @mousedown=${this._handleDragStart}>
-                    <div class="tabs">
-                        <button class="tab ${this.mode === "text" ? "active" : ""}"
-                                @click=${() => this._handleModeChange("text")}>Text</button>
-                        <button class="tab ${this.mode === "image" ? "active" : ""}"
-                                @click=${() => this._handleModeChange("image")}>Image</button>
-                        <button class="tab ${this.mode === "node" ? "active" : ""}"
-                                @click=${() => this._handleModeChange("node")}>Node</button>
-                    </div>
-                    <div style="display: flex; gap: 4px;">
+                    <div>
                         <button class="settings-btn" @click=${this._openSettings} title="Settings">⚙</button>
                         <button class="close-btn" @click=${this.hide}>×</button>
                     </div>
                 </div>
 
-                <div class="panel-body">
-                    <!-- Presets removed for brevity in this replace, assume staying same if granular replace, but this is full replace request -->
-                    <div class="preset-row">
-                        <select class="preset-select">
-                            <option>Select prompt preset</option>
-                        </select>
-                        <button class="icon-btn" title="Add preset">+</button>
-                        <button class="icon-btn" title="Delete preset">×</button>
-                        <button class="icon-btn" title="Save preset">💾</button>
+                <!-- Chat History -->
+                <div class="chat-history">
+                    ${this.history.length === 0 ? html`
+                        <div class="message system">
+                            ${this.mode === 'chat' ? 
+                                "Ask questions about your blueprint or UE5." : 
+                                "Describe the blueprint logic you want to generate."}
+                        </div>
+                    ` : this.history.map(msg => html`
+                        <div class="message ${msg.role}">
+                            ${msg.content}
+                        </div>
+                    `)}
+                </div>
+
+                <div class="input-area">
+                    <div class="toolbar">
+                        <div class="config-row">
+                            <select class="model-select" @change=${this._handleModelSelect}>
+                                ${this.quickModels.length > 0 ? 
+                                    this.quickModels.map((m, index) => html`
+                                        <option 
+                                            value=${index} 
+                                            ?selected=${this.model === m.model && this.provider === m.provider}
+                                        >
+                                            ${m.model}
+                                        </option>
+                                    `) : 
+                                    html`<option value="">Select Model...</option>`
+                                }
+                            </select>
+                        </div>
                     </div>
 
                     <textarea
                         class="prompt-input"
-                        placeholder="Enter instructions, or leave empty to use selected text..."
+                        placeholder="${this.mode === 'chat' ? 'Ask a question...' : 'Describe functionality...'}"
                         .value=${this.prompt}
                         @input=${this._handlePromptInput}
+                        @keydown=${this._handleKeyDown}
                     ></textarea>
+                    
+                    <div class="action-row">
+                        <div class="tabs">
+                            <button class="tab ${this.mode === "chat" ? "active" : ""}"
+                                    @click=${() => this._handleModeChange("chat")}>Chat</button>
+                            <button class="tab ${this.mode === "generate" ? "active" : ""}"
+                                    @click=${() => this._handleModeChange("generate")}>Generate</button>
+                        </div>
 
-
-
-                    <div class="config-row">
-                        <span class="config-label">Model</span>
-                        <select class="model-select" @change=${this._handleModelSelect}>
-                            ${this.quickModels.length > 0 ? 
-                                this.quickModels.map((m, index) => html`
-                                    <option 
-                                        value=${index} 
-                                        ?selected=${this.model === m.model && this.provider === m.provider}
-                                    >
-                                        ${m.model} | ${m.provider}
-                                    </option>
-                                `) : 
-                                html`<option value="">No presets - add in Settings</option>`
-                            }
-                        </select>
+                        <button
+                            class="send-btn"
+                            ?disabled=${this.isGenerating || !this.prompt.trim()}
+                            @click=${this._handleSubmit}
+                            title="${this.isGenerating ? 'Stop' : 'Send'}"
+                        >
+                            ${this.isGenerating ? '■' : '➤'}
+                        </button>
                     </div>
-
-                    <button
-                        class="generate-btn ${this.isGenerating ? "generating" : ""}"
-                        @click=${this._handleGenerate}
-                    >
-                        ${this.isGenerating ? "STOP GENERATION" : "GENERATE"}
-                    </button>
                 </div>
-
+                
                 <div class="status-bar ${this.statusType}">${this.statusText}</div>
             </div>
         `
