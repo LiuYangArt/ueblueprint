@@ -1,4 +1,4 @@
-/**
+k/**
  * AI Panel Element - AI Assistant Floating Panel
  * Lit-based web component for UE Blueprint AI generation
  */
