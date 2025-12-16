@@ -45,7 +45,9 @@ export default class LayoutEngine {
             pins.forEach(pin => {
                 if (pin.isOutput() && pin.LinkedTo && pin.LinkedTo.values) {
                     pin.LinkedTo.values.forEach(link => {
-                        const targetNodeName = link.toString().split(" ")[0]
+                        const targetNodeName = link.objectName 
+                            ? link.objectName.toString() 
+                            : link.toString().split(" ")[0]
                         // Note: LinkedTo usually stores NodeName + PinId. 
                         // But we need NodeGuid to map back to our node instances securely.
                         // However, generated T3D might rely on Names. 

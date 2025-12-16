@@ -2,10 +2,14 @@
 trigger: always_on
 ---
 
+这个项目是基于 https://github.com/barsdeveloper/ueblueprint 做的一个项目，用于ue5蓝图的vibe coding。 
+
+
 # 开发规范
 - 为了方便与原仓库的改动进行merge，尽量不要改动原仓库文件。 建立新文件来做我们的功能。 
 - 原仓库 https://github.com/barsdeveloper/ueblueprint
 - 每次改动完执行  npm run build 进行编译
+- 绝对禁止把api key等私密数据硬编码到代码中，或把配置文件上传到github
 
 
 # UE Blueprint Vibe-Coding LLM Rules

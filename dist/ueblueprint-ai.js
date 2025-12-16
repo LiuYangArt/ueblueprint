@@ -36,8 +36,8 @@ const SYSTEM_PROMPT = `You are an expert Unreal Engine 5 Blueprint developer. Yo
 3. **GUIDs**: generate unique 32-character hex strings for \`NodeGuid\` and \`PinId\`.
 4. **Layout**:
    - \`NodePosX\` and \`NodePosY\` are REQUIRED.
-   - Place Event/Entry nodes on the far left (e.g., X=-400).
-   - Place execution flow nodes sequentially to the right (X=0, X=200, X=400...).
+   - Place Event/Entry nodes on the far left (e.g., X=-800).
+   - Place execution flow nodes sequentially to the right (X=0, X=400, X=800...). Maintain large gap (approx 400 units) between nodes horizontally.
 5. **Pins**:
    - Include ALL necessary pins for the node type.
    - Use correct \`PinCategory\` (exec, bool, int, real, object, etc.).
@@ -203,7 +203,9 @@ class LayoutEngine {
             pins.forEach(pin => {
                 if (pin.isOutput() && pin.LinkedTo && pin.LinkedTo.values) {
                     pin.LinkedTo.values.forEach(link => {
-                        const targetNodeName = link.toString().split(" ")[0];
+                        const targetNodeName = link.objectName 
+                            ? link.objectName.toString() 
+                            : link.toString().split(" ")[0];
                         // Note: LinkedTo usually stores NodeName + PinId. 
                         // But we need NodeGuid to map back to our node instances securely.
                         // However, generated T3D might rely on Names. 

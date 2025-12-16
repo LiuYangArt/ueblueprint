@@ -5251,8 +5251,8 @@ class Integer64Entity extends IEntity {
 class ObjectReferenceEntity extends IEntity {
 
     static typeReference = Parsernostrum.reg(
-        // @ts-expect-error
-        new RegExp(Grammar.Regex.Path.source + "|" + Grammar.symbol.getParser().regexp.source)
+        // Fallback to simple regexes to avoid potential circular dependency issues with Grammar.js during static init
+        new RegExp(`(?:\\/(?:[a-zA-Z_]\\w*(?:[\\.:][a-zA-Z_]\\w*)*)){2,}|[a-zA-Z_]\\w*`)
     )
     static fullReferenceGrammar = this.createFullReferenceGrammar()
     static grammar = this.createGrammar()
@@ -5308,22 +5308,24 @@ class ObjectReferenceEntity extends IEntity {
 
     /** @returns {P<ObjectReferenceEntity>} */
     static createFullReferenceGrammar() {
-        return Parsernostrum.regArray(
-            new RegExp(
-                // @ts-expect-error
-                "(" + this.typeReference.getParser().regexp.source + ")"
-                + "(?:"
-                + `'"(${Grammar.Regex.InsideString.source})"'`
-                + "|"
-                + `'(${Grammar.Regex.InsideSingleQuotedString.source})'`
-                + ")"
-            )
-        ).map(([full, type, fullQuotedPath, simpleQuotedPath]) => {
-            let fullQuoted = fullQuotedPath ? true : false;
-            let quotes = fullQuoted ? [`'"`, `"'`] : ["'", "'"];
+        return Parsernostrum.alt(
+            Parsernostrum.seq(
+                this.typeReference,
+                Parsernostrum.reg(/'"/),
+                Parsernostrum.reg(Grammar.Regex.InsideString),
+                Parsernostrum.reg(/"'/)
+            ).map(([type, _1, path, _2]) => [type, path, true]),
+            Parsernostrum.seq(
+                this.typeReference,
+                Parsernostrum.reg(/'/),
+                Parsernostrum.reg(Grammar.Regex.InsideSingleQuotedString),
+                Parsernostrum.reg(/'/)
+            ).map(([type, _1, path, _2]) => [type, path, false])
+        ).map(([type, path, isDouble]) => {
+            let quotes = isDouble ? [`'"`, `"'`] : ["'", "'"];
             return new this(
                 type,
-                fullQuoted ? fullQuotedPath : simpleQuotedPath,
+                path,
                 (t, p) => t + quotes[0] + p + quotes[1]
             )
         })
@@ -5406,6 +5408,10 @@ class PinReferenceEntity extends IEntity {
 
     doSerialize() {
         return this.objectName.serialize() + " " + this.pinGuid.serialize()
+    }
+
+    toString() {
+        return this.doSerialize()
     }
 }
 

@@ -31,4 +31,8 @@ export default class PinReferenceEntity extends IEntity {
     doSerialize() {
         return this.objectName.serialize() + " " + this.pinGuid.serialize()
     }
+
+    toString() {
+        return this.doSerialize()
+    }
 }
