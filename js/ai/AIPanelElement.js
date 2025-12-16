@@ -43,7 +43,8 @@ export default class AIPanelElement extends LitElement {
         // Pending images for next message (base64 data URLs)
         pendingImages: { type: Array },
         debug: { type: Boolean },
-        systemPrompt: { type: String }
+        systemPrompt: { type: String },
+        providerConfigs: { type: Object }
     }
 
     static styles = css`
@@ -581,6 +582,7 @@ export default class AIPanelElement extends LitElement {
             model: "",
             provider: "openai" // Default provider
         }
+        this.providerConfigs = {}
         this.debug = false
         this.systemPrompt = DEFAULT_PROMPT_TEMPLATE
         this.abortController = null
@@ -607,17 +609,41 @@ export default class AIPanelElement extends LitElement {
         document.body.addEventListener("ueb-ai-settings-saved", (e) => {
             if (this.llmService) {
                 const settings = e.detail
-                this.llmService.updateConfig(settings)
+                this.providerConfigs = settings.providerConfigs || {}
                 this.quickModels = settings.quickModels || []
                 this.debug = settings.debug || false
                 this.llmService.setDebug(this.debug)
                 this.systemPrompt = settings.systemPrompt || DEFAULT_PROMPT_TEMPLATE
-                // If model/provider are not set from localStorage, or if they are no longer valid,
-                // fall back to settings.
+                
+                // If we have a local selection, try to maintain it
+                // Only if the current model/provider is invalid do we fallback to settings
                 if (!this.model || !this.provider) {
                     this.model = settings.model || ""
                     this.provider = settings.provider || ""
                 }
+
+                // Construct config to apply (respecting local override)
+                let configUpdate = { ...settings }
+                
+                // If local selection exists, ensure we use its provider config
+                if (this.model && this.provider && this.providerConfigs[this.provider]) {
+                    const pConfig = this.providerConfigs[this.provider]
+                    configUpdate = {
+                        ...configUpdate,
+                        apiKey: pConfig.apiKey,
+                        baseUrl: pConfig.baseUrl,
+                        model: this.model,
+                        provider: this.provider
+                    }
+                    
+                    // Apply quick model specific baseUrl if any
+                    const quickEntry = this.quickModels.find(qm => qm.model === this.model && qm.provider === this.provider)
+                    if (quickEntry && quickEntry.baseUrl) {
+                        configUpdate.baseUrl = quickEntry.baseUrl
+                    }
+                }
+
+                this.llmService.updateConfig(configUpdate)
                 this.requestUpdate()
             }
         })
@@ -702,23 +728,56 @@ export default class AIPanelElement extends LitElement {
             const savedApi = localStorage.getItem("ueblueprint-api-settings")
             if (savedApi) {
                 const settings = JSON.parse(savedApi)
-                this.llmService.updateConfig(settings)
+                
+                // Store provider configs for switching
+                this.providerConfigs = settings.providerConfigs || {}
                 
                 // Update local state
                 this.quickModels = settings.quickModels || []
                 this.debug = settings.debug || false
-                this.llmService.setDebug(this.debug)
+                if (this.llmService) this.llmService.setDebug(this.debug)
                 this.systemPrompt = settings.systemPrompt || DEFAULT_PROMPT_TEMPLATE
                 
-                // If model/provider are not set from localStorage, or if they are no longer valid,
-                // fall back to settings.
-                if (!this.model || !this.provider) {
+                // 1. Base config from active global settings
+                let configToUse = { ...settings }
+                
+                // 2. Check for local override (Quick Switch selection)
+                const savedModel = localStorage.getItem("ueb-ai-model")
+                const savedProvider = localStorage.getItem("ueb-ai-provider")
+                
+                if (savedModel && savedProvider) {
+                    this.model = savedModel
+                    this.provider = savedProvider
+                } else {
+                    // Fallback to global defaults
                     this.model = settings.model || ""
                     this.provider = settings.provider || ""
                 }
+
+                // 3. Construct effective config for LLMService
+                // If we have a provider override, try to get its specific config (ApiKey etc) from providerConfigs
+                if (this.provider && this.providerConfigs[this.provider]) {
+                    const pConfig = this.providerConfigs[this.provider]
+                    configToUse = {
+                        ...configToUse,
+                        apiKey: pConfig.apiKey,
+                        baseUrl: pConfig.baseUrl, 
+                        model: this.model,
+                        provider: this.provider
+                    }
+                } else {
+                     // Just ensure model is correct if we didn't find provider config
+                     configToUse.model = this.model
+                     configToUse.provider = this.provider
+                }
                 
-                // If current global model is in quickModels, ensure we have the full config
-                // (Though LLMService already has valid config from updateConfig(settings) which includes baseUrl)
+                // If the quick model has a specific custom baseUrl, apply it
+                const quickEntry = this.quickModels.find(qm => qm.model === this.model && qm.provider === this.provider)
+                if (quickEntry && quickEntry.baseUrl) {
+                    configToUse.baseUrl = quickEntry.baseUrl
+                }
+
+                this.llmService.updateConfig(configToUse)
             }
         } catch (e) {
             console.warn("Failed to load AI settings:", e)
@@ -979,13 +1038,21 @@ export default class AIPanelElement extends LitElement {
             localStorage.setItem("ueb-ai-model", this.model)
             localStorage.setItem("ueb-ai-provider", this.provider)
             
-            // Update LLM Service config for immediate use
-            // Note: We don't have the API Key for this provider if it differs from the global one.
-            // Assumption: User uses a compatible key or the same key provider.
-            const configUpdate = {
+            // Prepare config update
+            let configUpdate = {
                 model: selected.model,
                 provider: selected.provider,
-                baseUrl: selected.baseUrl // Use the stored baseUrl for this quick model
+                baseUrl: selected.baseUrl // Start with quick model's base URL (if any)
+            }
+            
+            // If we have provider configs, grab the API key and fallback base URL
+            // This handles switching providers (e.g. OpenAI -> Gemini)
+            if (this.providerConfigs && this.providerConfigs[selected.provider]) {
+                const pConfig = this.providerConfigs[selected.provider]
+                configUpdate.apiKey = pConfig.apiKey
+                if (!configUpdate.baseUrl) {
+                    configUpdate.baseUrl = pConfig.baseUrl
+                }
             }
             
             this.llmService.updateConfig(configUpdate)
