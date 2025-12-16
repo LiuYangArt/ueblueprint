@@ -7,7 +7,7 @@ import { LitElement, html, css } from "lit"
 import { unsafeHTML } from "lit/directives/unsafe-html.js"
 import LLMService from "./LLMService.js"
 import LayoutEngine from "./LayoutEngine.js"
-import { BLUEPRINT_SYSTEM_PROMPT, MATERIAL_SYSTEM_PROMPT, BLUEPRINT_CHAT_PROMPT, MATERIAL_CHAT_PROMPT } from "./prompts.js"
+import { BLUEPRINT_SYSTEM_PROMPT, MATERIAL_SYSTEM_PROMPT, BLUEPRINT_CHAT_PROMPT, MATERIAL_CHAT_PROMPT, DEFAULT_PROMPT_TEMPLATE } from "./prompts.js"
 import { parseMarkdown } from "./MarkdownParser.js"
 
 /**
@@ -41,7 +41,8 @@ export default class AIPanelElement extends LitElement {
         modalConfig: { type: Object },
         // Pending images for next message (base64 data URLs)
         pendingImages: { type: Array },
-        debug: { type: Boolean }
+        debug: { type: Boolean },
+        systemPrompt: { type: String }
     }
 
     static styles = css`
@@ -580,6 +581,7 @@ export default class AIPanelElement extends LitElement {
             provider: "openai" // Default provider
         }
         this.debug = false
+        this.systemPrompt = DEFAULT_PROMPT_TEMPLATE
         this.abortController = null
         this.pendingImages = [] // Images pending to be sent with next message
 
@@ -607,6 +609,7 @@ export default class AIPanelElement extends LitElement {
                 this.llmService.updateConfig(settings)
                 this.quickModels = settings.quickModels || []
                 this.debug = settings.debug || false
+                this.systemPrompt = settings.systemPrompt || DEFAULT_PROMPT_TEMPLATE
                 // If model/provider are not set from localStorage, or if they are no longer valid,
                 // fall back to settings.
                 if (!this.model || !this.provider) {
@@ -708,6 +711,7 @@ export default class AIPanelElement extends LitElement {
                 // Update local state
                 this.quickModels = settings.quickModels || []
                 this.debug = settings.debug || false
+                this.systemPrompt = settings.systemPrompt || DEFAULT_PROMPT_TEMPLATE
                 
                 // If model/provider are not set from localStorage, or if they are no longer valid,
                 // fall back to settings.
@@ -823,12 +827,27 @@ export default class AIPanelElement extends LitElement {
         try {
             const context = this._getBlueprintContext() || "No blueprint/material nodes currently available."
             
-            // Select system prompt based on graphMode
-            const basePrompt = this.graphMode === "material" 
-                ? MATERIAL_CHAT_PROMPT 
-                : BLUEPRINT_CHAT_PROMPT
+            // Select system prompt based on graphMode and customization
+            let systemPrompt = this.systemPrompt || DEFAULT_PROMPT_TEMPLATE
             
-            const systemPrompt = `${basePrompt}\n\nCurrent context:\n${context}`
+            const modeDesc = this.graphMode === "material" ? "Material Editor" : "Blueprint Editor"
+            const modeType = this.graphMode === "material" ? "Material node" : "Blueprint"
+            
+            // Replace placeholders
+            systemPrompt = systemPrompt
+                .replace(/{{MODE}}/g, modeDesc)
+                .replace(/{{MODE_TYPE}}/g, modeType)
+
+            // Handle Context placeholder
+            if (systemPrompt.includes("{{CONTEXT}}")) {
+                 systemPrompt = systemPrompt.replace(/{{CONTEXT}}/g, context ? `Context:\n${context}` : "")
+            } else if (context) {
+                 // Append context if no placeholder
+                 systemPrompt += `\n\nContext:\n${context}`
+            }
+            
+            // Always reinforce current mode awareness
+            systemPrompt += `\n\nCurrent Editor Mode: ${this.graphMode}`
             
             // Build messages array for API call
             const messages = [{ role: "system", content: systemPrompt }]

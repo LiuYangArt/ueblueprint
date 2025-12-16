@@ -41,6 +41,8 @@ const PROVIDERS = {
     }
 }
 
+import { DEFAULT_PROMPT_TEMPLATE } from "./prompts.js"
+
 export default class SettingsElement extends LitElement {
 
     static properties = {
@@ -59,6 +61,7 @@ export default class SettingsElement extends LitElement {
         showModelDropdown: { type: Boolean, state: true },
         modelFilter: { type: String, state: true },
         debug: { type: Boolean },
+        systemPrompt: { type: String }
     }
 
     static styles = css`
@@ -437,6 +440,9 @@ export default class SettingsElement extends LitElement {
                 this.temperature = settings.temperature ?? 0.5
                 this.quickModels = settings.quickModels ?? []
                 this.debug = settings.debug ?? false
+                this.systemPrompt = settings.systemPrompt ?? DEFAULT_PROMPT_TEMPLATE
+            } else {
+                this.systemPrompt = DEFAULT_PROMPT_TEMPLATE
             }
             
             // Load models cache
@@ -520,7 +526,8 @@ export default class SettingsElement extends LitElement {
                 model: this.model,
                 temperature: this.temperature,
                 quickModels: this.quickModels,
-                debug: this.debug
+                debug: this.debug,
+                systemPrompt: this.systemPrompt
             }
             localStorage.setItem("ueblueprint-api-settings", JSON.stringify(settings))
             
@@ -703,6 +710,16 @@ export default class SettingsElement extends LitElement {
         this._saveSettings()
     }
 
+    _handleSystemPromptChange(e) {
+        this.systemPrompt = e.target.value
+        this._saveSettings()
+    }
+
+    _resetSystemPrompt() {
+        this.systemPrompt = DEFAULT_PROMPT_TEMPLATE
+        this._saveSettings()
+    }
+
     async _handleTest() {
         if (!this.apiKey) {
             this.testStatus = "error:Please enter an API key"
@@ -796,6 +813,32 @@ export default class SettingsElement extends LitElement {
                                 </button>
                             </div>
                             ${this._renderTestStatus()}
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="section-title">System Prompt</div>
+                            <div class="setting-row">
+                                <label class="setting-label">Chat System Prompt (Template)</label>
+                                <span class="setting-description">
+                                    Customize the AI persona. Supports placeholders: 
+                                    <code>{{MODE}}</code> (Blueprint/Material), 
+                                    <code>{{CONTEXT}}</code> (Selected nodes).
+                                </span>
+                                <textarea
+                                    class="setting-input"
+                                    style="height: 120px; font-family: monospace; line-height: 1.4;"
+                                    .value=${this.systemPrompt}
+                                    @input=${this._handleSystemPromptChange}
+                                    placeholder="You are a UE5 {{MODE}} expert..."
+                                ></textarea>
+                                <button 
+                                    class="add-quick-btn" 
+                                    @click=${this._resetSystemPrompt}
+                                    style="margin-top: 4px;"
+                                >
+                                    Reset to Default
+                                </button>
+                            </div>
                         </div>
 
                         <div class="setting-row">
