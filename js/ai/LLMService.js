@@ -80,4 +80,65 @@ export default class LLMService {
             throw error
         }
     }
+
+    /**
+     * Chat with messages array (supports multi-turn and images)
+     * @param {Array} messages - OpenAI format messages [{ role, content }]
+     *        content can be string or array for vision: [{ type: "text", text }, { type: "image_url", image_url: { url } }]
+     * @param {AbortSignal} [signal] - Optional abort signal
+     * @returns {Promise<string>} Response text
+     */
+    async chat(messages, signal) {
+        if (!this.config.apiKey) {
+            throw new Error("API Key is missing. Please configure it in settings.")
+        }
+
+        const baseUrl = this.config.baseUrl || "https://api.openai.com/v1"
+        const model = this.config.model || "gpt-4o"
+        const temperature = this.config.temperature ?? 0.7
+
+        try {
+            const response = await fetch(`${baseUrl}/chat/completions`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${this.config.apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: messages,
+                    temperature: temperature,
+                    stream: false
+                }),
+                signal: signal
+            })
+
+            if (!response.ok) {
+                const errorText = await response.text()
+                let errorMsg = `API Error ${response.status}`
+                try {
+                    const errorJson = JSON.parse(errorText)
+                    if (errorJson.error?.message) {
+                        errorMsg += `: ${errorJson.error.message}`
+                    }
+                } catch (e) {
+                    errorMsg += `: ${errorText.substring(0, 100)}`
+                }
+                throw new Error(errorMsg)
+            }
+
+            const data = await response.json()
+            const content = data.choices[0]?.message?.content
+
+            if (!content) {
+                throw new Error("No content received from LLM")
+            }
+
+            return content.trim()
+
+        } catch (error) {
+            console.error("LLM Chat Error:", error)
+            throw error
+        }
+    }
 }

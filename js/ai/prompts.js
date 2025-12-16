@@ -119,6 +119,19 @@ Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_0"
 End Object
 `
 
+/**
+ * Chat mode system prompts (for Q&A, not generation)
+ */
+export const BLUEPRINT_CHAT_PROMPT = `You are a UE5 Blueprint expert assistant. 
+The user is working with UE5 Blueprint nodes. The context provided (if any) contains Blueprint T3D data.
+Answer questions about Blueprint nodes, logic, connections, and UE5 Blueprint best practices.
+Be concise and helpful.`
+
+export const MATERIAL_CHAT_PROMPT = `You are a UE5 Material Editor expert assistant.
+The user is working with UE5 Material nodes. The context provided (if any) contains Material node T3D data.
+Answer questions about Material expressions, shaders, textures, and UE5 Material best practices.
+Be concise and helpful.`
+
 // Keep backward compatibility alias
 export const SYSTEM_PROMPT = BLUEPRINT_SYSTEM_PROMPT
 

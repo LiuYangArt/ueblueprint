@@ -145,6 +145,19 @@ Begin Object Class=/Script/UnrealEd.MaterialGraphNode Name="MaterialGraphNode_0"
 End Object
 `;
 
+/**
+ * Chat mode system prompts (for Q&A, not generation)
+ */
+const BLUEPRINT_CHAT_PROMPT = `You are a UE5 Blueprint expert assistant. 
+The user is working with UE5 Blueprint nodes. The context provided (if any) contains Blueprint T3D data.
+Answer questions about Blueprint nodes, logic, connections, and UE5 Blueprint best practices.
+Be concise and helpful.`;
+
+const MATERIAL_CHAT_PROMPT = `You are a UE5 Material Editor expert assistant.
+The user is working with UE5 Material nodes. The context provided (if any) contains Material node T3D data.
+Answer questions about Material expressions, shaders, textures, and UE5 Material best practices.
+Be concise and helpful.`;
+
 // Keep backward compatibility alias
 const SYSTEM_PROMPT = BLUEPRINT_SYSTEM_PROMPT;
 
@@ -225,6 +238,67 @@ class LLMService {
 
         } catch (error) {
             console.error("LLM Service Error:", error);
+            throw error
+        }
+    }
+
+    /**
+     * Chat with messages array (supports multi-turn and images)
+     * @param {Array} messages - OpenAI format messages [{ role, content }]
+     *        content can be string or array for vision: [{ type: "text", text }, { type: "image_url", image_url: { url } }]
+     * @param {AbortSignal} [signal] - Optional abort signal
+     * @returns {Promise<string>} Response text
+     */
+    async chat(messages, signal) {
+        if (!this.config.apiKey) {
+            throw new Error("API Key is missing. Please configure it in settings.")
+        }
+
+        const baseUrl = this.config.baseUrl || "https://api.openai.com/v1";
+        const model = this.config.model || "gpt-4o";
+        const temperature = this.config.temperature ?? 0.7;
+
+        try {
+            const response = await fetch(`${baseUrl}/chat/completions`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${this.config.apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: messages,
+                    temperature: temperature,
+                    stream: false
+                }),
+                signal: signal
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                let errorMsg = `API Error ${response.status}`;
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    if (errorJson.error?.message) {
+                        errorMsg += `: ${errorJson.error.message}`;
+                    }
+                } catch (e) {
+                    errorMsg += `: ${errorText.substring(0, 100)}`;
+                }
+                throw new Error(errorMsg)
+            }
+
+            const data = await response.json();
+            const content = data.choices[0]?.message?.content;
+
+            if (!content) {
+                throw new Error("No content received from LLM")
+            }
+
+            return content.trim()
+
+        } catch (error) {
+            console.error("LLM Chat Error:", error);
             throw error
         }
     }
@@ -478,11 +552,13 @@ class AIPanelElement extends i {
         mode: { type: String }, 
         // "blueprint" or "material" - graph type mode
         graphMode: { type: String },
-        // Array of { role: 'user' | 'assistant', content: string }
+        // Array of { role: 'user' | 'assistant', content: string | Array }
         history: { type: Array },
         // Modal dialog state
         showModal: { type: Boolean },
-        modalConfig: { type: Object }
+        modalConfig: { type: Object },
+        // Pending images for next message (base64 data URLs)
+        pendingImages: { type: Array }
     }
 
     static styles = i$3`
@@ -844,6 +920,102 @@ class AIPanelElement extends i {
 
         .generating .status-bar {
             animation: pulse 1.5s infinite;
+        }
+
+        /* Image attachment styles */
+        .image-preview-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 8px;
+            background: #1e1e1e;
+            border-bottom: 1px solid #3a3a3a;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .image-preview-area:empty {
+            display: none;
+        }
+
+        .image-thumb {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #3a3a3a;
+        }
+
+        .image-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-thumb .remove-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 18px;
+            height: 18px;
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-thumb .remove-btn:hover {
+            background: #e57373;
+        }
+
+        .attach-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            background: transparent;
+            border: 1px solid #3a3a3a;
+            color: #888;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .attach-btn:hover {
+            border-color: #4a7c8c;
+            color: #4a7c8c;
+        }
+
+        /* Image in chat history */
+        .message-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .message-images img {
+            max-width: 150px;
+            max-height: 100px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .message-images img:hover {
+            opacity: 0.9;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
     `
 
     constructor() {
@@ -868,6 +1040,7 @@ class AIPanelElement extends i {
             provider: "openai" // Default provider
         };
         this.abortController = null;
+        this.pendingImages = []; // Images pending to be sent with next message
 
         // Dragging state
         this._isDragging = false;
@@ -1063,11 +1236,36 @@ class AIPanelElement extends i {
     }
 
     async _handleChat() {
-        if (this.isGenerating || !this.prompt.trim()) return
+        if (this.isGenerating || (!this.prompt.trim() && this.pendingImages.length === 0)) return
 
         const userMsg = this.prompt.trim();
-        this.history = [...this.history, { role: 'user', content: userMsg }];
+        const userImages = [...this.pendingImages];
+        
+        // Build user message content (text + images for Vision API)
+        let userContent;
+        if (userImages.length > 0) {
+            userContent = [];
+            if (userMsg) {
+                userContent.push({ type: "text", text: userMsg });
+            }
+            for (const imgData of userImages) {
+                userContent.push({ 
+                    type: "image_url", 
+                    image_url: { url: imgData } 
+                });
+            }
+        } else {
+            userContent = userMsg;
+        }
+        
+        // Add to history (store images for display)
+        this.history = [...this.history, { 
+            role: 'user', 
+            content: userMsg,
+            images: userImages.length > 0 ? userImages : undefined 
+        }];
         this.prompt = "";
+        this.pendingImages = [];
         this.requestUpdate();
 
         // Reset textarea height
@@ -1080,28 +1278,38 @@ class AIPanelElement extends i {
         this.abortController = new AbortController();
 
         try {
-            const context = this._getBlueprintContext() || "Context: No blueprint nodes available.";
-
-            // Construct prompt
-            const systemPrompt = `You are a helper for Unreal Engine Blueprints.
-${context}
-Answer the user's question based on the provided blueprint context if relevant.
-Use concise language.`;
+            const context = this._getBlueprintContext() || "No blueprint/material nodes currently available.";
             
-            let fullPrompt = `${systemPrompt}\n\n`;
-            // Append recent history (limited to last few turns to save context)
-            const recentHistory = this.history.slice(-6); 
+            // Select system prompt based on graphMode
+            const basePrompt = this.graphMode === "material" 
+                ? MATERIAL_CHAT_PROMPT 
+                : BLUEPRINT_CHAT_PROMPT;
+            
+            const systemPrompt = `${basePrompt}\n\nCurrent context:\n${context}`;
+            
+            // Build messages array for API call
+            const messages = [{ role: "system", content: systemPrompt }];
+            
+            // Add recent history (last 6 turns)
+            const recentHistory = this.history.slice(-6);
             for (const msg of recentHistory) {
-                if (msg === recentHistory[recentHistory.length - 1]) continue 
-                fullPrompt += `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}\n`;
+                if (msg.role === 'system') continue // Skip system messages like errors
+                
+                // For history, just use text content (images were already sent)
+                if (msg === recentHistory[recentHistory.length - 1]) {
+                    // Current message - use full content with images
+                    messages.push({ role: msg.role, content: userContent });
+                } else {
+                    // Previous messages - text only
+                    messages.push({ role: msg.role, content: msg.content || "" });
+                }
             }
-            fullPrompt += `User: ${userMsg}\nAssistant:`;
 
             // Stream response placeholder
             this.history = [...this.history, { role: 'assistant', content: "" }];
             const assistantMsgIndex = this.history.length - 1;
             
-            const responseText = await this.llmService.generate(fullPrompt, this.abortController.signal);
+            const responseText = await this.llmService.chat(messages, this.abortController.signal);
             
             // Update the assistant message
             const updatedHistory = [...this.history];
@@ -1220,6 +1428,65 @@ Use concise language.`;
             
             this.llmService.updateConfig(configUpdate);
         }
+    }
+
+    /**
+     * Handle paste event to capture images
+     */
+    _handlePaste(e) {
+        const items = e.clipboardData?.items;
+        if (!items) return
+        
+        for (const item of items) {
+            if (item.type.startsWith('image/')) {
+                e.preventDefault();
+                const file = item.getAsFile();
+                if (file) this._addImage(file);
+            }
+        }
+    }
+
+    /**
+     * Handle file input change
+     */
+    _handleFileSelect(e) {
+        const files = e.target.files;
+        if (!files) return
+        
+        for (const file of files) {
+            if (file.type.startsWith('image/')) {
+                this._addImage(file);
+            }
+        }
+        // Reset input so same file can be selected again
+        e.target.value = '';
+    }
+
+    /**
+     * Add image file to pending images (convert to base64)
+     */
+    _addImage(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64 = e.target.result;
+            this.pendingImages = [...this.pendingImages, base64];
+        };
+        reader.readAsDataURL(file);
+    }
+
+    /**
+     * Remove pending image by index
+     */
+    _removeImage(index) {
+        this.pendingImages = this.pendingImages.filter((_, i) => i !== index);
+    }
+
+    /**
+     * Open file picker for images
+     */
+    _openImagePicker() {
+        const input = this.shadowRoot.querySelector('#image-input');
+        if (input) input.click();
     }
 
 
@@ -1389,17 +1656,40 @@ Use concise language.`;
                     ${this.history.length === 0 ? x`
                         <div class="message system">
                             ${this.mode === 'chat' ? 
-                                "Ask questions about your blueprint or UE5." : 
-                                "Describe the blueprint logic you want to generate."}
+                                (this.graphMode === 'material' ? 
+                                    "Ask questions about material nodes or UE5 shaders." :
+                                    "Ask questions about your blueprint or UE5.") : 
+                                (this.graphMode === 'material' ?
+                                    "Describe the shader effect you want to generate." :
+                                    "Describe the blueprint logic you want to generate.")}
                         </div>
                     ` : this.history.map(msg => x`
                         <div class="message ${msg.role}">
                             ${msg.content}
+                            ${msg.images && msg.images.length > 0 ? x`
+                                <div class="message-images">
+                                    ${msg.images.map(img => x`
+                                        <img src="${img}" alt="Attached image" />
+                                    `)}
+                                </div>
+                            ` : ''}
                         </div>
                     `)}
                 </div>
 
-                <div class="input-area">
+                <div class="input-area" @paste=${this._handlePaste}>
+                    <!-- Image preview area -->
+                    ${this.pendingImages.length > 0 ? x`
+                        <div class="image-preview-area">
+                            ${this.pendingImages.map((img, index) => x`
+                                <div class="image-thumb">
+                                    <img src="${img}" alt="Pending image" />
+                                    <button class="remove-btn" @click=${() => this._removeImage(index)} title="Remove">×</button>
+                                </div>
+                            `)}
+                        </div>
+                    ` : ''}
+                    
                     <div class="toolbar">
                         <div class="config-row">
                             <select class="model-select" @change=${this._handleModelSelect}>
@@ -1426,6 +1716,9 @@ Use concise language.`;
                         @keydown=${this._handleKeyDown}
                     ></textarea>
                     
+                    <!-- Hidden file input -->
+                    <input type="file" id="image-input" accept="image/*" multiple @change=${this._handleFileSelect} />
+                    
                     <div class="action-row">
                         <div class="tabs">
                             <button class="tab ${this.mode === "chat" ? "active" : ""}"
@@ -1434,14 +1727,23 @@ Use concise language.`;
                                     @click=${() => this._handleModeChange("generate")}>Generate</button>
                         </div>
 
-                        <button
-                            class="send-btn"
-                            ?disabled=${this.isGenerating || !this.prompt.trim()}
-                            @click=${this._handleSubmit}
-                            title="${this.isGenerating ? 'Stop' : 'Send'}"
-                        >
+                        <div style="display: flex; gap: 8px;">
+                            <button
+                                class="attach-btn"
+                                @click=${this._openImagePicker}
+                                title="Attach image (or paste)"
+                            >
+                                📎
+                            </button>
+                            <button
+                                class="send-btn"
+                                ?disabled=${this.isGenerating || (!this.prompt.trim() && this.pendingImages.length === 0)}
+                                @click=${this._handleSubmit}
+                                title="${this.isGenerating ? 'Stop' : 'Send'}"
+                            >
                             ${this.isGenerating ? '■' : '➤'}
-                        </button>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
