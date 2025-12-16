@@ -7,3 +7,4 @@ localhost*
 /blob-report/
 /playwright/.cache/
 docs
+*.code-workspace
