@@ -37,7 +37,8 @@ export default class LLMService {
             throw new Error("API Key is missing. Please configure it in settings.")
         }
 
-        const baseUrl = this.config.baseUrl || "https://api.openai.com/v1"
+        const rawBaseUrl = this.config.baseUrl || "https://api.openai.com/v1"
+        const baseUrl = rawBaseUrl.replace(/\/+$/, '')
         const model = this.config.model || "gpt-4o"
         const temperature = this.config.temperature ?? 0.5
         const provider = this.config.provider || "openai"
@@ -150,7 +151,8 @@ export default class LLMService {
             throw new Error("API Key is missing. Please configure it in settings.")
         }
 
-        const baseUrl = this.config.baseUrl || "https://api.openai.com/v1"
+        const rawBaseUrl = this.config.baseUrl || "https://api.openai.com/v1"
+        const baseUrl = rawBaseUrl.replace(/\/+$/, '')
         const model = this.config.model || "gpt-4o"
         const temperature = this.config.temperature ?? 0.7
         const provider = this.config.provider || "openai"

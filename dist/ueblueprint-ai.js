@@ -236,7 +236,8 @@ class LLMService {
             throw new Error("API Key is missing. Please configure it in settings.")
         }
 
-        const baseUrl = this.config.baseUrl || "https://api.openai.com/v1";
+        const rawBaseUrl = this.config.baseUrl || "https://api.openai.com/v1";
+        const baseUrl = rawBaseUrl.replace(/\/+$/, '');
         const model = this.config.model || "gpt-4o";
         const temperature = this.config.temperature ?? 0.5;
         const provider = this.config.provider || "openai";
@@ -349,7 +350,8 @@ class LLMService {
             throw new Error("API Key is missing. Please configure it in settings.")
         }
 
-        const baseUrl = this.config.baseUrl || "https://api.openai.com/v1";
+        const rawBaseUrl = this.config.baseUrl || "https://api.openai.com/v1";
+        const baseUrl = rawBaseUrl.replace(/\/+$/, '');
         const model = this.config.model || "gpt-4o";
         const temperature = this.config.temperature ?? 0.7;
         const provider = this.config.provider || "openai";
@@ -11572,7 +11574,9 @@ class SettingsElement extends i$1 {
 
         this.isLoadingModels = true;
         try {
-            let url = `${this.baseUrl}/models`;
+            // Remove trailing slash from baseUrl if present
+            const safeBaseUrl = this.baseUrl.replace(/\/+$/, '');
+            let url = `${safeBaseUrl}/models`;
             let headers = {
                 "Content-Type": "application/json"
             };
@@ -11889,7 +11893,9 @@ class SettingsElement extends i$1 {
         this.testStatus = "testing:Testing connection...";
 
         try {
-            let url = `${this.baseUrl}/models`;
+            // Remove trailing slash from baseUrl if present
+            const safeBaseUrl = this.baseUrl.replace(/\/+$/, '');
+            let url = `${safeBaseUrl}/models`;
             let headers = {
                 "Content-Type": "application/json"
             };

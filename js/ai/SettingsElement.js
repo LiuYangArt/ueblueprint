@@ -548,7 +548,9 @@ export default class SettingsElement extends LitElement {
 
         this.isLoadingModels = true
         try {
-            let url = `${this.baseUrl}/models`
+            // Remove trailing slash from baseUrl if present
+            const safeBaseUrl = this.baseUrl.replace(/\/+$/, '')
+            let url = `${safeBaseUrl}/models`
             let headers = {
                 "Content-Type": "application/json"
             }
@@ -865,7 +867,9 @@ export default class SettingsElement extends LitElement {
         this.testStatus = "testing:Testing connection..."
 
         try {
-            let url = `${this.baseUrl}/models`
+            // Remove trailing slash from baseUrl if present
+            const safeBaseUrl = this.baseUrl.replace(/\/+$/, '')
+            let url = `${safeBaseUrl}/models`
             let headers = {
                 "Content-Type": "application/json"
             }
