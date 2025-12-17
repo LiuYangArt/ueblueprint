@@ -5,7 +5,10 @@
 - 基于 https://github.com/barsdeveloper/ueblueprint 项目， 接入ai功能
 - 这是一个开发中的实验性项目，很多功能都可能出问题。 
 
-## 安装
+可以在线试用，所有api配置数据存在你本地。
+[https://liuyangart.github.io/ueblueprint/](https://liuyangart.github.io/ueblueprint/)
+
+## 本地安装
 在release中下载项目 .zip 包
 [https://github.com/LiuYangArt/ueblueprint/releases](https://github.com/LiuYangArt/ueblueprint/releases)
 
