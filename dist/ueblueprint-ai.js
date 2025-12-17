@@ -3619,7 +3619,7 @@ class Parsernostrum {
 }
 
 class Configuration {
-    static VERSION = "0.2.9"
+    static VERSION = "0.2.10"
     static nodeColors = {
         black: i$4`20, 20, 20`,
         blue: i$4`84, 122, 156`,
@@ -9903,8 +9903,15 @@ class AIPanelElement extends i$1 {
                 this.maxHistoryLength = settings.maxHistoryLength ?? 10;
                 this.contextMode = settings.contextMode ?? "auto";
                 
-                // If we have a local selection, try to maintain it
-                // Only if the current model/provider is invalid do we fallback to settings
+                // If the user actively chose a provider/model in settings, update the active selection
+                if (settings.provider && settings.providerConfigs[settings.provider]?.apiKey) {
+                     this.provider = settings.provider;
+                     if (settings.model) {
+                         this.model = settings.model;
+                     }
+                }
+
+                // If we currently have no valid provider selected, fallback to settings
                 if (!this.model || !this.provider) {
                     this.model = settings.model || "";
                     this.provider = settings.provider || "";
@@ -9932,6 +9939,7 @@ class AIPanelElement extends i$1 {
                 }
 
                 this.llmService.updateConfig(configUpdate);
+                // Force UI update to check if warning should be removed
                 this.requestUpdate();
             }
         });
