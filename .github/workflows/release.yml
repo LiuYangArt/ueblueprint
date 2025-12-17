@@ -41,8 +41,8 @@ jobs:
           # Copy necessary files
           cp -r dist "build_staging/${RELEASE_NAME}/"
           cp -r assets "build_staging/${RELEASE_NAME}/"
-          cp ai-demo.html "build_staging/${RELEASE_NAME}/"
           cp index.html "build_staging/${RELEASE_NAME}/"
+          cp legacy-demo.html "build_staging/${RELEASE_NAME}/"
           cp 0_install.bat "build_staging/${RELEASE_NAME}/"
           cp 1_run_server.bat "build_staging/${RELEASE_NAME}/"
           cp package.json "build_staging/${RELEASE_NAME}/"
