@@ -418,7 +418,8 @@ export default class SettingsElement extends LitElement {
         this.apiKey = ""
         this.baseUrl = PROVIDERS.openai.baseUrl
         this.model = "gpt-4o"
-        this.temperature = 0.5
+        this.model = "gpt-4o"
+        this.temperature = 1.0
         
         // Multi-provider storage
         this.providerConfigs = {}
@@ -671,7 +672,7 @@ export default class SettingsElement extends LitElement {
                 apiKey: "",
                 baseUrl: PROVIDERS[this.provider]?.baseUrl || "",
                 model: PROVIDERS[this.provider]?.models?.[0] || "",
-                temperature: 0.5
+                temperature: 1.0
             }
         }
 
@@ -864,6 +865,18 @@ export default class SettingsElement extends LitElement {
 
     _resetSystemPrompt() {
         this.systemPrompt = DEFAULT_PROMPT_TEMPLATE
+        this._saveSettings()
+    }
+
+    _handleTemperatureChange(e) {
+        let val = parseFloat(e.target.value)
+        if (isNaN(val)) val = 1.0
+        val = Math.max(0, Math.min(2, val))
+        
+        this.temperature = val
+        
+        // Update current provider config
+        this._updateProviderConfig(this.provider, { temperature: val })
         this._saveSettings()
     }
 
@@ -1123,6 +1136,21 @@ export default class SettingsElement extends LitElement {
                         </div>
 
                         <div class="setting-row" style="margin-top: 12px; border-top: 1px solid #3a3a3a; padding-top: 12px;">
+                            <label class="setting-label">Temperature</label>
+                            <div class="input-row" style="align-items: center;">
+                                <input 
+                                    type="number" 
+                                    class="setting-input" 
+                                    .value=${String(this.temperature)}
+                                    title="Temperature (0.0 - 2.0)\n• 1.0: Recommended for Gemini 3 (Default)\n• 0.0-0.3: Precise code generation\n• >1.0: Creative/Random"
+                                    @change=${this._handleTemperatureChange}
+                                    min="0" max="2" step="0.1"
+                                >
+                            </div>
+                            <span class="setting-description">Controls randomness (1.0 = Default/Balanced, 0.2 = Precise)</span>
+                        </div>
+
+                        <div class="setting-row" style="margin-top: 12px;">
                             <label class="setting-label">Chat History Limit (Messages)</label>
                             <div class="input-row" style="align-items: center;">
                                 <input 

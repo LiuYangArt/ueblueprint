@@ -3619,7 +3619,7 @@ class Parsernostrum {
 }
 
 class Configuration {
-    static VERSION = "0.2.8"
+    static VERSION = "0.2.9"
     static nodeColors = {
         black: i$4`20, 20, 20`,
         blue: i$4`84, 122, 156`,
@@ -9290,7 +9290,10 @@ class AIPanelElement extends i$1 {
         systemPrompt: { type: String },
         providerConfigs: { type: Object },
         // Slim IR mode (experimental) - generates compact JSON then converts to T3D
-        useSlimIR: { type: Boolean }
+        useSlimIR: { type: Boolean },
+        maxHistoryLength: { type: Number },
+        contextMode: { type: String },
+        temperature: { type: Number }
     }
 
     static styles = i$4`
@@ -9866,6 +9869,10 @@ class AIPanelElement extends i$1 {
         this.abortController = null;
         this.pendingImages = []; // Images pending to be sent with next message
         this.useSlimIR = localStorage.getItem("ueb-ai-slim-ir") !== "false"; // Default enabled
+        this.maxHistoryLength = 10;
+        this.contextMode = "auto";
+        this.contextMode = "auto";
+        this.temperature = 1.0;
 
         // Dragging state
         this._isDragging = false;
@@ -9893,6 +9900,8 @@ class AIPanelElement extends i$1 {
                 this.debug = settings.debug || false;
                 this.llmService.setDebug(this.debug);
                 this.systemPrompt = settings.systemPrompt || DEFAULT_PROMPT_TEMPLATE;
+                this.maxHistoryLength = settings.maxHistoryLength ?? 10;
+                this.contextMode = settings.contextMode ?? "auto";
                 
                 // If we have a local selection, try to maintain it
                 // Only if the current model/provider is invalid do we fallback to settings
@@ -10016,6 +10025,8 @@ class AIPanelElement extends i$1 {
                 this.debug = settings.debug || false;
                 if (this.llmService) this.llmService.setDebug(this.debug);
                 this.systemPrompt = settings.systemPrompt || DEFAULT_PROMPT_TEMPLATE;
+                this.maxHistoryLength = settings.maxHistoryLength ?? 10;
+                this.contextMode = settings.contextMode ?? "auto";
                 
                 // 1. Base config from active global settings
                 let configToUse = { ...settings };
@@ -10032,7 +10043,17 @@ class AIPanelElement extends i$1 {
                     this.model = settings.model || "";
                     this.provider = settings.provider || "";
                 }
-
+                
+                // Load temperature
+                const savedTemp = localStorage.getItem("ueb-ai-temperature");
+                if (savedTemp !== null) {
+                    this.temperature = parseFloat(savedTemp);
+                } else if (settings.temperature !== undefined) {
+                    this.temperature = settings.temperature;
+                } else {
+                    this.temperature = 1.0;
+                }
+                
                 // 3. Construct effective config for LLMService
                 // If we have a provider override, try to get its specific config (ApiKey etc) from providerConfigs
                 if (this.provider && this.providerConfigs[this.provider]) {
@@ -10042,7 +10063,8 @@ class AIPanelElement extends i$1 {
                         apiKey: pConfig.apiKey,
                         baseUrl: pConfig.baseUrl, 
                         model: this.model,
-                        provider: this.provider
+                        provider: this.provider,
+                        temperature: this.temperature
                     };
                 } else {
                      // Just ensure model is correct if we didn't find provider config
@@ -10089,9 +10111,28 @@ class AIPanelElement extends i$1 {
         }
 
         if (nodes.length > 0) {
+            // Determine context mode
+            let useSummary = false;
+            
+            if (this.contextMode === 'none') {
+                 return null
+            } else if (this.contextMode === 'summary') {
+                 useSummary = true;
+            } else if (this.contextMode === 'full') {
+                 useSummary = false;
+            } else {
+                 // Auto mode: Summary if > 50 nodes AND no specific selection
+                 // If selectionState is "Selected nodes", user specifically wants context for these, so use full.
+                 // If "All nodes" (fallback) and count is high, use summary.
+                 if (selectionState === "All nodes" && nodes.length > 50) {
+                      useSummary = true;
+                 }
+            }
+
             // P1: Compressed context format
-            const compressed = this._compressContext(nodes);
-            return `Context (${selectionState}, ${nodes.length} nodes):\n${compressed}`
+            const compressed = this._compressContext(nodes, useSummary);
+            const modeLabel = useSummary ? "Summary" : "Full";
+            return `Context (${selectionState}, ${nodes.length} nodes, ${modeLabel}):\n${compressed}`
         }
         
         return null
@@ -10101,9 +10142,10 @@ class AIPanelElement extends i$1 {
      * Compress node context to summary format
      * Format: [NodeType] pin1←, →pin2*
      * @param {Array} nodes - Node elements
+     * @param {boolean} summaryOnly - If true, only show node types/names, no pins
      * @returns {string} - Compressed context
      */
-    _compressContext(nodes) {
+    _compressContext(nodes, summaryOnly = false) {
         // Build a map of node Name -> display name for connection resolution
         const nodeNameToTitle = new Map();
         for (const node of nodes) {
@@ -10139,6 +10181,11 @@ class AIPanelElement extends i$1 {
                     const lastDot = typePath.lastIndexOf('.');
                     nodeTypeName = lastDot >= 0 ? typePath.substring(lastDot + 1) : typePath;
                 }
+            }
+            
+            // If summary only, skip pins
+            if (summaryOnly) {
+                return `[${nodeTypeName}]`
             }
             
             // Get pin summary with connection targets
@@ -10360,8 +10407,9 @@ class AIPanelElement extends i$1 {
             // Build messages array for API call
             const messages = [{ role: "system", content: systemPrompt }];
             
-            // Add recent history (last 6 turns)
-            const recentHistory = this.history.slice(-6);
+            // Add recent history (respecting limit)
+            const limit = Math.max(2, this.maxHistoryLength || 10);
+            const recentHistory = this.history.slice(-limit);
             for (const msg of recentHistory) {
                 if (msg.role === 'system') continue // Skip system messages like errors
                 
@@ -10506,6 +10554,18 @@ class AIPanelElement extends i$1 {
             
             this.llmService.updateConfig(configUpdate);
         }
+    }
+    
+    _handleTemperatureChange(e) {
+        let val = parseFloat(e.target.value);
+        if (isNaN(val)) val = 1.0;
+        // Clamp between 0 and 2 (most LLMs range)
+        val = Math.max(0, Math.min(2, val));
+        
+        this.temperature = val;
+        localStorage.setItem("ueb-ai-temperature", val.toString());
+        
+        this.llmService.updateConfig({ temperature: val });
     }
 
     /**
@@ -10952,6 +11012,7 @@ class AIPanelElement extends i$1 {
                                 }
                             </select>
                         </div>
+                        </div>
                     </div>
 
                     <div class="prompt-wrapper">
@@ -11100,7 +11161,9 @@ class SettingsElement extends i$1 {
         showModelDropdown: { type: Boolean, state: true },
         modelFilter: { type: String, state: true },
         debug: { type: Boolean },
-        systemPrompt: { type: String }
+        systemPrompt: { type: String },
+        maxHistoryLength: { type: Number },
+        contextMode: { type: String }
     }
 
     static styles = i$4`
@@ -11449,7 +11512,8 @@ class SettingsElement extends i$1 {
         this.apiKey = "";
         this.baseUrl = PROVIDERS.openai.baseUrl;
         this.model = "gpt-4o";
-        this.temperature = 0.5;
+        this.model = "gpt-4o";
+        this.temperature = 1.0;
         
         // Multi-provider storage
         this.providerConfigs = {};
@@ -11464,6 +11528,8 @@ class SettingsElement extends i$1 {
         this.showModelDropdown = false;
         this.modelFilter = "";
         this.debug = false;
+        this.maxHistoryLength = 10;
+        this.contextMode = "auto";
     }
 
     connectedCallback() {
@@ -11482,8 +11548,12 @@ class SettingsElement extends i$1 {
             // Global settings
             this.provider = settings.provider ?? "openai";
             this.quickModels = settings.quickModels ?? [];
+            this.provider = settings.provider ?? "openai";
+            this.quickModels = settings.quickModels ?? [];
             this.debug = settings.debug ?? false;
             this.systemPrompt = settings.systemPrompt ?? DEFAULT_PROMPT_TEMPLATE;
+            this.maxHistoryLength = settings.maxHistoryLength ?? 10;
+            this.contextMode = settings.contextMode ?? "auto";
 
             // Load provider configs
             if (settings.providerConfigs) {
@@ -11658,6 +11728,8 @@ class SettingsElement extends i$1 {
                 quickModels: this.quickModels,
                 debug: this.debug,
                 systemPrompt: this.systemPrompt,
+                maxHistoryLength: this.maxHistoryLength,
+                contextMode: this.contextMode,
                 
                 // Legacy fields for backward compatibility (optional, but good for safety)
                 apiKey: this.apiKey,
@@ -11694,7 +11766,7 @@ class SettingsElement extends i$1 {
                 apiKey: "",
                 baseUrl: PROVIDERS[this.provider]?.baseUrl || "",
                 model: PROVIDERS[this.provider]?.models?.[0] || "",
-                temperature: 0.5
+                temperature: 1.0
             };
         }
 
@@ -11887,6 +11959,30 @@ class SettingsElement extends i$1 {
 
     _resetSystemPrompt() {
         this.systemPrompt = DEFAULT_PROMPT_TEMPLATE;
+        this._saveSettings();
+    }
+
+    _handleTemperatureChange(e) {
+        let val = parseFloat(e.target.value);
+        if (isNaN(val)) val = 1.0;
+        val = Math.max(0, Math.min(2, val));
+        
+        this.temperature = val;
+        
+        // Update current provider config
+        this._updateProviderConfig(this.provider, { temperature: val });
+        this._saveSettings();
+    }
+
+    _handleHistoryLengthChange(e) {
+        let val = parseInt(e.target.value);
+        if (isNaN(val) || val < 2) val = 2;
+        this.maxHistoryLength = val;
+        this._saveSettings();
+    }
+
+    _handleContextModeChange(e) {
+        this.contextMode = e.target.value;
         this._saveSettings();
     }
 
@@ -12131,6 +12227,46 @@ class SettingsElement extends i$1 {
                                  <label for="debug-switch" class="setting-label" style="margin-bottom: 0; cursor: pointer;">Debug Mode</label>
                              </div>
                              <span class="setting-description" style="margin-left: 20px; display: block;">Show generation logs in chat history</span>
+                        </div>
+
+                        <div class="setting-row" style="margin-top: 12px; border-top: 1px solid #3a3a3a; padding-top: 12px;">
+                            <label class="setting-label">Temperature</label>
+                            <div class="input-row" style="align-items: center;">
+                                <input 
+                                    type="number" 
+                                    class="setting-input" 
+                                    .value=${String(this.temperature)}
+                                    title="Temperature (0.0 - 2.0)\n• 1.0: Recommended for Gemini 3 (Default)\n• 0.0-0.3: Precise code generation\n• >1.0: Creative/Random"
+                                    @change=${this._handleTemperatureChange}
+                                    min="0" max="2" step="0.1"
+                                >
+                            </div>
+                            <span class="setting-description">Controls randomness (1.0 = Default/Balanced, 0.2 = Precise)</span>
+                        </div>
+
+                        <div class="setting-row" style="margin-top: 12px;">
+                            <label class="setting-label">Chat History Limit (Messages)</label>
+                            <div class="input-row" style="align-items: center;">
+                                <input 
+                                    type="number" 
+                                    class="setting-input" 
+                                    .value=${String(this.maxHistoryLength)}
+                                    @change=${this._handleHistoryLengthChange}
+                                    min="2" max="50" step="2"
+                                >
+                            </div>
+                            <span class="setting-description">Number of messages to keep in context (each round is 2 messages)</span>
+                        </div>
+
+                        <div class="setting-row" style="margin-top: 12px;">
+                            <label class="setting-label">Context Mode</label>
+                            <span class="setting-description">Optimize token usage for large graphs</span>
+                            <select class="setting-select" @change=${this._handleContextModeChange}>
+                                <option value="auto" ?selected=${this.contextMode === 'auto'}>Auto (Smart Summary)</option>
+                                <option value="full" ?selected=${this.contextMode === 'full'}>Always Full Context</option>
+                                <option value="summary" ?selected=${this.contextMode === 'summary'}>Always Summary (Nodes Only)</option>
+                                <option value="none" ?selected=${this.contextMode === 'none'}>None (No Context)</option>
+                            </select>
                         </div>
                     </div>
 

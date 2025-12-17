@@ -54,7 +54,8 @@ export default class AIPanelElement extends LitElement {
         // Slim IR mode (experimental) - generates compact JSON then converts to T3D
         useSlimIR: { type: Boolean },
         maxHistoryLength: { type: Number },
-        contextMode: { type: String }
+        contextMode: { type: String },
+        temperature: { type: Number }
     }
 
     static styles = css`
@@ -632,6 +633,8 @@ export default class AIPanelElement extends LitElement {
         this.useSlimIR = localStorage.getItem("ueb-ai-slim-ir") !== "false" // Default enabled
         this.maxHistoryLength = 10
         this.contextMode = "auto"
+        this.contextMode = "auto"
+        this.temperature = 1.0
 
         // Dragging state
         this._isDragging = false
@@ -802,7 +805,17 @@ export default class AIPanelElement extends LitElement {
                     this.model = settings.model || ""
                     this.provider = settings.provider || ""
                 }
-
+                
+                // Load temperature
+                const savedTemp = localStorage.getItem("ueb-ai-temperature")
+                if (savedTemp !== null) {
+                    this.temperature = parseFloat(savedTemp)
+                } else if (settings.temperature !== undefined) {
+                    this.temperature = settings.temperature
+                } else {
+                    this.temperature = 1.0
+                }
+                
                 // 3. Construct effective config for LLMService
                 // If we have a provider override, try to get its specific config (ApiKey etc) from providerConfigs
                 if (this.provider && this.providerConfigs[this.provider]) {
@@ -812,7 +825,8 @@ export default class AIPanelElement extends LitElement {
                         apiKey: pConfig.apiKey,
                         baseUrl: pConfig.baseUrl, 
                         model: this.model,
-                        provider: this.provider
+                        provider: this.provider,
+                        temperature: this.temperature
                     }
                 } else {
                      // Just ensure model is correct if we didn't find provider config
@@ -1303,6 +1317,18 @@ export default class AIPanelElement extends LitElement {
             this.llmService.updateConfig(configUpdate)
         }
     }
+    
+    _handleTemperatureChange(e) {
+        let val = parseFloat(e.target.value)
+        if (isNaN(val)) val = 1.0
+        // Clamp between 0 and 2 (most LLMs range)
+        val = Math.max(0, Math.min(2, val))
+        
+        this.temperature = val
+        localStorage.setItem("ueb-ai-temperature", val.toString())
+        
+        this.llmService.updateConfig({ temperature: val })
+    }
 
     /**
      * Handle paste event to capture images
@@ -1747,6 +1773,7 @@ export default class AIPanelElement extends LitElement {
                                     html`<option value="">Select Model...</option>`
                                 }
                             </select>
+                        </div>
                         </div>
                     </div>
 
