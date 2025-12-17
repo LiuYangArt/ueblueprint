@@ -67,7 +67,9 @@ export default class SettingsElement extends LitElement {
         showModelDropdown: { type: Boolean, state: true },
         modelFilter: { type: String, state: true },
         debug: { type: Boolean },
-        systemPrompt: { type: String }
+        systemPrompt: { type: String },
+        maxHistoryLength: { type: Number },
+        contextMode: { type: String }
     }
 
     static styles = css`
@@ -431,6 +433,8 @@ export default class SettingsElement extends LitElement {
         this.showModelDropdown = false
         this.modelFilter = ""
         this.debug = false
+        this.maxHistoryLength = 10
+        this.contextMode = "auto"
     }
 
     connectedCallback() {
@@ -449,8 +453,12 @@ export default class SettingsElement extends LitElement {
             // Global settings
             this.provider = settings.provider ?? "openai"
             this.quickModels = settings.quickModels ?? []
+            this.provider = settings.provider ?? "openai"
+            this.quickModels = settings.quickModels ?? []
             this.debug = settings.debug ?? false
             this.systemPrompt = settings.systemPrompt ?? DEFAULT_PROMPT_TEMPLATE
+            this.maxHistoryLength = settings.maxHistoryLength ?? 10
+            this.contextMode = settings.contextMode ?? "auto"
 
             // Load provider configs
             if (settings.providerConfigs) {
@@ -625,6 +633,8 @@ export default class SettingsElement extends LitElement {
                 quickModels: this.quickModels,
                 debug: this.debug,
                 systemPrompt: this.systemPrompt,
+                maxHistoryLength: this.maxHistoryLength,
+                contextMode: this.contextMode,
                 
                 // Legacy fields for backward compatibility (optional, but good for safety)
                 apiKey: this.apiKey,
@@ -854,6 +864,18 @@ export default class SettingsElement extends LitElement {
 
     _resetSystemPrompt() {
         this.systemPrompt = DEFAULT_PROMPT_TEMPLATE
+        this._saveSettings()
+    }
+
+    _handleHistoryLengthChange(e) {
+        let val = parseInt(e.target.value)
+        if (isNaN(val) || val < 2) val = 2
+        this.maxHistoryLength = val
+        this._saveSettings()
+    }
+
+    _handleContextModeChange(e) {
+        this.contextMode = e.target.value
         this._saveSettings()
     }
 
@@ -1098,6 +1120,31 @@ export default class SettingsElement extends LitElement {
                                  <label for="debug-switch" class="setting-label" style="margin-bottom: 0; cursor: pointer;">Debug Mode</label>
                              </div>
                              <span class="setting-description" style="margin-left: 20px; display: block;">Show generation logs in chat history</span>
+                        </div>
+
+                        <div class="setting-row" style="margin-top: 12px; border-top: 1px solid #3a3a3a; padding-top: 12px;">
+                            <label class="setting-label">Chat History Limit (Messages)</label>
+                            <div class="input-row" style="align-items: center;">
+                                <input 
+                                    type="number" 
+                                    class="setting-input" 
+                                    .value=${String(this.maxHistoryLength)}
+                                    @change=${this._handleHistoryLengthChange}
+                                    min="2" max="50" step="2"
+                                >
+                            </div>
+                            <span class="setting-description">Number of messages to keep in context (each round is 2 messages)</span>
+                        </div>
+
+                        <div class="setting-row" style="margin-top: 12px;">
+                            <label class="setting-label">Context Mode</label>
+                            <span class="setting-description">Optimize token usage for large graphs</span>
+                            <select class="setting-select" @change=${this._handleContextModeChange}>
+                                <option value="auto" ?selected=${this.contextMode === 'auto'}>Auto (Smart Summary)</option>
+                                <option value="full" ?selected=${this.contextMode === 'full'}>Always Full Context</option>
+                                <option value="summary" ?selected=${this.contextMode === 'summary'}>Always Summary (Nodes Only)</option>
+                                <option value="none" ?selected=${this.contextMode === 'none'}>None (No Context)</option>
+                            </select>
                         </div>
                     </div>
 

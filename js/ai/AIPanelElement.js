@@ -52,7 +52,9 @@ export default class AIPanelElement extends LitElement {
         systemPrompt: { type: String },
         providerConfigs: { type: Object },
         // Slim IR mode (experimental) - generates compact JSON then converts to T3D
-        useSlimIR: { type: Boolean }
+        useSlimIR: { type: Boolean },
+        maxHistoryLength: { type: Number },
+        contextMode: { type: String }
     }
 
     static styles = css`
@@ -628,6 +630,8 @@ export default class AIPanelElement extends LitElement {
         this.abortController = null
         this.pendingImages = [] // Images pending to be sent with next message
         this.useSlimIR = localStorage.getItem("ueb-ai-slim-ir") !== "false" // Default enabled
+        this.maxHistoryLength = 10
+        this.contextMode = "auto"
 
         // Dragging state
         this._isDragging = false
@@ -655,6 +659,8 @@ export default class AIPanelElement extends LitElement {
                 this.debug = settings.debug || false
                 this.llmService.setDebug(this.debug)
                 this.systemPrompt = settings.systemPrompt || DEFAULT_PROMPT_TEMPLATE
+                this.maxHistoryLength = settings.maxHistoryLength ?? 10
+                this.contextMode = settings.contextMode ?? "auto"
                 
                 // If we have a local selection, try to maintain it
                 // Only if the current model/provider is invalid do we fallback to settings
@@ -778,6 +784,8 @@ export default class AIPanelElement extends LitElement {
                 this.debug = settings.debug || false
                 if (this.llmService) this.llmService.setDebug(this.debug)
                 this.systemPrompt = settings.systemPrompt || DEFAULT_PROMPT_TEMPLATE
+                this.maxHistoryLength = settings.maxHistoryLength ?? 10
+                this.contextMode = settings.contextMode ?? "auto"
                 
                 // 1. Base config from active global settings
                 let configToUse = { ...settings }
@@ -851,9 +859,28 @@ export default class AIPanelElement extends LitElement {
         }
 
         if (nodes.length > 0) {
+            // Determine context mode
+            let useSummary = false
+            
+            if (this.contextMode === 'none') {
+                 return null
+            } else if (this.contextMode === 'summary') {
+                 useSummary = true
+            } else if (this.contextMode === 'full') {
+                 useSummary = false
+            } else {
+                 // Auto mode: Summary if > 50 nodes AND no specific selection
+                 // If selectionState is "Selected nodes", user specifically wants context for these, so use full.
+                 // If "All nodes" (fallback) and count is high, use summary.
+                 if (selectionState === "All nodes" && nodes.length > 50) {
+                      useSummary = true
+                 }
+            }
+
             // P1: Compressed context format
-            const compressed = this._compressContext(nodes)
-            return `Context (${selectionState}, ${nodes.length} nodes):\n${compressed}`
+            const compressed = this._compressContext(nodes, useSummary)
+            const modeLabel = useSummary ? "Summary" : "Full"
+            return `Context (${selectionState}, ${nodes.length} nodes, ${modeLabel}):\n${compressed}`
         }
         
         return null
@@ -863,9 +890,10 @@ export default class AIPanelElement extends LitElement {
      * Compress node context to summary format
      * Format: [NodeType] pin1←, →pin2*
      * @param {Array} nodes - Node elements
+     * @param {boolean} summaryOnly - If true, only show node types/names, no pins
      * @returns {string} - Compressed context
      */
-    _compressContext(nodes) {
+    _compressContext(nodes, summaryOnly = false) {
         // Build a map of node Name -> display name for connection resolution
         const nodeNameToTitle = new Map()
         for (const node of nodes) {
@@ -901,6 +929,11 @@ export default class AIPanelElement extends LitElement {
                     const lastDot = typePath.lastIndexOf('.')
                     nodeTypeName = lastDot >= 0 ? typePath.substring(lastDot + 1) : typePath
                 }
+            }
+            
+            // If summary only, skip pins
+            if (summaryOnly) {
+                return `[${nodeTypeName}]`
             }
             
             // Get pin summary with connection targets
@@ -1122,8 +1155,9 @@ export default class AIPanelElement extends LitElement {
             // Build messages array for API call
             const messages = [{ role: "system", content: systemPrompt }]
             
-            // Add recent history (last 6 turns)
-            const recentHistory = this.history.slice(-6)
+            // Add recent history (respecting limit)
+            const limit = Math.max(2, this.maxHistoryLength || 10)
+            const recentHistory = this.history.slice(-limit)
             for (const msg of recentHistory) {
                 if (msg.role === 'system') continue // Skip system messages like errors
                 
