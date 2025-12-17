@@ -6,8 +6,8 @@
 - 这是一个开发中的实验性项目，很多功能都可能出问题。 
 
 ## 安装
-下载整个项目
-<br><img width="699" height="663" alt="image" src="https://github.com/user-attachments/assets/d7ccbb21-0782-4fdd-9b9b-335a49410d18" />
+在release中下载项目 .zip 包
+[https://github.com/LiuYangArt/ueblueprint/releases](https://github.com/LiuYangArt/ueblueprint/releases)
 
 - 0_install.bat 安装脚本
 - 1_run_server.bat 运行脚本
