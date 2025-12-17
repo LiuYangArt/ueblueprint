@@ -331,7 +331,19 @@ End Object
 
 ---
 
-## 10. 附录：项目文件结构
+10. Slim IR 架构 (Token 优化)
+核心思路：LLM 生成紧凑 JSON (~2KB prompt)，由 SlimIRToT3D.js 转换为 T3D。
+
+支持的节点类型：Event, CallFunction, Branch, Sequence, CustomEvent
+
+相关文件：
+
+js/ai/SlimIRSchema.js - 类型定义
+js/ai/SlimIRToT3D.js - 转换器
+js/ai/slimPrompts.js - System Prompt
+docs/slim_ir.md - 完整规范
+
+## 11. 附录：项目文件结构
 
 ```
 ueblueprint/
