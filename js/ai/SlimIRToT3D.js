@@ -551,17 +551,29 @@ function injectConnections(t3d, ctx) {
         const pinInfo = ctx.pinMap.get(pinKey)
         if (!pinInfo || connections.length === 0) continue
         
-        const linkedToStr = `,LinkedTo=(${connections.map(c => `${c.nodeName} ${c.pinId}`).join(',')},)`
+        const linkedToStr = `LinkedTo=(${connections.map(c => `${c.nodeName} ${c.pinId}`).join(',')},)`
         
-        // Find the pin by PinId and inject LinkedTo before bOrphanedPin
-        // The pattern: PinId=xxx,...,bOrphanedPin=False,)
-        // We want to insert LinkedTo before ,bOrphanedPin
-        const pinPattern = new RegExp(
-            `(PinId=${pinInfo.pinId}[^)]*?)(,bOrphanedPin=False,\\))`,
-            'g'
-        )
+        // Find the pin by its PinId and inject LinkedTo before bOrphanedPin=False
+        // Use string search instead of regex to avoid issues with nested parentheses
+        const pinIdMarker = `PinId=${pinInfo.pinId}`
+        const pinStart = result.indexOf(pinIdMarker)
         
-        result = result.replace(pinPattern, `$1${linkedToStr}$2`)
+        if (pinStart === -1) {
+            console.warn(`[SlimIRToT3D] Could not find pin ${pinInfo.pinId} for connection injection`)
+            continue
+        }
+        
+        // Find the bOrphanedPin=False after this pin's start
+        const orphanMarker = ',bOrphanedPin=False'
+        const orphanPos = result.indexOf(orphanMarker, pinStart)
+        
+        if (orphanPos === -1) {
+            console.warn(`[SlimIRToT3D] Could not find bOrphanedPin for pin ${pinInfo.pinId}`)
+            continue
+        }
+        
+        // Insert LinkedTo before bOrphanedPin
+        result = result.slice(0, orphanPos) + ',' + linkedToStr + result.slice(orphanPos)
     }
     
     return result
