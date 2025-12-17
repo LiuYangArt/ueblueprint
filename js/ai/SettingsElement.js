@@ -476,7 +476,7 @@ export default class SettingsElement extends LitElement {
                         apiKey: "",
                         baseUrl: config.baseUrl,
                         model: config.models[0] || "",
-                        temperature: 0.5
+                        temperature: 1.0
                     }
                 }
 
@@ -487,7 +487,7 @@ export default class SettingsElement extends LitElement {
                         apiKey: settings.apiKey || "",
                         baseUrl: settings.baseUrl || PROVIDERS[legacyProvider]?.baseUrl || "",
                         model: settings.model || PROVIDERS[legacyProvider]?.models?.[0] || "",
-                        temperature: settings.temperature ?? 0.5
+                        temperature: settings.temperature ?? 1.0
                     }
                 }
             }
@@ -498,7 +498,7 @@ export default class SettingsElement extends LitElement {
                     apiKey: "",
                     baseUrl: PROVIDERS[this.provider]?.baseUrl || "",
                     model: PROVIDERS[this.provider]?.models?.[0] || "",
-                    temperature: 0.5
+                    temperature: 1.0
                 }
             }
 
@@ -522,7 +522,7 @@ export default class SettingsElement extends LitElement {
                     apiKey: "",
                     baseUrl: config.baseUrl,
                     model: config.models[0] || "",
-                    temperature: 0.5
+                    temperature: 1.0
                 }
             }
         }
@@ -533,7 +533,7 @@ export default class SettingsElement extends LitElement {
         this.apiKey = config.apiKey || ""
         this.baseUrl = config.baseUrl || PROVIDERS[provider]?.baseUrl || ""
         this.model = config.model || PROVIDERS[provider]?.models?.[0] || ""
-        this.temperature = config.temperature ?? 0.5
+        this.temperature = config.temperature ?? 1.0
     }
 
     _updateProviderConfig(provider, updates) {
@@ -756,7 +756,7 @@ export default class SettingsElement extends LitElement {
                 apiKey: "",
                 baseUrl: PROVIDERS[this.provider]?.baseUrl || "",
                 model: PROVIDERS[this.provider]?.models?.[0] || "",
-                temperature: 0.5
+                temperature: 1.0
             }
         }
 

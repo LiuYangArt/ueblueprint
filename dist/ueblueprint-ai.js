@@ -3619,7 +3619,7 @@ class Parsernostrum {
 }
 
 class Configuration {
-    static VERSION = "0.2.10"
+    static VERSION = "0.2.11"
     static nodeColors = {
         black: i$4`20, 20, 20`,
         blue: i$4`84, 122, 156`,
@@ -11591,7 +11591,7 @@ class SettingsElement extends i$1 {
                         apiKey: "",
                         baseUrl: config.baseUrl,
                         model: config.models[0] || "",
-                        temperature: 0.5
+                        temperature: 1.0
                     };
                 }
 
@@ -11602,7 +11602,7 @@ class SettingsElement extends i$1 {
                         apiKey: settings.apiKey || "",
                         baseUrl: settings.baseUrl || PROVIDERS[legacyProvider]?.baseUrl || "",
                         model: settings.model || PROVIDERS[legacyProvider]?.models?.[0] || "",
-                        temperature: settings.temperature ?? 0.5
+                        temperature: settings.temperature ?? 1.0
                     };
                 }
             }
@@ -11613,7 +11613,7 @@ class SettingsElement extends i$1 {
                     apiKey: "",
                     baseUrl: PROVIDERS[this.provider]?.baseUrl || "",
                     model: PROVIDERS[this.provider]?.models?.[0] || "",
-                    temperature: 0.5
+                    temperature: 1.0
                 };
             }
 
@@ -11637,7 +11637,7 @@ class SettingsElement extends i$1 {
                     apiKey: "",
                     baseUrl: config.baseUrl,
                     model: config.models[0] || "",
-                    temperature: 0.5
+                    temperature: 1.0
                 };
             }
         }
@@ -11648,7 +11648,7 @@ class SettingsElement extends i$1 {
         this.apiKey = config.apiKey || "";
         this.baseUrl = config.baseUrl || PROVIDERS[provider]?.baseUrl || "";
         this.model = config.model || PROVIDERS[provider]?.models?.[0] || "";
-        this.temperature = config.temperature ?? 0.5;
+        this.temperature = config.temperature ?? 1.0;
     }
 
     _updateProviderConfig(provider, updates) {
@@ -11871,7 +11871,7 @@ class SettingsElement extends i$1 {
                 apiKey: "",
                 baseUrl: PROVIDERS[this.provider]?.baseUrl || "",
                 model: PROVIDERS[this.provider]?.models?.[0] || "",
-                temperature: 0.5
+                temperature: 1.0
             };
         }
 
