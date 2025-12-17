@@ -25,7 +25,7 @@ const t$1=globalThis,i$3=t$1.trustedTypes,s$1=i$3?i$3.createPolicy("lit-html",{c
  */const s=globalThis;class i$2 extends y$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const r=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=B(r,this.renderRoot,this.renderOptions);}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0);}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1);}render(){return T}}i$2._$litElement$=!0,i$2["finalized"]=!0,s.litElementHydrateSupport?.({LitElement:i$2});const o$1=s.litElementPolyfillSupport;o$1?.({LitElement:i$2});(s.litElementVersions??=[]).push("4.2.1");
 
 class Configuration {
-    static VERSION = "0.2.5"
+    static VERSION = "0.2.8"
     static nodeColors = {
         black: i$5`20, 20, 20`,
         blue: i$5`84, 122, 156`,

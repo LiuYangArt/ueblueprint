@@ -19,10 +19,11 @@ const PROVIDERS = {
         baseUrl: "https://api.openai.com/v1",
         models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"]
     },
-    deepseek: {
-        name: "DeepSeek",
-        baseUrl: "https://api.deepseek.com/v1",
-        models: ["deepseek-chat", "deepseek-coder"]
+    // DeepSeek removed
+    gemini: {
+        name: "Google Gemini",
+        baseUrl: "https://generativelanguage.googleapis.com/v1beta",
+        models: ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-pro", "gemini-1.5-flash"]
     },
     gptgod: {
         name: "GPTGod",
@@ -542,18 +543,32 @@ export default class SettingsElement extends LitElement {
 
         this.isLoadingModels = true
         try {
-            const response = await fetch(`${this.baseUrl}/models`, {
-                headers: { 
-                    "Authorization": `Bearer ${this.apiKey}`,
-                    "Content-Type": "application/json"
-                }
+            let url = `${this.baseUrl}/models`
+            let headers = {
+                "Content-Type": "application/json"
+            }
+
+            if (this.provider === 'gemini') {
+                url = `${url}?key=${this.apiKey}`
+            } else {
+                headers["Authorization"] = `Bearer ${this.apiKey}`
+            }
+
+            const response = await fetch(url, {
+                headers: headers
             })
 
             if (response.ok) {
                 const data = await response.json()
                 // Support generic OpenAI format and some variations
                 let models = []
-                if (Array.isArray(data.data)) {
+                if (this.provider === 'gemini' && Array.isArray(data.models)) {
+                    // Gemini format: { models: [{ name: "models/gemini-pro" }] }
+                    // We strip "models/" prefix for simpler display/usage if preferred, or keep as is.
+                    // The user config likely expects short names "gemini-2.5-flash" but API returns "models/gemini-2.5-flash".
+                    // Let's filter/clean.
+                    models = data.models.map(m => m.name.replace(/^models\//, ''))
+                } else if (Array.isArray(data.data)) {
                     models = data.data.map(m => m.id)
                 } else if (Array.isArray(data)) {
                     models = data.map(m => m.id || m)
@@ -845,17 +860,30 @@ export default class SettingsElement extends LitElement {
         this.testStatus = "testing:Testing connection..."
 
         try {
-            const response = await fetch(`${this.baseUrl}/models`, {
+            let url = `${this.baseUrl}/models`
+            let headers = {
+                "Content-Type": "application/json"
+            }
+
+            if (this.provider === 'gemini') {
+                url = `${url}?key=${this.apiKey}`
+            } else {
+                headers["Authorization"] = `Bearer ${this.apiKey}`
+            }
+
+            const response = await fetch(url, {
                 method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${this.apiKey}`,
-                    "Content-Type": "application/json"
-                }
+                headers: headers
             })
 
             if (response.ok) {
                 const data = await response.json()
-                const modelCount = data.data?.length ?? 0
+                let modelCount = 0
+                if (Array.isArray(data.models)) {
+                    modelCount = data.models.length
+                } else {
+                    modelCount = data.data?.length ?? 0
+                }
                 this.testStatus = `success:Connection successful! Found ${modelCount} models.`
             } else {
                 const errorText = await response.text()
