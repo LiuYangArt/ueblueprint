@@ -1041,6 +1041,10 @@ export default class AIPanelElement extends LitElement {
 
     _handlePromptInput(e) { 
         this.prompt = e.target.value 
+        
+        // If user manually resized, respect that height (don't auto-shrink/grow)
+        if (this._manualPromptHeight) return
+
         // Auto-resize textarea
         const el = e.target
         el.style.height = 'auto'
@@ -1087,6 +1091,13 @@ export default class AIPanelElement extends LitElement {
 
     _handlePromptResizeEnd() {
         this._isResizingPrompt = false
+        
+        // Capture final height to prevent auto-resize from overriding it
+        const textarea = this.shadowRoot.querySelector('.prompt-input')
+        if (textarea) {
+            this._manualPromptHeight = textarea.style.height
+        }
+        
         document.removeEventListener('mousemove', this._promptResizeMove)
         document.removeEventListener('mouseup', this._promptResizeEnd)
     }
@@ -1134,7 +1145,10 @@ export default class AIPanelElement extends LitElement {
 
         // Reset textarea height
         const textarea = this.shadowRoot.querySelector('.prompt-input')
-        if (textarea) textarea.style.height = 'auto'
+        if (textarea) {
+            textarea.style.height = 'auto'
+            this._manualPromptHeight = null
+        }
 
         this.isGenerating = true
         this.statusText = "Thinking..."
@@ -1773,7 +1787,6 @@ export default class AIPanelElement extends LitElement {
                                     html`<option value="">Select Model...</option>`
                                 }
                             </select>
-                        </div>
                         </div>
                     </div>
 
