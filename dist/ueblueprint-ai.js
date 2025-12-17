@@ -9182,33 +9182,37 @@ class AIPanelElement extends i$1 {
     static styles = i$4`
         :host {
             position: fixed;
-            top: 50px;
-            right: 50px;
+            top: 30px;
+            right: 0;
+            bottom: 0;
             z-index: 9999;
             display: none;
         }
 
         :host([visible]) {
-            display: block;
+            display: flex;
         }
 
         .ai-panel {
             background: #1a1a1a;
             border: 1px solid #3a3a3a;
-            border-radius: 8px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            width: 500px;
-            height: 80vh;
-            min-width: 320px;
-            min-height: 400px;
+            border-radius: 0;
+            box-shadow: -4px 0 16px rgba(0, 0, 0, 0.3);
+            width: 400px;
+            height: 100%;
+            min-width: 280px;
             max-width: 90vw;
-            max-height: 95vh;
-            resize: both;
+            resize: horizontal;
+            overflow: auto;
+            direction: rtl; /* Move resize handle to left side */
             display: flex;
             flex-direction: column;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: #e0e0e0;
-            overflow: hidden;
+        }
+
+        .ai-panel > * {
+            direction: ltr; /* Reset text direction for content */
         }
 
         .panel-header {
@@ -9520,15 +9524,15 @@ class AIPanelElement extends i$1 {
 
         .prompt-input {
             width: 100%;
-            min-height: 100px;
-            max-height: 300px;
+            min-height: 60px;
+            max-height: 400px;
             padding: 10px;
             background: #1a1a1a;
             border: 1px solid #3a3a3a;
             border-radius: 6px;
             color: #e0e0e0;
             font-size: 14px;
-            resize: none;
+            resize: vertical;
             font-family: inherit;
             box-sizing: border-box;
         }
