@@ -1,7 +1,7 @@
 {
   "name": "ue-blueprint-ai",
   "description": "UE Blueprint visual editor with LLM chat and generation features",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "type": "module",
   "main": "dist/ueblueprint.js",
   "types": "types.js",
