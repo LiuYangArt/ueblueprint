@@ -10890,7 +10890,14 @@ class AIPanelElement extends i$1 {
 
                 <!-- Chat History -->
                 <div class="chat-history">
-                    ${this.history.length === 0 ? x`
+                    ${(!this.provider || !this.providerConfigs[this.provider]?.apiKey) ? x`
+                        <div class="message system" style="color: #ef5350; border: 1px solid #ef5350; padding: 12px; border-radius: 6px; background: rgba(239, 83, 80, 0.1); text-align: center;">
+                            <div>⚠️ API Configuration Required</div>
+                            <div style="margin-top: 8px; color: #ccc;">
+                                Please <a href="#" @click=${(e) => { e.preventDefault(); this._openSettings(); }} style="color: #4fc3f7; text-decoration: underline;">Open Settings</a> to configure your API Provider and Key.
+                            </div>
+                        </div>
+                    ` : this.history.length === 0 ? x`
                         <div class="message system">
                             ${this.mode === 'chat' ? 
                                 (this.graphMode === 'material' ? 
