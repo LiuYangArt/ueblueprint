@@ -9522,6 +9522,34 @@ class AIPanelElement extends i$1 {
             font-size: 12px;
         }
 
+        .prompt-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .prompt-resize-handle {
+            height: 6px;
+            background: transparent;
+            cursor: ns-resize;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+
+        .prompt-resize-handle::before {
+            content: '';
+            width: 40px;
+            height: 3px;
+            background: #3a3a3a;
+            border-radius: 2px;
+            transition: background 0.2s;
+        }
+
+        .prompt-resize-handle:hover::before {
+            background: #5a5a5a;
+        }
+
         .prompt-input {
             width: 100%;
             min-height: 60px;
@@ -9532,7 +9560,8 @@ class AIPanelElement extends i$1 {
             border-radius: 6px;
             color: #e0e0e0;
             font-size: 14px;
-            resize: vertical;
+            resize: none;
+            direction: ltr;
             font-family: inherit;
             box-sizing: border-box;
         }
@@ -10104,6 +10133,39 @@ class AIPanelElement extends i$1 {
             e.preventDefault();
             this._handleSubmit();
         }
+    }
+
+    /* Prompt textarea resize from top */
+    _handlePromptResizeStart(e) {
+        e.preventDefault();
+        const textarea = this.shadowRoot.querySelector('.prompt-input');
+        if (!textarea) return
+
+        this._isResizingPrompt = true;
+        this._promptResizeStartY = e.clientY;
+        this._promptStartHeight = textarea.offsetHeight;
+
+        this._promptResizeMove = this._handlePromptResizeMove.bind(this);
+        this._promptResizeEnd = this._handlePromptResizeEnd.bind(this);
+        document.addEventListener('mousemove', this._promptResizeMove);
+        document.addEventListener('mouseup', this._promptResizeEnd);
+    }
+
+    _handlePromptResizeMove(e) {
+        if (!this._isResizingPrompt) return
+        const textarea = this.shadowRoot.querySelector('.prompt-input');
+        if (!textarea) return
+
+        // Dragging up (negative delta) should increase height
+        const deltaY = this._promptResizeStartY - e.clientY;
+        const newHeight = Math.max(60, Math.min(400, this._promptStartHeight + deltaY));
+        textarea.style.height = newHeight + 'px';
+    }
+
+    _handlePromptResizeEnd() {
+        this._isResizingPrompt = false;
+        document.removeEventListener('mousemove', this._promptResizeMove);
+        document.removeEventListener('mouseup', this._promptResizeEnd);
     }
 
     _handleSubmit() {
@@ -10771,13 +10833,16 @@ class AIPanelElement extends i$1 {
                         </div>
                     </div>
 
-                    <textarea
-                        class="prompt-input"
-                        placeholder="${this._getPlaceholder()}"
-                        .value=${this.prompt}
-                        @input=${this._handlePromptInput}
-                        @keydown=${this._handleKeyDown}
-                    ></textarea>
+                    <div class="prompt-wrapper">
+                        <div class="prompt-resize-handle" @mousedown=${this._handlePromptResizeStart}></div>
+                        <textarea
+                            class="prompt-input"
+                            placeholder="${this._getPlaceholder()}"
+                            .value=${this.prompt}
+                            @input=${this._handlePromptInput}
+                            @keydown=${this._handleKeyDown}
+                        ></textarea>
+                    </div>
                     
                     <!-- Hidden file input -->
                     <input type="file" id="image-input" accept="image/*" multiple @change=${this._handleFileSelect} />
