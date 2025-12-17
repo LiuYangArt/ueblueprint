@@ -35,6 +35,11 @@ const PROVIDERS = {
         baseUrl: "https://yunwu.ai/v1",
         models: ["gemini-2.5-flash-thinking", "gemini-2.5-flash", "gemini-2.5-pro"]
     },
+    openrouter: {
+        name: "OpenRouter",
+        baseUrl: "https://openrouter.ai/api/v1",
+        models: ["google/gemini-2.0-flash-exp:free", "google/gemini-exp-1206:free", "deepseek/deepseek-r1-distill-llama-70b:free", "meta-llama/llama-3.3-70b-instruct:free"]
+    },
     custom: {
         name: "Custom",
         baseUrl: "",
