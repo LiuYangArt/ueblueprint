@@ -102,35 +102,34 @@ export default class AIPanelElement extends LitElement {
         .tabs {
             display: flex;
             gap: 2px;
-            background: #1a1a1a;
+            background: transparent;
             padding: 2px;
             border-radius: 4px;
-            border: 1px solid #3a3a3a;
         }
 
         .tab {
             padding: 4px 12px;
             background: transparent;
             border: none;
-            border-radius: 3px;
-            color: #888;
+            border-bottom: 2px solid transparent;
+            border-radius: 0;
+            color: #666;
             cursor: pointer;
             font-size: 12px;
             transition: all 0.2s;
         }
 
         .tab:hover {
-            background: #333;
-            color: #ccc;
+            color: #aaa;
         }
 
         .tab.active {
-            background: #4a7c8c;
-            color: white;
+            border-bottom-color: #4a7c8c;
+            color: #fff;
         }
 
         .tab.active.material {
-            background: #7c4a8c;
+            border-bottom-color: #7c4a8c;
         }
 
         /* Mode Buttons (BP/Material) */
@@ -1575,14 +1574,13 @@ export default class AIPanelElement extends LitElement {
                     <div class="mode-buttons">
                         <button class="mode-btn ${this.graphMode === "blueprint" ? "active" : ""}"
                                 @click=${() => this._handleGraphModeChange("blueprint")}
-                                title="Blueprint mode">🔷 BP</button>
+                                title="Blueprint mode">Blueprint</button>
                         <button class="mode-btn ${this.graphMode === "material" ? "active material" : ""}"
                                 @click=${() => this._handleGraphModeChange("material")}
-                                title="Material mode">🎨 Mat</button>
+                                title="Material mode">Material</button>
                     </div>
                     <div>
                         <button class="settings-btn" @click=${this._openSettings} title="Settings">⚙</button>
-                        <button class="close-btn" @click=${this.hide}>×</button>
                     </div>
                 </div>
 
