@@ -1,5 +1,8 @@
+<img width="2938" height="1347" alt="image" src="https://github.com/user-attachments/assets/cb0943c4-db46-41bb-9a8f-8e0b23d980ea" />
+
+<br>
 - 基于 https://github.com/barsdeveloper/ueblueprint 项目， 接入ai功能
-- 开发中，很多功能都是实验性的
+- 这是一个开发中的实验性项目，很多功能都可能出问题。 
 
 ## 安装
 下载整个项目
