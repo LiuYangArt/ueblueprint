@@ -1,4 +1,8 @@
 @echo off
+echo ========================================
+echo   UE Blueprint AI - Developer Setup
+echo ========================================
+echo.
 echo Checking environment...
 
 where npm >nul 2>nul
@@ -15,8 +19,8 @@ if %errorlevel% neq 0 (
     exit /b 0
 )
 
-echo Installing dependencies...
-call npm install --omit=dev
+echo Installing all dependencies (including dev)...
+call npm install
 if %errorlevel% neq 0 (
     echo Failed to install dependencies.
     pause
@@ -24,6 +28,17 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo Installation complete!
+echo Building project...
+call npm run build
+if %errorlevel% neq 0 (
+    echo Build failed.
+    pause
+    exit /b 1
+)
+
+echo.
+echo ========================================
+echo   Development setup complete!
+echo ========================================
 echo Run 1_run_server.bat to start the server.
 pause
