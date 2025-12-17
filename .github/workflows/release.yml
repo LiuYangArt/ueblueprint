@@ -1,0 +1,67 @@
+name: Release UE Blueprint AI
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Prepare Release Package
+        run: |
+          # Extract version from tag (e.g., v0.2.2 -> 0.2.2)
+          VERSION=${GITHUB_REF_NAME#v}
+          RELEASE_NAME="ue-blueprint-ai-v${VERSION}"
+          ZIP_NAME="${RELEASE_NAME}.zip"
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
+
+          # Create staging directory
+          mkdir -p "build_staging/${RELEASE_NAME}"
+
+          # Copy necessary files
+          cp -r dist "build_staging/${RELEASE_NAME}/"
+          cp -r assets "build_staging/${RELEASE_NAME}/"
+          cp ai-demo.html "build_staging/${RELEASE_NAME}/"
+          cp index.html "build_staging/${RELEASE_NAME}/"
+          cp 0_install.bat "build_staging/${RELEASE_NAME}/"
+          cp 1_run_server.bat "build_staging/${RELEASE_NAME}/"
+          cp package.json "build_staging/${RELEASE_NAME}/"
+          cp README.md "build_staging/${RELEASE_NAME}/" 2>/dev/null || true
+          cp LICENSE "build_staging/${RELEASE_NAME}/" 2>/dev/null || true
+
+          # Create zip
+          cd build_staging
+          zip -r "../${ZIP_NAME}" "${RELEASE_NAME}"
+          cd ..
+
+          echo "Created release package: ${ZIP_NAME}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ${{ env.ZIP_NAME }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true

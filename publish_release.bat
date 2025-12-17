@@ -41,7 +41,7 @@ if not defined vtype (
 
 echo.
 echo --------------------------------------------------------
-echo [1/5] Running npm version %vtype% ...
+echo [1/3] Running npm version %vtype% ...
 echo --------------------------------------------------------
 call npm version %vtype% --no-git-tag-version
 
@@ -60,60 +60,7 @@ del newver.bat
 
 echo.
 echo --------------------------------------------------------
-echo [2/5] Building project...
-echo --------------------------------------------------------
-call npm run build
-
-if %errorlevel% neq 0 (
-    echo.
-    echo [Error] Build failed!
-    pause >nul
-    goto menu
-)
-
-echo.
-echo --------------------------------------------------------
-echo [3/5] Creating release package...
-echo --------------------------------------------------------
-
-:: Create release folder
-set RELEASE_DIR=release
-set RELEASE_NAME=ue-blueprint-ai-v!NEW_VERSION!
-set RELEASE_PATH=%RELEASE_DIR%\%RELEASE_NAME%
-
-if exist "%RELEASE_DIR%" rmdir /s /q "%RELEASE_DIR%"
-mkdir "%RELEASE_PATH%"
-
-:: Copy necessary files
-echo Copying dist files...
-xcopy /e /i /q "dist" "%RELEASE_PATH%\dist"
-
-echo Copying demo files...
-copy "ai-demo.html" "%RELEASE_PATH%\"
-copy "index.html" "%RELEASE_PATH%\"
-
-echo Copying assets...
-xcopy /e /i /q "assets" "%RELEASE_PATH%\assets"
-
-echo Copying scripts...
-copy "0_install.bat" "%RELEASE_PATH%\"
-copy "1_run_server.bat" "%RELEASE_PATH%\"
-copy "package.json" "%RELEASE_PATH%\"
-copy "README.md" "%RELEASE_PATH%\" 2>nul
-copy "LICENSE" "%RELEASE_PATH%\" 2>nul
-
-:: Create zip file
-echo Creating zip archive...
-cd "%RELEASE_DIR%"
-powershell -command "Compress-Archive -Path '%RELEASE_NAME%' -DestinationPath '%RELEASE_NAME%.zip' -Force"
-cd ..
-
-echo.
-echo  Release package created: %RELEASE_DIR%\%RELEASE_NAME%.zip
-echo.
-
-echo --------------------------------------------------------
-echo [4/5] Committing changes...
+echo [2/3] Committing changes and creating tag...
 echo --------------------------------------------------------
 git add -A
 git commit -m "Release v!NEW_VERSION!"
@@ -121,9 +68,10 @@ git tag -a "v!NEW_VERSION!" -m "Release v!NEW_VERSION!"
 
 echo.
 echo --------------------------------------------------------
-echo [5/5] Ready to push to GitHub...
+echo [3/3] Ready to push to GitHub...
 echo --------------------------------------------------------
 echo This will push the new version tag to the remote repository.
+echo GitHub Actions will automatically build and create the release.
 echo.
 set /p confirm="Confirm push? (Y/N): "
 
@@ -135,11 +83,11 @@ if /i "%confirm%"=="y" (
     if !errorlevel! equ 0 (
         echo.
         echo ========================================================
-        echo  Release successful!
+        echo  Push successful!
         echo  Version: v!NEW_VERSION!
-        echo  Package: %RELEASE_DIR%\%RELEASE_NAME%.zip
         echo.
-        echo  You can now upload the zip file to GitHub Releases.
+        echo  GitHub Actions will now build and create the release.
+        echo  Check: https://github.com/LiuYangArt/ueblueprint/actions
         echo ========================================================
     ) else (
         echo.
@@ -151,6 +99,4 @@ if /i "%confirm%"=="y" (
     echo You can later run: git push --follow-tags
 )
 
-echo.
-echo Release package is ready at: %RELEASE_DIR%\%RELEASE_NAME%.zip
 pause
