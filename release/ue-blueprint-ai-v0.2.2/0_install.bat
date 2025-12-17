@@ -16,20 +16,14 @@ if %errorlevel% neq 0 (
 )
 
 echo Installing dependencies...
-call npm install
+call npm install --omit=dev
 if %errorlevel% neq 0 (
     echo Failed to install dependencies.
     pause
     exit /b 1
 )
 
-echo Building project...
-call npm run build
-if %errorlevel% neq 0 (
-    echo Build failed.
-    pause
-    exit /b 1
-)
-
-echo Installation and build complete!
+echo.
+echo Installation complete!
+echo Run 1_run_server.bat to start the server.
 pause
