@@ -9958,11 +9958,30 @@ class AIPanelElement extends i$1 {
      * @returns {string} - Compressed context
      */
     _compressContext(nodes) {
+        // Build a map of node Name -> display name for connection resolution
+        const nodeNameToTitle = new Map();
+        for (const node of nodes) {
+            const entity = node.entity;
+            const name = entity.Name?.toString();
+            if (name) {
+                let title = nodeTitle(entity);
+                if (!title) {
+                    if (entity.FunctionReference?.MemberName) {
+                        title = entity.FunctionReference.MemberName.toString();
+                    } else {
+                        const typePath = entity.getType?.() || entity.getClass?.() || '';
+                        const lastDot = typePath.lastIndexOf('.');
+                        title = lastDot >= 0 ? typePath.substring(lastDot + 1) : typePath;
+                    }
+                }
+                nodeNameToTitle.set(name, title || name);
+            }
+        }
+        
         return nodes.map(node => {
             const entity = node.entity;
             
-            // Get node display name using nodeTitle (includes parameters like "Mask ( G )")
-            // Fallback to FunctionReference.MemberName or Class name
+            // Get node display name
             let nodeTypeName = nodeTitle(entity);
             if (!nodeTypeName) {
                 if (entity.FunctionReference?.MemberName) {
@@ -9970,23 +9989,47 @@ class AIPanelElement extends i$1 {
                 } else if (entity.CustomFunctionName) {
                     nodeTypeName = entity.CustomFunctionName.toString();
                 } else {
-                    // Extract last part of class path: /Script/BlueprintGraph.K2Node_XXX -> K2Node_XXX
                     const typePath = entity.getType?.() || entity.getClass?.() || '';
                     const lastDot = typePath.lastIndexOf('.');
                     nodeTypeName = lastDot >= 0 ? typePath.substring(lastDot + 1) : typePath;
                 }
             }
             
-            // Get pin summary using getPinEntities()
+            // Get pin summary with connection targets
             const pins = entity.getPinEntities?.() || [];
-            const pinSummary = pins.slice(0, 6).map(pin => {
-                const dir = pin.isInput?.() ? '←' : '→';
-                const linked = pin.LinkedTo?.values?.length > 0 ? '*' : '';
-                const name = pin.PinName?.toString() || 'pin';
-                return `${dir}${name}${linked}`
-            }).join(', ');
+            const pinDescriptions = [];
             
-            return `[${nodeTypeName}] ${pinSummary || 'no pins'}`
+            for (const pin of pins.slice(0, 8)) {
+                const pinName = pin.PinName?.toString() || 'pin';
+                const linkedTo = pin.LinkedTo?.values || [];
+                
+                if (linkedTo.length > 0) {
+                    // Has connections - show targets
+                    const targets = linkedTo.slice(0, 2).map(ref => {
+                        const targetNodeName = ref.objectName?.toString();
+                        const targetTitle = nodeNameToTitle.get(targetNodeName) || targetNodeName || '?';
+                        return `[${targetTitle}]`
+                    }).join(',');
+                    
+                    if (pin.isInput?.()) {
+                        pinDescriptions.push(`←${pinName} from ${targets}`);
+                    } else {
+                        pinDescriptions.push(`→${pinName} to ${targets}`);
+                    }
+                } else {
+                    // No connection - show default value if meaningful
+                    const defaultVal = pin.DefaultValue;
+                    if (defaultVal !== undefined && defaultVal !== null) {
+                        const valStr = defaultVal.toString?.() || '';
+                        if (valStr && valStr !== '' && valStr !== '0' && valStr !== 'false') {
+                            pinDescriptions.push(`${pinName}=${valStr.slice(0, 20)}`);
+                        }
+                    }
+                }
+            }
+            
+            const summary = pinDescriptions.length > 0 ? pinDescriptions.join(', ') : 'no connections';
+            return `[${nodeTypeName}] ${summary}`
         }).join('\\n')
     }
 
