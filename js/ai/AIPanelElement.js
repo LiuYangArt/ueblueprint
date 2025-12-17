@@ -972,7 +972,8 @@ export default class AIPanelElement extends LitElement {
         // Stop propagation to prevent graph interactions (Arrow keys, Del, etc.)
         e.stopPropagation()
 
-        if (e.key === 'Enter' && !e.shiftKey) {
+        // Ctrl+Enter to send, plain Enter for newline
+        if (e.key === 'Enter' && e.ctrlKey) {
             e.preventDefault()
             this._handleSubmit()
         }
