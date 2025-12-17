@@ -9961,17 +9961,20 @@ class AIPanelElement extends i$1 {
         return nodes.map(node => {
             const entity = node.entity;
             
-            // Get node type: prefer FunctionReference.MemberName, fallback to Class name
-            let nodeTypeName = 'Unknown';
-            if (entity.FunctionReference?.MemberName) {
-                nodeTypeName = entity.FunctionReference.MemberName.toString();
-            } else if (entity.CustomFunctionName) {
-                nodeTypeName = entity.CustomFunctionName.toString();
-            } else {
-                // Extract last part of class path: /Script/BlueprintGraph.K2Node_XXX -> K2Node_XXX
-                const typePath = entity.getType?.() || entity.getClass?.() || '';
-                const lastDot = typePath.lastIndexOf('.');
-                nodeTypeName = lastDot >= 0 ? typePath.substring(lastDot + 1) : typePath;
+            // Get node display name using nodeTitle (includes parameters like "Mask ( G )")
+            // Fallback to FunctionReference.MemberName or Class name
+            let nodeTypeName = nodeTitle(entity);
+            if (!nodeTypeName) {
+                if (entity.FunctionReference?.MemberName) {
+                    nodeTypeName = entity.FunctionReference.MemberName.toString();
+                } else if (entity.CustomFunctionName) {
+                    nodeTypeName = entity.CustomFunctionName.toString();
+                } else {
+                    // Extract last part of class path: /Script/BlueprintGraph.K2Node_XXX -> K2Node_XXX
+                    const typePath = entity.getType?.() || entity.getClass?.() || '';
+                    const lastDot = typePath.lastIndexOf('.');
+                    nodeTypeName = lastDot >= 0 ? typePath.substring(lastDot + 1) : typePath;
+                }
             }
             
             // Get pin summary using getPinEntities()
