@@ -3505,7 +3505,7 @@ class Parsernostrum {
 }
 
 class Configuration {
-    static VERSION = "0.2.2"
+    static VERSION = "0.2.5"
     static nodeColors = {
         black: i$4`20, 20, 20`,
         blue: i$4`84, 122, 156`,
@@ -11808,7 +11808,10 @@ class SettingsElement extends i$1 {
 
                 <div class="panel-body">
                     <div class="setting-group">
-                        <div class="section-title">API Configuration</div>
+                        <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>API Configuration</span>
+                            <span style="font-size: 12px; color: #888; font-weight: normal;">Data is stored locally</span>
+                        </div>
 
                         <div class="setting-row">
                             <label class="setting-label">API provider</label>

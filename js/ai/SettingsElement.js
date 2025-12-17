@@ -896,7 +896,10 @@ export default class SettingsElement extends LitElement {
 
                 <div class="panel-body">
                     <div class="setting-group">
-                        <div class="section-title">API Configuration</div>
+                        <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>API Configuration</span>
+                            <span style="font-size: 12px; color: #888; font-weight: normal;">Data is stored locally</span>
+                        </div>
 
                         <div class="setting-row">
                             <label class="setting-label">API provider</label>
