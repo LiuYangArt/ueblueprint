@@ -1,7 +1,7 @@
 {
-  "name": "ueblueprint",
-  "description": "Unreal Engine's Blueprint visualization web library",
-  "version": "2.0.0",
+  "name": "ue-blueprint-ai",
+  "description": "UE Blueprint visual editor with LLM chat and generation features",
+  "version": "0.2.0",
   "type": "module",
   "main": "dist/ueblueprint.js",
   "types": "types.js",
@@ -11,22 +11,25 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/barsdeveloper/ueblueprint.git"
+    "url": "git+https://github.com/LiuYangArt/ueblueprint.git"
   },
   "keywords": [
     "unreal",
     "engine",
-    "blueprint"
+    "blueprint",
+    "ai",
+    "llm"
   ],
-  "author": "barsdeveloper",
+  "author": "LiuYangArt",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/barsdeveloper/ueblueprint/issues"
+    "url": "https://github.com/LiuYangArt/ueblueprint/issues"
   },
-  "homepage": "https://github.com/barsdeveloper/ueblueprint#readme",
+  "homepage": "https://github.com/LiuYangArt/ueblueprint#readme",
   "devDependencies": {
     "@playwright/test": "1.49",
     "@rollup/plugin-node-resolve": "^16",
+    "@rollup/plugin-replace": "^6.0.3",
     "@rollup/plugin-terser": "^0",
     "concurrently": "^9",
     "http-server": "^14",

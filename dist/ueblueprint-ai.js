@@ -3505,7 +3505,7 @@ class Parsernostrum {
 }
 
 class Configuration {
-    static VERSION = "2.0.0"
+    static VERSION = "0.2.0"
     static nodeColors = {
         black: i$4`20, 20, 20`,
         blue: i$4`84, 122, 156`,

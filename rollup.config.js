@@ -2,6 +2,15 @@ import copy from "rollup-plugin-copy"
 import minifyHTML from "rollup-plugin-minify-html-literals"
 import resolve from "@rollup/plugin-node-resolve"
 import terser from "@rollup/plugin-terser"
+import replace from "@rollup/plugin-replace"
+import { readFileSync } from "fs"
+
+const pkg = JSON.parse(readFileSync("./package.json", "utf-8"))
+
+const replaceVersion = replace({
+    preventAssignment: true,
+    __VERSION__: JSON.stringify(pkg.version)
+})
 
 export default [
     {
@@ -11,6 +20,7 @@ export default [
             format: 'es'
         },
         plugins: [
+            replaceVersion,
             resolve({ browser: true }),
             copy({
                 targets: [{
@@ -27,6 +37,7 @@ export default [
             format: 'es'
         },
         plugins: [
+            replaceVersion,
             resolve({ browser: true }),
             minifyHTML({
                 minifyCSS: true,
@@ -48,6 +59,7 @@ export default [
             format: 'es'
         },
         plugins: [
+            replaceVersion,
             resolve({ browser: true })
         ]
     }
