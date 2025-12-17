@@ -25,7 +25,7 @@ const t$1=globalThis,i$3=t$1.trustedTypes,s$1=i$3?i$3.createPolicy("lit-html",{c
  */const s=globalThis;class i$2 extends y$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){const t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){const r=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=B(r,this.renderRoot,this.renderOptions);}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0);}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1);}render(){return T}}i$2._$litElement$=!0,i$2["finalized"]=!0,s.litElementHydrateSupport?.({LitElement:i$2});const o$1=s.litElementPolyfillSupport;o$1?.({LitElement:i$2});(s.litElementVersions??=[]).push("4.2.1");
 
 class Configuration {
-    static VERSION = "0.2.0"
+    static VERSION = "0.2.1"
     static nodeColors = {
         black: i$5`20, 20, 20`,
         blue: i$5`84, 122, 156`,
@@ -11331,23 +11331,22 @@ class BlueprintTemplate extends ITemplate {
                 </div>
             </div>
             <dialog class="ueb-info-dialog" @click="${e => e.target.closest(".ueb-info-dialog").close()}">
-                <h2>UEBlueprint</h2>
+                <h2>UE Blueprint AI</h2>
                 <p>A stand alone implementation of the UE's Blueprint visual language editor.</p>
                 <p>
                     Supports LLM chat and generation features.
                 </p>
                 <p>
                     Version: ${Configuration.VERSION}<br />
-                    Original Author: barsdeveloper<br />
-                    Fork Author: LiuYangArt<br />
+                    Author: LiuYang<br />
                     License: MIT<br />
 
-                    <a target="_blank" href="https://github.com/barsdeveloper/ueblueprint">
-                        Origin: barsdeveloper/ueblueprint
-                    </a><br />
                     <a target="_blank" href="https://github.com/LiuYangArt/ueblueprint">
-                         Fork: LiuYangArt/ueblueprint
+                         GitHub: LiuYangArt/ueblueprint
                     </a>
+                </p>
+                <p style="margin-top: 16px; font-size: 12px; color: #888;">
+                    Based on <a target="_blank" href="https://github.com/barsdeveloper/ueblueprint" style="color: #6ab0c7;">barsdeveloper/ueblueprint</a>
                 </p>
             </dialog>
         `

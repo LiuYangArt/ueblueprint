@@ -158,23 +158,22 @@ export default class BlueprintTemplate extends ITemplate {
                 </div>
             </div>
             <dialog class="ueb-info-dialog" @click="${e => e.target.closest(".ueb-info-dialog").close()}">
-                <h2>UEBlueprint</h2>
+                <h2>UE Blueprint AI</h2>
                 <p>A stand alone implementation of the UE's Blueprint visual language editor.</p>
                 <p>
                     Supports LLM chat and generation features.
                 </p>
                 <p>
                     Version: ${Configuration.VERSION}<br />
-                    Original Author: barsdeveloper<br />
-                    Fork Author: LiuYangArt<br />
+                    Author: LiuYang<br />
                     License: MIT<br />
 
-                    <a target="_blank" href="https://github.com/barsdeveloper/ueblueprint">
-                        Origin: barsdeveloper/ueblueprint
-                    </a><br />
                     <a target="_blank" href="https://github.com/LiuYangArt/ueblueprint">
-                         Fork: LiuYangArt/ueblueprint
+                         GitHub: LiuYangArt/ueblueprint
                     </a>
+                </p>
+                <p style="margin-top: 16px; font-size: 12px; color: #888;">
+                    Based on <a target="_blank" href="https://github.com/barsdeveloper/ueblueprint" style="color: #6ab0c7;">barsdeveloper/ueblueprint</a>
                 </p>
             </dialog>
         `

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>UE Blueprint - AI Vibe Coding</title>
+    <link rel="stylesheet" href="dist/css/ueb-style.min.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            --ueb-height: 100vh;
+        }
+
+        .ai-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #888;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        .ai-hint kbd {
+            background: #333;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #ccc;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <code>
+        <ueb-blueprint id="blueprint">
+            <template>
+                Begin Object Class="/Script/BlueprintGraph.K2Node_FunctionEntry" Name="K2Node_FunctionEntry_Demo"
+                    FunctionReference=(MemberParent=/Script/CoreUObject.Class'"/Script/Engine.Actor"',MemberName="UserConstructionScript")
+                    NodePosX=-400
+                    NodePosY=0
+                    NodeGuid=DEMO000000000000000000000000DEMO
+                    CustomProperties Pin (PinId=DEMO0001DEMO0001DEMO00010001,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+                End Object
+            </template>
+        </ueb-blueprint>
+    </code>
+
+    <script type="module">
+        // Import Blueprint component
+        import { Blueprint } from "./dist/ueblueprint.js"
+        
+        // Import AI components from bundle
+        import { initAIComponents } from "./dist/ueblueprint-ai.js"
+
+        // Wait for blueprint to be ready
+        const blueprintElement = document.getElementById("blueprint")
+        
+        // Initialize AI components after a short delay to ensure blueprint is ready
+        setTimeout(() => {
+            const { panel, settings } = initAIComponents(blueprintElement)
+            
+            // Auto-show panel for demo
+            panel.show()
+            
+            console.log("AI Panel initialized. Press Ctrl+Shift+A to toggle.")
+        }, 500)
+    </script>
+</body>
+
+</html>
