@@ -1,5 +1,5 @@
 - 基于 https://github.com/barsdeveloper/ueblueprint 项目， 接入ai功能
-- 开发中，很多功能都是实验性的
+- 这是一个开发中的实验性项目，很多功能都可能出问题。 
 
 ## 安装
 下载整个项目
