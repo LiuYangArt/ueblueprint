@@ -592,6 +592,1130 @@ class LayoutEngine {
 }
 
 /**
+ * Slim IR System Prompts
+ * 
+ * Simplified prompts that instruct the LLM to generate compact Slim IR JSON
+ * instead of full T3D text. These prompts are significantly smaller than
+ * the original T3D-based prompts (~2KB vs ~17KB).
+ */
+
+// ============================================================================
+// Blueprint Slim IR Prompt
+// ============================================================================
+
+const SLIM_BLUEPRINT_PROMPT = `You are a UE5 Blueprint expert. Generate nodes in Slim IR JSON format.
+
+OUTPUT FORMAT:
+{"nodes":[...],"connections":[...]}
+
+NODE STRUCTURE:
+{"type":"NodeType","id":"UniqueId","pos":[X,Y],"inputs":{...},"field":"value"}
+
+SUPPORTED TYPES:
+- Event: event="ReceiveBeginPlay"|"ReceiveTick"
+- CallFunction: function="PrintString"|"Delay"|"GetActorLocation"|"SetActorLocation"|"MakeVector"
+- Branch: (has Condition input, Then/Else outputs)
+- Sequence: (multiple then outputs)
+- CustomEvent: eventName="YourName"
+
+COMMON FUNCTIONS:
+- PrintString: inputs.InString="text"
+- Delay: inputs.Duration=2.0
+- MakeVector: inputs.X,Y,Z
+
+PIN NAMES:
+- Execution: execute (in), then (out)
+- Branch: Condition (in), true/false (out)
+
+CONNECTIONS:
+["sourceNodeId.pinName","targetNodeId.pinName"]
+
+EXAMPLE - Print on BeginPlay:
+{"nodes":[{"type":"Event","event":"ReceiveBeginPlay","id":"E0","pos":[0,0]},{"type":"CallFunction","function":"PrintString","id":"P0","pos":[300,0],"inputs":{"InString":"Hello!"}}],"connections":[["E0.then","P0.execute"]]}
+
+EXAMPLE - Branch:
+{"nodes":[{"type":"Event","event":"ReceiveBeginPlay","id":"E0","pos":[0,0]},{"type":"Branch","id":"B0","pos":[300,0]},{"type":"CallFunction","function":"PrintString","id":"T0","pos":[600,-100],"inputs":{"InString":"True"}},{"type":"CallFunction","function":"PrintString","id":"F0","pos":[600,100],"inputs":{"InString":"False"}}],"connections":[["E0.then","B0.execute"],["B0.true","T0.execute"],["B0.false","F0.execute"]]}
+
+OUTPUT ONLY THE JSON. No explanations, no markdown.`;
+
+// ============================================================================
+// Material Slim IR Prompt
+// ============================================================================
+
+const SLIM_MATERIAL_PROMPT = `You are a UE5 Material expert. Generate nodes in Slim IR JSON format.
+
+OUTPUT FORMAT:
+{"nodes":[...],"connections":[...]}
+
+NODE STRUCTURE:
+{"type":"NodeType","id":"UniqueId","pos":[X,Y],"value":[...],"inputs":{...}}
+
+SUPPORTED TYPES:
+- Constant: value=1.0
+- Constant3Vector: value=[R,G,B] (0.0-1.0)
+- Multiply: (A,B inputs)
+- Add: (A,B inputs)
+- Lerp: (A,B,Alpha inputs)
+- TextureSample: (UVs input)
+- TexCoord: (no inputs)
+- ScalarParameter: inputs.ParameterName,DefaultValue
+- VectorParameter: inputs.ParameterName,DefaultValue
+- Time: (no inputs)
+- Sine: (Input)
+
+PIN NAMES:
+- Binary ops: A, B (in), out (out)
+- Lerp: A, B, Alpha (in)
+- Color: out, R, G, B, A (out)
+
+EXAMPLE - Red color:
+{"nodes":[{"type":"Constant3Vector","id":"C0","pos":[-400,0],"value":[1.0,0.0,0.0]}],"connections":[]}
+
+EXAMPLE - Lerp two colors:
+{"nodes":[{"type":"Constant3Vector","id":"A","pos":[-400,-100],"value":[1,0,0]},{"type":"Constant3Vector","id":"B","pos":[-400,100],"value":[0,0,1]},{"type":"ScalarParameter","id":"Blend","pos":[-400,0],"inputs":{"ParameterName":"BlendAmount","DefaultValue":0.5}},{"type":"Lerp","id":"Mix","pos":[-100,0]}],"connections":[["A.out","Mix.A"],["B.out","Mix.B"],["Blend.out","Mix.Alpha"]]}
+
+OUTPUT ONLY THE JSON. No explanations, no markdown.`;
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Get the appropriate Slim IR prompt based on graph mode
+ * @param {string} graphMode - 'blueprint' or 'material'
+ * @returns {string}
+ */
+function getSlimPrompt(graphMode) {
+    return graphMode === 'material' ? SLIM_MATERIAL_PROMPT : SLIM_BLUEPRINT_PROMPT
+}
+
+/**
+ * Slim IR Schema - Type definitions and validation
+ * 
+ * This module defines the Slim IR format specification and provides
+ * validation utilities for ensuring IR correctness before conversion.
+ */
+
+// ============================================================================
+// Blueprint Node Type Definitions
+// ============================================================================
+
+/**
+ * Blueprint node type configurations
+ * Each entry defines the UE class, default pins, and any special handling
+ */
+const BLUEPRINT_NODE_TYPES = {
+    // Events
+    Event: {
+        class: '/Script/BlueprintGraph.K2Node_Event',
+        pins: {
+            output: ['then']
+        },
+        requiredFields: ['event'],
+        eventMap: {
+            'ReceiveBeginPlay': { memberParent: "/Script/CoreUObject.Class'/Script/Engine.Actor'", memberName: 'ReceiveBeginPlay' },
+            'ReceiveTick': { memberParent: "/Script/CoreUObject.Class'/Script/Engine.Actor'", memberName: 'ReceiveTick' },
+            'ReceiveDestroyed': { memberParent: "/Script/CoreUObject.Class'/Script/Engine.Actor'", memberName: 'ReceiveDestroyed' },
+        }
+    },
+    
+    CustomEvent: {
+        class: '/Script/BlueprintGraph.K2Node_CustomEvent',
+        pins: {
+            output: ['then']
+        },
+        requiredFields: ['eventName']
+    },
+    
+    // Function Calls
+    CallFunction: {
+        class: '/Script/BlueprintGraph.K2Node_CallFunction',
+        pins: {
+            input: ['execute'],
+            output: ['then']
+        },
+        requiredFields: ['function'],
+        functionMap: {
+            'PrintString': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetSystemLibrary'",
+                memberName: 'PrintString',
+                extraPins: {
+                    input: [
+                        { name: 'InString', type: 'string', default: 'Hello' },
+                        { name: 'bPrintToScreen', type: 'bool', default: 'true', hidden: true },
+                        { name: 'bPrintToLog', type: 'bool', default: 'true', hidden: true },
+                        { name: 'TextColor', type: 'linearcolor', default: '(R=0.0,G=0.66,B=1.0,A=1.0)', hidden: true },
+                        { name: 'Duration', type: 'float', default: '2.0', hidden: true }
+                    ]
+                }
+            },
+            'Delay': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetSystemLibrary'",
+                memberName: 'Delay',
+                extraPins: {
+                    input: [
+                        { name: 'Duration', type: 'float', default: '0.2' }
+                    ]
+                }
+            },
+            'GetActorLocation': {
+                memberName: 'K2_GetActorLocation',
+                bSelfContext: true,
+                extraPins: {
+                    output: [
+                        { name: 'ReturnValue', type: 'vector' }
+                    ]
+                }
+            },
+            'SetActorLocation': {
+                memberName: 'K2_SetActorLocation',
+                bSelfContext: true,
+                extraPins: {
+                    input: [
+                        { name: 'NewLocation', type: 'vector' },
+                        { name: 'bSweep', type: 'bool', default: 'false' },
+                        { name: 'bTeleport', type: 'bool', default: 'false' }
+                    ],
+                    output: [
+                        { name: 'ReturnValue', type: 'bool' }
+                    ]
+                }
+            },
+            'SpawnActor': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.GameplayStatics'",
+                memberName: 'BeginDeferredActorSpawnFromClass',
+                extraPins: {
+                    input: [
+                        { name: 'ActorClass', type: 'class' },
+                        { name: 'SpawnTransform', type: 'transform' }
+                    ],
+                    output: [
+                        { name: 'ReturnValue', type: 'object' }
+                    ]
+                }
+            },
+            'MakeVector': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetMathLibrary'",
+                memberName: 'MakeVector',
+                isPure: true,
+                extraPins: {
+                    input: [
+                        { name: 'X', type: 'float', default: '0' },
+                        { name: 'Y', type: 'float', default: '0' },
+                        { name: 'Z', type: 'float', default: '0' }
+                    ],
+                    output: [
+                        { name: 'ReturnValue', type: 'vector' }
+                    ]
+                }
+            }
+        }
+    },
+    
+    // Flow Control
+    Branch: {
+        class: '/Script/BlueprintGraph.K2Node_IfThenElse',
+        pins: {
+            input: ['execute', 'Condition'],
+            output: ['Then', 'Else']
+        }
+    },
+    
+    Sequence: {
+        class: '/Script/BlueprintGraph.K2Node_ExecutionSequence',
+        pins: {
+            input: ['execute'],
+            output: ['then 0', 'then 1']  // Dynamic, can have more
+        }
+    },
+    
+    DoOnce: {
+        class: '/Script/BlueprintGraph.K2Node_MacroInstance',
+        macroGraph: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:DoOnce",
+        pins: {
+            input: ['execute', 'Reset', 'Start Closed'],
+            output: ['Completed']
+        }
+    },
+    
+    FlipFlop: {
+        class: '/Script/BlueprintGraph.K2Node_MacroInstance',
+        macroGraph: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:FlipFlop",
+        pins: {
+            input: ['execute'],
+            output: ['A', 'B', 'IsA']
+        }
+    },
+    
+    ForEachLoop: {
+        class: '/Script/BlueprintGraph.K2Node_MacroInstance',
+        macroGraph: "/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoop",
+        pins: {
+            input: ['Exec', 'Array'],
+            output: ['LoopBody', 'Array Element', 'Array Index', 'Completed']
+        }
+    },
+    
+    // Variables
+    VariableGet: {
+        class: '/Script/BlueprintGraph.K2Node_VariableGet',
+        requiredFields: ['variableName'],
+        pins: {
+            output: ['value']
+        }
+    },
+    
+    VariableSet: {
+        class: '/Script/BlueprintGraph.K2Node_VariableSet',
+        requiredFields: ['variableName'],
+        pins: {
+            input: ['execute', 'value'],
+            output: ['then']
+        }
+    }
+};
+
+// ============================================================================
+// Material Node Type Definitions
+// ============================================================================
+
+const MATERIAL_NODE_TYPES = {
+    Constant: {
+        class: '/Script/Engine.MaterialExpressionConstant',
+        wrapperClass: '/Script/UnrealEd.MaterialGraphNode',
+        pins: {
+            output: ['Output']
+        },
+        properties: ['R']
+    },
+    
+    Constant3Vector: {
+        class: '/Script/Engine.MaterialExpressionConstant3Vector',
+        wrapperClass: '/Script/UnrealEd.MaterialGraphNode',
+        pins: {
+            output: ['Output']
+        },
+        properties: ['Constant']  // (R=,G=,B=,A=)
+    },
+    
+    Constant4Vector: {
+        class: '/Script/Engine.MaterialExpressionConstant4Vector',
+        wrapperClass: '/Script/UnrealEd.MaterialGraphNode',
+        pins: {
+            output: ['Output']
+        },
+        properties: ['Constant']
+    },
+    
+    Add: {
+        class: '/Script/Engine.MaterialExpressionAdd',
+        wrapperClass: '/Script/UnrealEd.MaterialGraphNode',
+        pins: {
+            input: ['A', 'B'],
+            output: ['Output']
+        }
+    },
+    
+    Multiply: {
+        class: '/Script/Engine.MaterialExpressionMultiply',
+        wrapperClass: '/Script/UnrealEd.MaterialGraphNode',
+        pins: {
+            input: ['A', 'B'],
+            output: ['Output']
+        }
+    },
+    
+    Lerp: {
+        class: '/Script/Engine.MaterialExpressionLinearInterpolate',
+        wrapperClass: '/Script/UnrealEd.MaterialGraphNode',
+        pins: {
+            input: ['A', 'B', 'Alpha'],
+            output: ['Output']
+        }
+    },
+    
+    TextureSample: {
+        class: '/Script/Engine.MaterialExpressionTextureSample',
+        wrapperClass: '/Script/UnrealEd.MaterialGraphNode',
+        pins: {
+            input: ['UVs'],
+            output: ['RGB', 'R', 'G', 'B', 'A']
+        }
+    },
+    
+    TexCoord: {
+        class: '/Script/Engine.MaterialExpressionTextureCoordinate',
+        wrapperClass: '/Script/UnrealEd.MaterialGraphNode',
+        pins: {
+            output: ['Output']
+        }
+    },
+    
+    ScalarParameter: {
+        class: '/Script/Engine.MaterialExpressionScalarParameter',
+        wrapperClass: '/Script/UnrealEd.MaterialGraphNode',
+        requiredFields: ['parameterName'],
+        pins: {
+            output: ['Output']
+        },
+        properties: ['ParameterName', 'DefaultValue']
+    },
+    
+    VectorParameter: {
+        class: '/Script/Engine.MaterialExpressionVectorParameter',
+        wrapperClass: '/Script/UnrealEd.MaterialGraphNode',
+        requiredFields: ['parameterName'],
+        pins: {
+            output: ['Output']
+        },
+        properties: ['ParameterName', 'DefaultValue']
+    },
+    
+    Time: {
+        class: '/Script/Engine.MaterialExpressionTime',
+        wrapperClass: '/Script/UnrealEd.MaterialGraphNode',
+        pins: {
+            output: ['Output']
+        }
+    },
+    
+    Sine: {
+        class: '/Script/Engine.MaterialExpressionSine',
+        wrapperClass: '/Script/UnrealEd.MaterialGraphNode',
+        pins: {
+            input: ['Input'],
+            output: ['Output']
+        }
+    }
+};
+
+// ============================================================================
+// Pin Type Definitions
+// ============================================================================
+
+const PIN_TYPES = {
+    exec: {
+        category: 'exec',
+        subCategory: '',
+        subCategoryObject: 'None'
+    },
+    bool: {
+        category: 'bool',
+        subCategory: '',
+        subCategoryObject: 'None'
+    },
+    int: {
+        category: 'int',
+        subCategory: '',
+        subCategoryObject: 'None'
+    },
+    float: {
+        category: 'real',
+        subCategory: 'float',
+        subCategoryObject: 'None'
+    },
+    string: {
+        category: 'string',
+        subCategory: '',
+        subCategoryObject: 'None'
+    },
+    vector: {
+        category: 'struct',
+        subCategory: '',
+        subCategoryObject: "/Script/CoreUObject.ScriptStruct'/Script/CoreUObject.Vector'"
+    },
+    rotator: {
+        category: 'struct',
+        subCategory: '',
+        subCategoryObject: "/Script/CoreUObject.ScriptStruct'/Script/CoreUObject.Rotator'"
+    },
+    transform: {
+        category: 'struct',
+        subCategory: '',
+        subCategoryObject: "/Script/CoreUObject.ScriptStruct'/Script/CoreUObject.Transform'"
+    },
+    object: {
+        category: 'object',
+        subCategory: '',
+        subCategoryObject: "/Script/CoreUObject.Class'/Script/CoreUObject.Object'"
+    },
+    class: {
+        category: 'class',
+        subCategory: '',
+        subCategoryObject: 'None'
+    },
+    linearcolor: {
+        category: 'struct',
+        subCategory: '',
+        subCategoryObject: "/Script/CoreUObject.ScriptStruct'/Script/CoreUObject.LinearColor'"
+    }
+};
+
+// ============================================================================
+// Validation Functions
+// ============================================================================
+
+/**
+ * Validate a Slim IR object
+ * @param {Object} ir - The Slim IR to validate
+ * @param {string} graphMode - 'blueprint' or 'material'
+ * @returns {{valid: boolean, errors: string[]}}
+ */
+function validateSlimIR(ir, graphMode = 'blueprint') {
+    const errors = [];
+    
+    // Check top-level structure
+    if (!ir || typeof ir !== 'object') {
+        return { valid: false, errors: ['IR must be an object'] }
+    }
+    
+    if (!Array.isArray(ir.nodes)) {
+        errors.push('IR.nodes must be an array');
+    }
+    
+    if (!Array.isArray(ir.connections)) {
+        errors.push('IR.connections must be an array');
+    }
+    
+    if (errors.length > 0) {
+        return { valid: false, errors }
+    }
+    
+    const nodeTypes = graphMode === 'material' ? MATERIAL_NODE_TYPES : BLUEPRINT_NODE_TYPES;
+    const nodeIds = new Set();
+    
+    // Validate each node
+    for (let i = 0; i < ir.nodes.length; i++) {
+        const node = ir.nodes[i];
+        const prefix = `nodes[${i}]`;
+        
+        // Required fields
+        if (!node.type) {
+            errors.push(`${prefix}: missing 'type'`);
+        } else if (!nodeTypes[node.type]) {
+            errors.push(`${prefix}: unknown type '${node.type}'`);
+        }
+        
+        if (!node.id) {
+            errors.push(`${prefix}: missing 'id'`);
+        } else if (nodeIds.has(node.id)) {
+            errors.push(`${prefix}: duplicate id '${node.id}'`);
+        } else {
+            nodeIds.add(node.id);
+        }
+        
+        if (!Array.isArray(node.pos) || node.pos.length !== 2) {
+            errors.push(`${prefix}: 'pos' must be [x, y] array`);
+        }
+        
+        // Type-specific required fields
+        if (node.type && nodeTypes[node.type]?.requiredFields) {
+            for (const field of nodeTypes[node.type].requiredFields) {
+                if (node[field] === undefined && (!node.inputs || node.inputs[field] === undefined)) {
+                    errors.push(`${prefix}: missing required field '${field}' for type '${node.type}'`);
+                }
+            }
+        }
+    }
+    
+    // Validate connections
+    for (let i = 0; i < ir.connections.length; i++) {
+        const conn = ir.connections[i];
+        const prefix = `connections[${i}]`;
+        
+        if (!Array.isArray(conn) || conn.length !== 2) {
+            errors.push(`${prefix}: must be [source, target] array`);
+            continue
+        }
+        
+        const [source, target] = conn;
+        
+        // Validate format "nodeId.pinName"
+        for (const [label, pinRef] of [['source', source], ['target', target]]) {
+            if (typeof pinRef !== 'string' || !pinRef.includes('.')) {
+                errors.push(`${prefix}: ${label} must be "nodeId.pinName" format`);
+            } else {
+                const [nodeId] = pinRef.split('.');
+                if (!nodeIds.has(nodeId)) {
+                    errors.push(`${prefix}: ${label} references unknown node '${nodeId}'`);
+                }
+            }
+        }
+    }
+    
+    return { valid: errors.length === 0, errors }
+}
+
+/**
+ * Get function configuration for CallFunction nodes
+ * @param {string} functionName - Function name
+ * @returns {Object|null}
+ */
+function getFunctionConfig(functionName) {
+    return BLUEPRINT_NODE_TYPES.CallFunction.functionMap[functionName] || null
+}
+
+/**
+ * Slim IR to T3D Converter
+ * 
+ * Converts compact Slim IR JSON format to full Unreal Engine T3D text.
+ * This is the core transformation engine for the Slim IR system.
+ */
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
+/**
+ * Generate a random 32-character uppercase hex GUID
+ * @returns {string}
+ */
+function generateGUID() {
+    const chars = '0123456789ABCDEF';
+    let result = '';
+    for (let i = 0; i < 32; i++) {
+        result += chars[Math.floor(Math.random() * 16)];
+    }
+    return result
+}
+
+/**
+ * Build a complete CustomProperties Pin definition
+ * @param {Object} options - Pin options
+ * @returns {string}
+ */
+function buildPin(options) {
+    const {
+        pinId,
+        pinName,
+        type = 'exec',
+        isOutput = false,
+        defaultValue = null,
+        linkedTo = null,
+        hidden = false,
+        friendlyName = null
+    } = options;
+    
+    const typeConfig = PIN_TYPES[type] || PIN_TYPES.exec;
+    
+    // Build the pin string piece by piece (no trailing commas until the end)
+    let pin = `PinId=${pinId},PinName="${pinName}"`;
+    
+    if (friendlyName) {
+        pin += `,PinFriendlyName="${friendlyName}"`;
+    }
+    
+    // Direction (only for output pins)
+    if (isOutput) {
+        pin += `,Direction="EGPD_Output"`;
+    }
+    
+    // PinType fields
+    pin += `,PinType.PinCategory="${typeConfig.category}"`;
+    pin += `,PinType.PinSubCategory="${typeConfig.subCategory}"`;
+    pin += `,PinType.PinSubCategoryObject=${typeConfig.subCategoryObject}`;
+    pin += `,PinType.PinSubCategoryMemberReference=()`;
+    pin += `,PinType.PinValueType=()`;
+    pin += `,PinType.ContainerType=None`;
+    pin += `,PinType.bIsReference=False`;
+    pin += `,PinType.bIsConst=False`;
+    pin += `,PinType.bIsWeakPointer=False`;
+    pin += `,PinType.bIsUObjectWrapper=False`;
+    pin += `,PinType.bSerializeAsSinglePrecisionFloat=False`;
+    
+    // LinkedTo (before PersistentGuid, matching UE format)
+    if (linkedTo && linkedTo.length > 0) {
+        pin += `,LinkedTo=(${linkedTo.join(',')},)`;
+    }
+    
+    // Default value
+    if (defaultValue !== null && defaultValue !== undefined) {
+        pin += `,DefaultValue="${defaultValue}"`;
+    }
+    
+    // Standard flags
+    pin += `,PersistentGuid=00000000000000000000000000000000`;
+    pin += `,bHidden=${hidden ? 'True' : 'False'}`;
+    pin += `,bNotConnectable=False`;
+    pin += `,bDefaultValueIsReadOnly=False`;
+    pin += `,bDefaultValueIsIgnored=False`;
+    pin += `,bAdvancedView=False`;
+    pin += `,bOrphanedPin=False`;
+    
+    // Trailing comma before closing paren (UE format)
+    pin += `,`;
+    
+    return `CustomProperties Pin (${pin})`
+}
+
+// ============================================================================
+// Node Context for Conversion
+// ============================================================================
+
+/**
+ * Conversion context - tracks nodes, pins, and connections
+ */
+class ConversionContext {
+    constructor(graphMode) {
+        this.graphMode = graphMode;
+        this.nodeMap = new Map();      // id -> { t3dName, config }
+        this.pinMap = new Map();       // "nodeId.pinName" -> { nodeName, pinId }
+        this.connectionMap = new Map(); // "nodeId.pinName" (target) -> [{nodeName, pinId}] (sources)
+        this.nodeCounter = {
+            Event: 0,
+            CallFunction: 0,
+            Branch: 0,
+            Sequence: 0,
+            MacroInstance: 0,
+            VariableGet: 0,
+            VariableSet: 0,
+            // Material
+            GraphNode: 0
+        };
+    }
+    
+    /**
+     * Get next T3D node name for a type
+     * @param {string} nodeClass - UE node class
+     * @returns {string}
+     */
+    getNextNodeName(nodeClass) {
+        // Extract simple class name
+        const className = nodeClass.split('.').pop();
+        const count = this.nodeCounter[className] || 0;
+        this.nodeCounter[className] = count + 1;
+        return `${className}_${count}`
+    }
+    
+    /**
+     * Register a pin for connection lookup
+     * @param {string} nodeId - Slim IR node id
+     * @param {string} pinName - Pin name
+     * @param {string} t3dNodeName - T3D node name
+     * @param {string} pinId - Generated pin GUID
+     */
+    registerPin(nodeId, pinName, t3dNodeName, pinId) {
+        const key = `${nodeId}.${pinName}`;
+        this.pinMap.set(key, { nodeName: t3dNodeName, pinId });
+    }
+    
+    /**
+     * Get pin info by key
+     * @param {string} key - "nodeId.pinName"
+     * @returns {Object|null}
+     */
+    getPin(key) {
+        return this.pinMap.get(key) || null
+    }
+    
+    /**
+     * Process connections and build connectionMap
+     * @param {Array} connections - IR connections array
+     */
+    processConnections(connections) {
+        for (const [source, target] of connections) {
+            const sourcePin = this.pinMap.get(source);
+            const targetPin = this.pinMap.get(target);
+            
+            if (sourcePin && targetPin) {
+                // For execution flow: source.then -> target.execute
+                // LinkedTo goes on the OUTPUT pin (source)
+                if (!this.connectionMap.has(source)) {
+                    this.connectionMap.set(source, []);
+                }
+                this.connectionMap.get(source).push({
+                    nodeName: targetPin.nodeName,
+                    pinId: targetPin.pinId
+                });
+            }
+        }
+    }
+    
+    /**
+     * Get LinkedTo string for a pin
+     * @param {string} key - "nodeId.pinName"
+     * @returns {string[]|null}
+     */
+    getLinkedTo(key) {
+        const connections = this.connectionMap.get(key);
+        if (!connections || connections.length === 0) return null
+        return connections.map(c => `${c.nodeName} ${c.pinId}`)
+    }
+}
+
+// ============================================================================
+// Blueprint Node Converters
+// ============================================================================
+
+/**
+ * Convert Event node to T3D
+ * @param {Object} node - Slim IR node
+ * @param {ConversionContext} ctx - Conversion context
+ * @returns {string}
+ */
+function convertEventNode(node, ctx) {
+    const config = BLUEPRINT_NODE_TYPES.Event;
+    const eventConfig = config.eventMap[node.event] || {
+        memberParent: "/Script/CoreUObject.Class'/Script/Engine.Actor'",
+        memberName: node.event
+    };
+    
+    const nodeName = ctx.getNextNodeName('K2Node_Event');
+    const nodeGuid = generateGUID();
+    const thenPinId = generateGUID();
+    
+    ctx.nodeMap.set(node.id, { t3dName: nodeName, config });
+    ctx.registerPin(node.id, 'then', nodeName, thenPinId);
+    
+    const lines = [
+        `Begin Object Class=${config.class} Name="${nodeName}"`,
+        `    EventReference=(MemberParent="${eventConfig.memberParent}",MemberName="${eventConfig.memberName}")`,
+        `    bOverrideFunction=True`,
+        `    NodePosX=${node.pos[0]}`,
+        `    NodePosY=${node.pos[1]}`,
+        `    NodeGuid=${nodeGuid}`,
+        `    ${buildPin({ pinId: thenPinId, pinName: 'then', type: 'exec', isOutput: true })}`,
+        `End Object`
+    ];
+    
+    return lines.join('\n')
+}
+
+/**
+ * Convert CallFunction node to T3D
+ * @param {Object} node - Slim IR node
+ * @param {ConversionContext} ctx - Conversion context
+ * @returns {string}
+ */
+function convertCallFunctionNode(node, ctx) {
+    const config = BLUEPRINT_NODE_TYPES.CallFunction;
+    const funcConfig = getFunctionConfig(node.function) || {
+        memberName: node.function
+    };
+    
+    const nodeName = ctx.getNextNodeName('K2Node_CallFunction');
+    const nodeGuid = generateGUID();
+    const executePinId = generateGUID();
+    const thenPinId = generateGUID();
+    
+    ctx.nodeMap.set(node.id, { t3dName: nodeName, config });
+    ctx.registerPin(node.id, 'execute', nodeName, executePinId);
+    ctx.registerPin(node.id, 'then', nodeName, thenPinId);
+    
+    // Build FunctionReference
+    let funcRef;
+    if (funcConfig.bSelfContext) {
+        funcRef = `FunctionReference=(MemberName="${funcConfig.memberName}",bSelfContext=True)`;
+    } else if (funcConfig.memberParent) {
+        funcRef = `FunctionReference=(MemberParent="${funcConfig.memberParent}",MemberName="${funcConfig.memberName}")`;
+    } else {
+        funcRef = `FunctionReference=(MemberName="${funcConfig.memberName}")`;
+    }
+    
+    const lines = [
+        `Begin Object Class=${config.class} Name="${nodeName}"`,
+        `    ${funcRef}`,
+        `    NodePosX=${node.pos[0]}`,
+        `    NodePosY=${node.pos[1]}`,
+        `    NodeGuid=${nodeGuid}`
+    ];
+    
+    // Add isPure if applicable
+    if (funcConfig.isPure) {
+        lines.splice(2, 0, `    bIsPureFunc=True`);
+    }
+    
+    // Add execute pin (only for non-pure functions)
+    if (!funcConfig.isPure) {
+        lines.push(`    ${buildPin({ pinId: executePinId, pinName: 'execute', type: 'exec' })}`);
+        lines.push(`    ${buildPin({ pinId: thenPinId, pinName: 'then', type: 'exec', isOutput: true })}`);
+    }
+    
+    // Add extra input pins
+    if (funcConfig.extraPins?.input) {
+        for (const pin of funcConfig.extraPins.input) {
+            const pinId = generateGUID();
+            const inputValue = node.inputs?.[pin.name] ?? pin.default;
+            ctx.registerPin(node.id, pin.name, nodeName, pinId);
+            
+            lines.push(`    ${buildPin({
+                pinId,
+                pinName: pin.name,
+                type: pin.type,
+                defaultValue: inputValue,
+                hidden: pin.hidden
+            })}`);
+        }
+    }
+    
+    // Add extra output pins
+    if (funcConfig.extraPins?.output) {
+        for (const pin of funcConfig.extraPins.output) {
+            const pinId = generateGUID();
+            ctx.registerPin(node.id, pin.name, nodeName, pinId);
+            
+            lines.push(`    ${buildPin({
+                pinId,
+                pinName: pin.name,
+                type: pin.type,
+                isOutput: true
+            })}`);
+        }
+    }
+    
+    lines.push(`End Object`);
+    return lines.join('\n')
+}
+
+/**
+ * Convert Branch node to T3D
+ * @param {Object} node - Slim IR node
+ * @param {ConversionContext} ctx - Conversion context
+ * @returns {string}
+ */
+function convertBranchNode(node, ctx) {
+    const config = BLUEPRINT_NODE_TYPES.Branch;
+    const nodeName = ctx.getNextNodeName('K2Node_IfThenElse');
+    const nodeGuid = generateGUID();
+    
+    const executePinId = generateGUID();
+    const conditionPinId = generateGUID();
+    const thenPinId = generateGUID();
+    const elsePinId = generateGUID();
+    
+    ctx.nodeMap.set(node.id, { t3dName: nodeName, config });
+    ctx.registerPin(node.id, 'execute', nodeName, executePinId);
+    ctx.registerPin(node.id, 'Condition', nodeName, conditionPinId);
+    ctx.registerPin(node.id, 'Then', nodeName, thenPinId);
+    ctx.registerPin(node.id, 'true', nodeName, thenPinId);  // Alias
+    ctx.registerPin(node.id, 'Else', nodeName, elsePinId);
+    ctx.registerPin(node.id, 'false', nodeName, elsePinId);  // Alias
+    
+    const lines = [
+        `Begin Object Class=${config.class} Name="${nodeName}"`,
+        `    NodePosX=${node.pos[0]}`,
+        `    NodePosY=${node.pos[1]}`,
+        `    NodeGuid=${nodeGuid}`,
+        `    ${buildPin({ pinId: executePinId, pinName: 'execute', type: 'exec' })}`,
+        `    ${buildPin({ pinId: conditionPinId, pinName: 'Condition', type: 'bool' })}`,
+        `    ${buildPin({ pinId: thenPinId, pinName: 'Then', type: 'exec', isOutput: true })}`,
+        `    ${buildPin({ pinId: elsePinId, pinName: 'Else', type: 'exec', isOutput: true })}`,
+        `End Object`
+    ];
+    
+    return lines.join('\n')
+}
+
+/**
+ * Convert Sequence node to T3D
+ * @param {Object} node - Slim IR node
+ * @param {ConversionContext} ctx - Conversion context
+ * @returns {string}
+ */
+function convertSequenceNode(node, ctx) {
+    const config = BLUEPRINT_NODE_TYPES.Sequence;
+    const nodeName = ctx.getNextNodeName('K2Node_ExecutionSequence');
+    const nodeGuid = generateGUID();
+    
+    const executePinId = generateGUID();
+    ctx.nodeMap.set(node.id, { t3dName: nodeName, config });
+    ctx.registerPin(node.id, 'execute', nodeName, executePinId);
+    
+    const lines = [
+        `Begin Object Class=${config.class} Name="${nodeName}"`,
+        `    NodePosX=${node.pos[0]}`,
+        `    NodePosY=${node.pos[1]}`,
+        `    NodeGuid=${nodeGuid}`,
+        `    ${buildPin({ pinId: executePinId, pinName: 'execute', type: 'exec' })}`
+    ];
+    
+    // Add output pins (default 2, can be more based on connections)
+    const numOutputs = node.outputs || 2;
+    for (let i = 0; i < numOutputs; i++) {
+        const pinId = generateGUID();
+        const pinName = `then ${i}`;
+        ctx.registerPin(node.id, pinName, nodeName, pinId);
+        lines.push(`    ${buildPin({ pinId, pinName, type: 'exec', isOutput: true })}`);
+    }
+    
+    lines.push(`End Object`);
+    return lines.join('\n')
+}
+
+/**
+ * Convert CustomEvent node to T3D
+ * @param {Object} node - Slim IR node
+ * @param {ConversionContext} ctx - Conversion context
+ * @returns {string}
+ */
+function convertCustomEventNode(node, ctx) {
+    const config = BLUEPRINT_NODE_TYPES.CustomEvent;
+    const nodeName = ctx.getNextNodeName('K2Node_CustomEvent');
+    const nodeGuid = generateGUID();
+    const thenPinId = generateGUID();
+    
+    ctx.nodeMap.set(node.id, { t3dName: nodeName, config });
+    ctx.registerPin(node.id, 'then', nodeName, thenPinId);
+    
+    const eventName = node.eventName || node.inputs?.eventName || 'CustomEvent';
+    
+    const lines = [
+        `Begin Object Class=${config.class} Name="${nodeName}"`,
+        `    CustomFunctionName="${eventName}"`,
+        `    NodePosX=${node.pos[0]}`,
+        `    NodePosY=${node.pos[1]}`,
+        `    NodeGuid=${nodeGuid}`,
+        `    ${buildPin({ pinId: thenPinId, pinName: 'then', type: 'exec', isOutput: true })}`,
+        `End Object`
+    ];
+    
+    return lines.join('\n')
+}
+
+// ============================================================================
+// Material Node Converters
+// ============================================================================
+
+/**
+ * Convert Material Constant3Vector node to T3D
+ * @param {Object} node - Slim IR node
+ * @param {ConversionContext} ctx - Conversion context
+ * @returns {string}
+ */
+function convertConstant3VectorNode(node, ctx) {
+    const config = MATERIAL_NODE_TYPES.Constant3Vector;
+    const wrapperName = `MaterialGraphNode_${ctx.nodeCounter.GraphNode++}`;
+    const exprName = `MaterialExpressionConstant3Vector_${ctx.nodeCounter.GraphNode}`;
+    const nodeGuid = generateGUID();
+    const exprGuid = generateGUID();
+    const outputPinId = generateGUID();
+    
+    ctx.nodeMap.set(node.id, { t3dName: wrapperName, exprName });
+    ctx.registerPin(node.id, 'out', wrapperName, outputPinId);
+    ctx.registerPin(node.id, 'Output', wrapperName, outputPinId);
+    
+    const value = node.value || [1, 1, 1];
+    const [r, g, b] = value;
+    
+    const lines = [
+        `Begin Object Class=${config.wrapperClass} Name="${wrapperName}"`,
+        `    Begin Object Class=${config.class} Name="${exprName}"`,
+        `    End Object`,
+        `    Begin Object Name="${exprName}"`,
+        `        Constant=(R=${r},G=${g},B=${b},A=0.0)`,
+        `        MaterialExpressionEditorX=${node.pos[0]}`,
+        `        MaterialExpressionEditorY=${node.pos[1]}`,
+        `        MaterialExpressionGuid=${exprGuid}`,
+        `    End Object`,
+        `    MaterialExpression=${config.class}'"${exprName}"'`,
+        `    NodePosX=${node.pos[0]}`,
+        `    NodePosY=${node.pos[1]}`,
+        `    NodeGuid=${nodeGuid}`,
+        `    ${buildPin({ pinId: outputPinId, pinName: 'Output', type: 'mask', isOutput: true })}`,
+        `End Object`
+    ];
+    
+    return lines.join('\n')
+}
+
+// ============================================================================
+// Main Converter
+// ============================================================================
+
+/**
+ * Convert a Slim IR node to T3D
+ * @param {Object} node - Slim IR node
+ * @param {ConversionContext} ctx - Conversion context
+ * @returns {string}
+ */
+function convertNode(node, ctx) {
+    if (ctx.graphMode === 'material') {
+        switch (node.type) {
+            case 'Constant3Vector': return convertConstant3VectorNode(node, ctx)
+            // Add more material node converters here
+            default:
+                console.warn(`[SlimIRToT3D] Unknown material node type: ${node.type}`);
+                return ''
+        }
+    } else {
+        switch (node.type) {
+            case 'Event': return convertEventNode(node, ctx)
+            case 'CallFunction': return convertCallFunctionNode(node, ctx)
+            case 'Branch': return convertBranchNode(node, ctx)
+            case 'Sequence': return convertSequenceNode(node, ctx)
+            case 'CustomEvent': return convertCustomEventNode(node, ctx)
+            // Add more blueprint node converters here
+            default:
+                console.warn(`[SlimIRToT3D] Unknown blueprint node type: ${node.type}`);
+                return ''
+        }
+    }
+}
+
+/**
+ * Inject LinkedTo connections into T3D
+ * @param {string} t3d - Generated T3D
+ * @param {ConversionContext} ctx - Conversion context
+ * @returns {string}
+ */
+function injectConnections(t3d, ctx) {
+    let result = t3d;
+    
+    for (const [pinKey, connections] of ctx.connectionMap) {
+        const pinInfo = ctx.pinMap.get(pinKey);
+        if (!pinInfo || connections.length === 0) continue
+        
+        const linkedToStr = `,LinkedTo=(${connections.map(c => `${c.nodeName} ${c.pinId}`).join(',')},)`;
+        
+        // Find the pin by PinId and inject LinkedTo before bOrphanedPin
+        // The pattern: PinId=xxx,...,bOrphanedPin=False,)
+        // We want to insert LinkedTo before ,bOrphanedPin
+        const pinPattern = new RegExp(
+            `(PinId=${pinInfo.pinId}[^)]*?)(,bOrphanedPin=False,\\))`,
+            'g'
+        );
+        
+        result = result.replace(pinPattern, `$1${linkedToStr}$2`);
+    }
+    
+    return result
+}
+
+/**
+ * Main conversion function: Slim IR → T3D
+ * @param {Object} ir - Slim IR object
+ * @param {string} graphMode - 'blueprint' or 'material'
+ * @returns {{success: boolean, t3d?: string, errors?: string[]}}
+ */
+function convertSlimIRToT3D(ir, graphMode = 'blueprint') {
+    // Validate first
+    const validation = validateSlimIR(ir, graphMode);
+    if (!validation.valid) {
+        return { success: false, errors: validation.errors }
+    }
+    
+    const ctx = new ConversionContext(graphMode);
+    
+    // Phase 1: Convert all nodes (this also registers pins)
+    const nodeT3Ds = [];
+    for (const node of ir.nodes) {
+        const t3d = convertNode(node, ctx);
+        if (t3d) {
+            nodeT3Ds.push(t3d);
+        }
+    }
+    
+    // Phase 2: Process connections
+    ctx.processConnections(ir.connections);
+    
+    // Phase 3: Combine and inject connections
+    let t3d = nodeT3Ds.join('\n');
+    t3d = injectConnections(t3d, ctx);
+    
+    return { success: true, t3d }
+}
+
+/**
  * Node Example Service
  * Provides dynamic few-shot example injection based on user prompts
  */
@@ -8038,7 +9162,9 @@ class AIPanelElement extends i$1 {
         pendingImages: { type: Array },
         debug: { type: Boolean },
         systemPrompt: { type: String },
-        providerConfigs: { type: Object }
+        providerConfigs: { type: Object },
+        // Slim IR mode (experimental) - generates compact JSON then converts to T3D
+        useSlimIR: { type: Boolean }
     }
 
     static styles = i$4`
@@ -8581,6 +9707,7 @@ class AIPanelElement extends i$1 {
         this.systemPrompt = DEFAULT_PROMPT_TEMPLATE;
         this.abortController = null;
         this.pendingImages = []; // Images pending to be sent with next message
+        this.useSlimIR = localStorage.getItem("ueb-ai-slim-ir") !== "false"; // Default enabled
 
         // Dragging state
         this._isDragging = false;
@@ -9272,6 +10399,25 @@ class AIPanelElement extends i$1 {
         try {
             // Config is already updated via event listener or initial load
             const context = this._getBlueprintContext();
+            
+            // === Slim IR Mode ===
+            // Use compact JSON generation then convert to T3D
+            console.log('%c[Generate] useSlimIR =', 'color: #ff9800', this.useSlimIR);
+            if (this.useSlimIR) {
+                this.statusText = "Generating (Slim IR)...";
+                const result = await this._handleSlimIRGenerate(currentPrompt, context);
+                const nodeCount = result.nodes?.length || 0;
+                const content = this.debug 
+                    ? `Generated ${nodeCount} nodes via Slim IR.\n\n\`\`\`json\n${JSON.stringify(result.slimIR, null, 2)}\n\`\`\`\n\n\`\`\`\n${result.t3dText}\n\`\`\`` 
+                    : `✅ Generated ${nodeCount} node${nodeCount !== 1 ? 's' : ''} (Slim IR).`;
+                
+                this.history = [...this.history, { role: 'assistant', content }];
+                this.statusText = "Generation complete!";
+                this.statusType = "success";
+                return
+            }
+            
+            // === Legacy T3D Mode ===
             let promptToSend = currentPrompt;
             
             if (context) {
@@ -9407,6 +10553,80 @@ class AIPanelElement extends i$1 {
                 }
             }
         }
+    }
+
+    /**
+     * Handle generation using Slim IR mode
+     * Generates compact JSON, converts to T3D, then injects
+     * @param {string} userPrompt - Original user prompt
+     * @param {string} context - Blueprint context
+     */
+    async _handleSlimIRGenerate(userPrompt, context) {
+        let promptToSend = userPrompt;
+        if (context) {
+            promptToSend = `Current graph context:\n${context}\n\nTask: ${userPrompt}`;
+        }
+
+        // Use simplified Slim IR prompt
+        const systemPrompt = getSlimPrompt(this.graphMode);
+        
+        console.group('%c[Slim IR Generation]', 'color: #00d4ff; font-weight: bold');
+        console.log('%c=== SLIM IR MODE ACTIVE ===', 'color: #00ff00; font-size: 14px; font-weight: bold');
+        console.log('Mode:', this.graphMode);
+        console.log('User prompt:', userPrompt);
+        console.log('%cSystem prompt size: ' + systemPrompt.length + ' bytes', 
+            systemPrompt.length < 5000 ? 'color: #00ff00; font-weight: bold' : 'color: #ff0000; font-weight: bold');
+        console.log('System prompt preview:', systemPrompt.substring(0, 200) + '...');
+        
+        // Get LLM response (should be JSON)
+        const responseText = await this.llmService.generate(promptToSend, this.abortController.signal, systemPrompt);
+        
+        console.log('LLM response:', responseText);
+        
+        // Parse JSON response
+        let slimIR;
+        try {
+            // Try to extract JSON from response (in case LLM adds extra text)
+            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                throw new Error('No JSON object found in response')
+            }
+            slimIR = JSON.parse(jsonMatch[0]);
+        } catch (parseErr) {
+            console.error('Failed to parse Slim IR JSON:', parseErr);
+            console.log('Raw response:', responseText);
+            console.groupEnd();
+            throw new Error(`Failed to parse Slim IR: ${parseErr.message}`)
+        }
+        
+        console.log('Parsed Slim IR:', slimIR);
+        console.log('Slim IR size:', JSON.stringify(slimIR).length, 'bytes');
+        
+        // Convert Slim IR to T3D
+        const conversionResult = convertSlimIRToT3D(slimIR, this.graphMode);
+        
+        if (!conversionResult.success) {
+            console.error('Slim IR conversion failed:', conversionResult.errors);
+            console.groupEnd();
+            throw new Error(`Slim IR conversion failed: ${conversionResult.errors.join(', ')}`)
+        }
+        
+        const t3dText = conversionResult.t3d;
+        console.log('Generated T3D:', t3dText);
+        console.log('T3D size:', t3dText.length, 'bytes');
+        console.log('Expansion ratio:', (t3dText.length / JSON.stringify(slimIR).length).toFixed(1) + 'x');
+        console.groupEnd();
+        
+        // Inject and process nodes
+        const nodes = this._injectBlueprint(t3dText);
+        
+        if (nodes && nodes.length > 0) {
+            setTimeout(() => {
+                LayoutEngine.process(nodes);
+            }, 50);
+        }
+        
+        return { nodes, t3dText, slimIR }
     }
 
     render() {

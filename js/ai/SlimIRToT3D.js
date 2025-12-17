@@ -82,32 +82,56 @@ function buildPin(options) {
         friendlyName = null
     } = options
     
-    let parts = [
-        `PinId=${pinId}`,
-        `PinName="${pinName}"`
-    ]
+    const typeConfig = PIN_TYPES[type] || PIN_TYPES.exec
+    
+    // Build the pin string piece by piece (no trailing commas until the end)
+    let pin = `PinId=${pinId},PinName="${pinName}"`
     
     if (friendlyName) {
-        parts.push(`PinFriendlyName="${friendlyName}"`)
+        pin += `,PinFriendlyName="${friendlyName}"`
     }
     
-    parts.push(buildPinType(type, isOutput))
-    parts.push(buildPinFlags())
-    
-    if (defaultValue !== null && defaultValue !== undefined) {
-        parts.push(`DefaultValue="${defaultValue}"`)
+    // Direction (only for output pins)
+    if (isOutput) {
+        pin += `,Direction="EGPD_Output"`
     }
     
+    // PinType fields
+    pin += `,PinType.PinCategory="${typeConfig.category}"`
+    pin += `,PinType.PinSubCategory="${typeConfig.subCategory}"`
+    pin += `,PinType.PinSubCategoryObject=${typeConfig.subCategoryObject}`
+    pin += `,PinType.PinSubCategoryMemberReference=()`
+    pin += `,PinType.PinValueType=()`
+    pin += `,PinType.ContainerType=None`
+    pin += `,PinType.bIsReference=False`
+    pin += `,PinType.bIsConst=False`
+    pin += `,PinType.bIsWeakPointer=False`
+    pin += `,PinType.bIsUObjectWrapper=False`
+    pin += `,PinType.bSerializeAsSinglePrecisionFloat=False`
+    
+    // LinkedTo (before PersistentGuid, matching UE format)
     if (linkedTo && linkedTo.length > 0) {
-        parts.push(`LinkedTo=(${linkedTo.join(',')},)`)
+        pin += `,LinkedTo=(${linkedTo.join(',')},)`
     }
     
-    if (hidden) {
-        // Replace bHidden=False with bHidden=True
-        parts = parts.map(p => p === 'bHidden=False,' ? 'bHidden=True,' : p)
+    // Default value
+    if (defaultValue !== null && defaultValue !== undefined) {
+        pin += `,DefaultValue="${defaultValue}"`
     }
     
-    return `CustomProperties Pin (${parts.join(',')})`
+    // Standard flags
+    pin += `,PersistentGuid=00000000000000000000000000000000`
+    pin += `,bHidden=${hidden ? 'True' : 'False'}`
+    pin += `,bNotConnectable=False`
+    pin += `,bDefaultValueIsReadOnly=False`
+    pin += `,bDefaultValueIsIgnored=False`
+    pin += `,bAdvancedView=False`
+    pin += `,bOrphanedPin=False`
+    
+    // Trailing comma before closing paren (UE format)
+    pin += `,`
+    
+    return `CustomProperties Pin (${pin})`
 }
 
 // ============================================================================
@@ -527,11 +551,13 @@ function injectConnections(t3d, ctx) {
         const pinInfo = ctx.pinMap.get(pinKey)
         if (!pinInfo || connections.length === 0) continue
         
-        const linkedToStr = `LinkedTo=(${connections.map(c => `${c.nodeName} ${c.pinId}`).join(',')},)`
+        const linkedToStr = `,LinkedTo=(${connections.map(c => `${c.nodeName} ${c.pinId}`).join(',')},)`
         
-        // Find the pin and inject LinkedTo before the closing parenthesis
+        // Find the pin by PinId and inject LinkedTo before bOrphanedPin
+        // The pattern: PinId=xxx,...,bOrphanedPin=False,)
+        // We want to insert LinkedTo before ,bOrphanedPin
         const pinPattern = new RegExp(
-            `(PinId=${pinInfo.pinId}[^)]*?)(\\))`,
+            `(PinId=${pinInfo.pinId}[^)]*?)(,bOrphanedPin=False,\\))`,
             'g'
         )
         

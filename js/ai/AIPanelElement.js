@@ -1289,6 +1289,7 @@ export default class AIPanelElement extends LitElement {
             
             // === Slim IR Mode ===
             // Use compact JSON generation then convert to T3D
+            console.log('%c[Generate] useSlimIR =', 'color: #ff9800', this.useSlimIR)
             if (this.useSlimIR) {
                 this.statusText = "Generating (Slim IR)..."
                 const result = await this._handleSlimIRGenerate(currentPrompt, context)
@@ -1457,9 +1458,12 @@ export default class AIPanelElement extends LitElement {
         const systemPrompt = getSlimPrompt(this.graphMode)
         
         console.group('%c[Slim IR Generation]', 'color: #00d4ff; font-weight: bold')
+        console.log('%c=== SLIM IR MODE ACTIVE ===', 'color: #00ff00; font-size: 14px; font-weight: bold')
         console.log('Mode:', this.graphMode)
-        console.log('Prompt:', userPrompt)
-        console.log('System prompt size:', systemPrompt.length, 'bytes')
+        console.log('User prompt:', userPrompt)
+        console.log('%cSystem prompt size: ' + systemPrompt.length + ' bytes', 
+            systemPrompt.length < 5000 ? 'color: #00ff00; font-weight: bold' : 'color: #ff0000; font-weight: bold')
+        console.log('System prompt preview:', systemPrompt.substring(0, 200) + '...')
         
         // Get LLM response (should be JSON)
         const responseText = await this.llmService.generate(promptToSend, this.abortController.signal, systemPrompt)
