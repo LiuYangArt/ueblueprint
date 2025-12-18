@@ -738,6 +738,11 @@ COMMON FUNCTIONS:
 - PrintString: inputs.InString="text"
 - Delay: inputs.Duration=2.0
 - MakeVector: inputs.X,Y,Z
+- Conv_FloatToString: inputs.InFloat=float, returns string. USE THIS before PrintString for floats.
+- Conv_IntToString: inputs.InInt=int, returns string.
+- Conv_VectorToString: inputs.InVec=vector, returns string.
+
+NOTE: UE requires explicit conversion nodes (e.g. Conv_FloatToString) before connecting a float/int to PrintString's InString.
 
 PIN NAMES:
 - Execution: execute (in), then (out)
@@ -923,6 +928,42 @@ const BLUEPRINT_NODE_TYPES = {
                     output: [
                         { name: 'ReturnValue', type: 'vector' }
                     ]
+                }
+            },
+            'Conv_FloatToString': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetStringLibrary'",
+                memberName: 'Conv_FloatToString',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'InFloat', type: 'float' }],
+                    output: [{ name: 'ReturnValue', type: 'string' }]
+                }
+            },
+            'Conv_IntToString': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetStringLibrary'",
+                memberName: 'Conv_IntToString',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'InInt', type: 'int' }],
+                    output: [{ name: 'ReturnValue', type: 'string' }]
+                }
+            },
+            'Conv_BoolToString': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetStringLibrary'",
+                memberName: 'Conv_BoolToString',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'InBool', type: 'bool' }],
+                    output: [{ name: 'ReturnValue', type: 'string' }]
+                }
+            },
+            'Conv_VectorToString': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetStringLibrary'",
+                memberName: 'Conv_VectorToString',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'InVec', type: 'vector' }],
+                    output: [{ name: 'ReturnValue', type: 'string' }]
                 }
             }
         }

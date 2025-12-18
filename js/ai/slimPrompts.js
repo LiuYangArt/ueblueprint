@@ -31,6 +31,11 @@ COMMON FUNCTIONS:
 - PrintString: inputs.InString="text"
 - Delay: inputs.Duration=2.0
 - MakeVector: inputs.X,Y,Z
+- Conv_FloatToString: inputs.InFloat=float, returns string. USE THIS before PrintString for floats.
+- Conv_IntToString: inputs.InInt=int, returns string.
+- Conv_VectorToString: inputs.InVec=vector, returns string.
+
+NOTE: UE requires explicit conversion nodes (e.g. Conv_FloatToString) before connecting a float/int to PrintString's InString.
 
 PIN NAMES:
 - Execution: execute (in), then (out)

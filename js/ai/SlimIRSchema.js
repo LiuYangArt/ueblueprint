@@ -117,6 +117,42 @@ export const BLUEPRINT_NODE_TYPES = {
                         { name: 'ReturnValue', type: 'vector' }
                     ]
                 }
+            },
+            'Conv_FloatToString': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetStringLibrary'",
+                memberName: 'Conv_FloatToString',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'InFloat', type: 'float' }],
+                    output: [{ name: 'ReturnValue', type: 'string' }]
+                }
+            },
+            'Conv_IntToString': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetStringLibrary'",
+                memberName: 'Conv_IntToString',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'InInt', type: 'int' }],
+                    output: [{ name: 'ReturnValue', type: 'string' }]
+                }
+            },
+            'Conv_BoolToString': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetStringLibrary'",
+                memberName: 'Conv_BoolToString',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'InBool', type: 'bool' }],
+                    output: [{ name: 'ReturnValue', type: 'string' }]
+                }
+            },
+            'Conv_VectorToString': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetStringLibrary'",
+                memberName: 'Conv_VectorToString',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'InVec', type: 'vector' }],
+                    output: [{ name: 'ReturnValue', type: 'string' }]
+                }
             }
         }
     },
