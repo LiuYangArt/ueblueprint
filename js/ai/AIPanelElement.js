@@ -1110,6 +1110,46 @@ export default class AIPanelElement extends LitElement {
         document.removeEventListener('mouseup', this._promptResizeEnd)
     }
 
+    /**
+     * Build messages array for LLM call, incorporating history and context
+     * @param {string} userPrompt - Current user prompt
+     * @param {string} systemPrompt - System prompt to use
+     * @param {string} context - Blueprint context string
+     * @param {number} historyLimit - Max number of history items to include
+     * @returns {Array} Messages array for llmService.chat
+     */
+    _buildMessagesForGeneration(userPrompt, systemPrompt, context, historyLimit = 10) {
+        const messages = [{ role: "system", content: systemPrompt }]
+        
+        // Add recent history (respecting limit)
+        // For generation, we might want a shorter history to focus on the current task
+        const limit = Math.max(2, historyLimit)
+        const historyToInclude = this.history.slice(-limit)
+        
+        for (const msg of historyToInclude) {
+            if (msg.role === 'system') continue
+            
+            // If it's the very last message in history, and it matches our current prompt attempt,
+            // we skip it here and add it at the end with context.
+            // However, this.history usually already contains the message we just added.
+            // To avoid duplication and ensure context is in the right place:
+            if (msg.role === 'user' && msg === historyToInclude[historyToInclude.length - 1] && msg.content === userPrompt) {
+                continue
+            }
+            
+            messages.push({ role: msg.role, content: msg.content || "" })
+        }
+        
+        // Add current prompt with context as the final message
+        let finalContent = userPrompt
+        if (context) {
+            finalContent = `Context:\n${context}\n\nTask: ${userPrompt}`
+        }
+        messages.push({ role: "user", content: finalContent })
+        
+        return messages
+    }
+
     _handleSubmit() {
         if (this.mode === 'chat') {
             this._handleChat()
@@ -1189,22 +1229,16 @@ export default class AIPanelElement extends LitElement {
             systemPrompt += `\n\nCurrent Editor Mode: ${this.graphMode}`
             
             // Build messages array for API call
-            const messages = [{ role: "system", content: systemPrompt }]
+            const messages = this._buildMessagesForGeneration(userMsg, systemPrompt, context, this.maxHistoryLength || 10)
             
-            // Add recent history (respecting limit)
-            const limit = Math.max(2, this.maxHistoryLength || 10)
-            const recentHistory = this.history.slice(-limit)
-            for (const msg of recentHistory) {
-                if (msg.role === 'system') continue // Skip system messages like errors
-                
-                // For history, just use text content (images were already sent)
-                if (msg === recentHistory[recentHistory.length - 1]) {
-                    // Current message - use full content with images
-                    messages.push({ role: msg.role, content: userContent })
-                } else {
-                    // Previous messages - text only
-                    messages.push({ role: msg.role, content: msg.content || "" })
+            // Handle Vision (images) for the last message if needed
+            if (userImages.length > 0) {
+                const lastMsg = messages[messages.length - 1]
+                const content = [{ type: "text", text: lastMsg.content }]
+                for (const imgData of userImages) {
+                    content.push({ type: "image_url", image_url: { url: imgData } })
                 }
+                lastMsg.content = content
             }
 
             // Stream response placeholder
@@ -1524,7 +1558,8 @@ export default class AIPanelElement extends LitElement {
                 this.graphMode
             )
 
-            const t3dText = await this.llmService.generate(promptToSend, this.abortController.signal, systemPrompt)
+            const messages = this._buildMessagesForGeneration(promptToSend, systemPrompt, context, 5)
+            const t3dText = await this.llmService.chat(messages, this.abortController.signal)
             
             // P1: Validate T3D syntax (soft validation - warn but still try)
             const validation = this._validateT3D(t3dText)
@@ -1661,7 +1696,8 @@ export default class AIPanelElement extends LitElement {
         console.log('System prompt preview:', systemPrompt.substring(0, 200) + '...')
         
         // Get LLM response (should be JSON)
-        const responseText = await this.llmService.generate(promptToSend, this.abortController.signal, systemPrompt)
+        const messages = this._buildMessagesForGeneration(userPrompt, systemPrompt, context, 5)
+        const responseText = await this.llmService.chat(messages, this.abortController.signal)
         
         console.log('LLM response:', responseText)
         
