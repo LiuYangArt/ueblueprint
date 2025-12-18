@@ -2,10 +2,6 @@
 trigger: always_on
 ---
 
----
-trigger: always_on
----
-
 这个项目是基于 https://github.com/barsdeveloper/ueblueprint 做的一个项目，用于ue5蓝图的vibe coding。 
 
 
