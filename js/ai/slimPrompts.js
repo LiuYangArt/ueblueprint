@@ -24,6 +24,8 @@ SUPPORTED TYPES:
 - Branch: (has Condition input, Then/Else outputs)
 - Sequence: (multiple then outputs)
 - CustomEvent: eventName="YourName"
+- VariableGet: variableName="VarName" (reads variable, output pin is the value)
+- VariableSet: variableName="VarName", inputs.value (writes variable, has execute/then)
 
 COMMON FUNCTIONS:
 - PrintString: inputs.InString="text"

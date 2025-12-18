@@ -181,6 +181,17 @@ export const BLUEPRINT_NODE_TYPES = {
             input: ['execute', 'value'],
             output: ['then']
         }
+    },
+    
+    // Alias: LLM 可能会使用 'Variable' 而不是 'VariableGet'
+    Variable: {
+        class: '/Script/BlueprintGraph.K2Node_VariableGet',
+        requiredFields: ['variableName'],
+        pins: {
+            output: ['value']
+        },
+        isAlias: true,  // 标记为别名，方便调试
+        aliasOf: 'VariableGet'
     }
 }
 

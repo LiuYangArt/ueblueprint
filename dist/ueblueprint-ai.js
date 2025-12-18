@@ -731,6 +731,8 @@ SUPPORTED TYPES:
 - Branch: (has Condition input, Then/Else outputs)
 - Sequence: (multiple then outputs)
 - CustomEvent: eventName="YourName"
+- VariableGet: variableName="VarName" (reads variable, output pin is the value)
+- VariableSet: variableName="VarName", inputs.value (writes variable, has execute/then)
 
 COMMON FUNCTIONS:
 - PrintString: inputs.InString="text"
@@ -986,6 +988,17 @@ const BLUEPRINT_NODE_TYPES = {
             input: ['execute', 'value'],
             output: ['then']
         }
+    },
+    
+    // Alias: LLM 可能会使用 'Variable' 而不是 'VariableGet'
+    Variable: {
+        class: '/Script/BlueprintGraph.K2Node_VariableGet',
+        requiredFields: ['variableName'],
+        pins: {
+            output: ['value']
+        },
+        isAlias: true,  // 标记为别名，方便调试
+        aliasOf: 'VariableGet'
     }
 };
 
@@ -1687,6 +1700,102 @@ function convertCustomEventNode(node, ctx) {
 }
 
 // ============================================================================
+// Variable Node Converters
+// ============================================================================
+
+/**
+ * Convert VariableGet node to T3D
+ * 将 VariableGet 节点转换为 T3D 格式
+ * @param {Object} node - Slim IR node
+ * @param {ConversionContext} ctx - Conversion context
+ * @returns {string}
+ */
+function convertVariableGetNode(node, ctx) {
+    const config = BLUEPRINT_NODE_TYPES.VariableGet;
+    const nodeName = ctx.getNextNodeName('K2Node_VariableGet');
+    const nodeGuid = generateGUID();
+    const valuePinId = generateGUID();
+    const selfPinId = generateGUID();
+    
+    // 变量名可以来自 variableName 字段或 inputs.variableName
+    const variableName = node.variableName || node.inputs?.variableName || 'NewVar';
+    // 变量类型，默认为 float
+    const variableType = node.variableType || node.inputs?.variableType || 'float';
+    
+    ctx.nodeMap.set(node.id, { t3dName: nodeName, config });
+    ctx.registerPin(node.id, 'value', nodeName, valuePinId);
+    ctx.registerPin(node.id, 'out', nodeName, valuePinId);  // 别名
+    ctx.registerPin(node.id, variableName, nodeName, valuePinId);  // 用变量名作为 pin 名的别名
+    
+    // 构建 VariableReference
+    const varGuid = generateGUID();
+    
+    const lines = [
+        `Begin Object Class=${config.class} Name="${nodeName}"`,
+        `    VariableReference=(MemberName="${variableName}",MemberGuid=${varGuid})`,
+        `    NodePosX=${node.pos[0]}`,
+        `    NodePosY=${node.pos[1]}`,
+        `    NodeGuid=${nodeGuid}`,
+        `    ${buildPin({ pinId: selfPinId, pinName: 'self', type: 'object', hidden: true })}`,
+        `    ${buildPin({ pinId: valuePinId, pinName: variableName, type: variableType, isOutput: true })}`,
+        `End Object`
+    ];
+    
+    return lines.join('\n')
+}
+
+/**
+ * Convert VariableSet node to T3D
+ * 将 VariableSet 节点转换为 T3D 格式
+ * @param {Object} node - Slim IR node
+ * @param {ConversionContext} ctx - Conversion context
+ * @returns {string}
+ */
+function convertVariableSetNode(node, ctx) {
+    const config = BLUEPRINT_NODE_TYPES.VariableSet;
+    const nodeName = ctx.getNextNodeName('K2Node_VariableSet');
+    const nodeGuid = generateGUID();
+    const executePinId = generateGUID();
+    const thenPinId = generateGUID();
+    const valuePinId = generateGUID();
+    const outputPinId = generateGUID();
+    const selfPinId = generateGUID();
+    
+    // 变量名可以来自 variableName 字段或 inputs.variableName
+    const variableName = node.variableName || node.inputs?.variableName || 'NewVar';
+    // 变量类型，默认为 float
+    const variableType = node.variableType || node.inputs?.variableType || 'float';
+    // 默认值
+    const defaultValue = node.inputs?.value ?? node.value ?? '';
+    
+    ctx.nodeMap.set(node.id, { t3dName: nodeName, config });
+    ctx.registerPin(node.id, 'execute', nodeName, executePinId);
+    ctx.registerPin(node.id, 'then', nodeName, thenPinId);
+    ctx.registerPin(node.id, 'value', nodeName, valuePinId);
+    ctx.registerPin(node.id, variableName, nodeName, valuePinId);  // 用变量名作为 pin 名的别名
+    ctx.registerPin(node.id, 'out', nodeName, outputPinId);  // 输出 pin
+    
+    // 构建 VariableReference
+    const varGuid = generateGUID();
+    
+    const lines = [
+        `Begin Object Class=${config.class} Name="${nodeName}"`,
+        `    VariableReference=(MemberName="${variableName}",MemberGuid=${varGuid})`,
+        `    NodePosX=${node.pos[0]}`,
+        `    NodePosY=${node.pos[1]}`,
+        `    NodeGuid=${nodeGuid}`,
+        `    ${buildPin({ pinId: executePinId, pinName: 'execute', type: 'exec' })}`,
+        `    ${buildPin({ pinId: thenPinId, pinName: 'then', type: 'exec', isOutput: true })}`,
+        `    ${buildPin({ pinId: selfPinId, pinName: 'self', type: 'object', hidden: true })}`,
+        `    ${buildPin({ pinId: valuePinId, pinName: variableName, type: variableType, defaultValue: defaultValue })}`,
+        `    ${buildPin({ pinId: outputPinId, pinName: variableName, type: variableType, isOutput: true })}`,
+        `End Object`
+    ];
+    
+    return lines.join('\n')
+}
+
+// ============================================================================
 // Material Node Converters
 // ============================================================================
 
@@ -1758,6 +1867,9 @@ function convertNode(node, ctx) {
             case 'Branch': return convertBranchNode(node, ctx)
             case 'Sequence': return convertSequenceNode(node, ctx)
             case 'CustomEvent': return convertCustomEventNode(node, ctx)
+            case 'Variable':      // LLM 可能使用的别名
+            case 'VariableGet': return convertVariableGetNode(node, ctx)
+            case 'VariableSet': return convertVariableSetNode(node, ctx)
             // Add more blueprint node converters here
             default:
                 console.warn(`[SlimIRToT3D] Unknown blueprint node type: ${node.type}`);
