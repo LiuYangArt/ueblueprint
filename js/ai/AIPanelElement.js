@@ -1623,9 +1623,15 @@ export default class AIPanelElement extends LitElement {
         }
 
         // Add user prompt to history
-        this.history = [...this.history, { role: 'user', content: this.prompt }]
+        const userImages = [...this.pendingImages]
+        this.history = [...this.history, { 
+            role: 'user', 
+            content: this.prompt,
+            images: userImages.length > 0 ? userImages : undefined 
+        }]
         const currentPrompt = this.prompt
         this.prompt = "" // Clear prompt
+        this.pendingImages = [] // Clear pending images
         this.requestUpdate()
 
         this.isGenerating = true
@@ -1681,6 +1687,17 @@ export default class AIPanelElement extends LitElement {
             )
 
             const messages = this._buildMessagesForGeneration(promptToSend, systemPrompt, context, 5)
+            
+            // Handle Vision (images) for the last message if needed
+            if (userImages.length > 0) {
+                const lastMsg = messages[messages.length - 1]
+                const content = [{ type: "text", text: lastMsg.content }]
+                for (const imgData of userImages) {
+                    content.push({ type: "image_url", image_url: { url: imgData } })
+                }
+                lastMsg.content = content
+            }
+
             const t3dText = await this.llmService.chat(messages, this.abortController.signal)
             
             // P1: Validate T3D syntax (soft validation - warn but still try)
@@ -1819,6 +1836,18 @@ export default class AIPanelElement extends LitElement {
         
         // Get LLM response (should be JSON)
         const messages = this._buildMessagesForGeneration(userPrompt, systemPrompt, context, 5)
+
+        // Handle Vision (images) for the last message if needed
+        const userImages = this.history[this.history.length - 1]?.images || []
+        if (userImages.length > 0) {
+            const lastMsg = messages[messages.length - 1]
+            const content = [{ type: "text", text: lastMsg.content }]
+            for (const imgData of userImages) {
+                content.push({ type: "image_url", image_url: { url: imgData } })
+            }
+            lastMsg.content = content
+        }
+
         const responseText = await this.llmService.chat(messages, this.abortController.signal)
         
         console.log('LLM response:', responseText)
