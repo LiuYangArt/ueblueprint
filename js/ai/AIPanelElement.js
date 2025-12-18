@@ -5,6 +5,7 @@
 
 import { LitElement, html, css } from "lit"
 import { unsafeHTML } from "lit/directives/unsafe-html.js"
+import html2canvas from "html2canvas/dist/html2canvas.esm.js"
 import LLMService from "./LLMService.js"
 import LayoutEngine from "./LayoutEngine.js"
 import { BLUEPRINT_SYSTEM_PROMPT, MATERIAL_SYSTEM_PROMPT, BLUEPRINT_CHAT_PROMPT, MATERIAL_CHAT_PROMPT, DEFAULT_PROMPT_TEMPLATE } from "./prompts.js"
@@ -578,6 +579,31 @@ export default class AIPanelElement extends LitElement {
         .attach-btn:hover {
             border-color: #4a7c8c;
             color: #4a7c8c;
+        }
+
+        .capture-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            background: transparent;
+            border: 1px solid #3a3a3a;
+            color: #888;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .capture-btn:hover:not(:disabled) {
+            border-color: #4a7c8c;
+            color: #4a7c8c;
+        }
+
+        .capture-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* Image in chat history */
@@ -1445,6 +1471,102 @@ export default class AIPanelElement extends LitElement {
         if (input) input.click()
     }
 
+    /**
+     * Get bounding box of selected nodes in screen coordinates
+     * @returns {{x: number, y: number, width: number, height: number} | null}
+     */
+    _getSelectedNodesBounds() {
+        const selectedNodes = this.blueprint?.getNodes(true)
+        if (!selectedNodes || selectedNodes.length === 0) return null
+
+        let minX = Infinity, minY = Infinity
+        let maxX = -Infinity, maxY = -Infinity
+
+        for (const node of selectedNodes) {
+            const rect = node.getBoundingClientRect()
+            minX = Math.min(minX, rect.left)
+            minY = Math.min(minY, rect.top)
+            maxX = Math.max(maxX, rect.right)
+            maxY = Math.max(maxY, rect.bottom)
+        }
+
+        // Add padding
+        const padding = 20
+        return {
+            x: minX - padding,
+            y: minY - padding,
+            width: maxX - minX + padding * 2,
+            height: maxY - minY + padding * 2
+        }
+    }
+
+    /**
+     * Capture screenshot of selected nodes and add to pending images
+     */
+    async _captureSelectedNodes() {
+        const bounds = this._getSelectedNodesBounds()
+        if (!bounds) {
+            this.statusText = "No nodes selected"
+            this.statusType = "error"
+            // Revert status after 3s
+            setTimeout(() => {
+                if (this.statusText === "No nodes selected") {
+                    this.statusText = "Ready"
+                    this.statusType = ""
+                }
+            }, 3000)
+            return
+        }
+
+        this.statusText = "Capturing..."
+        this.statusType = ""
+        this.requestUpdate()
+
+        try {
+            // Get blueprint grid element
+            const gridElement = this.blueprint.getGridDOMElement()
+            const gridRect = gridElement.getBoundingClientRect()
+
+            // Calculate capture area relative to grid element
+            const captureX = bounds.x - gridRect.left
+            const captureY = bounds.y - gridRect.top
+            
+            // Capture with html2canvas
+            const canvas = await html2canvas(gridElement, {
+                backgroundColor: "#1e1e1e",
+                scale: window.devicePixelRatio || 2,
+                logging: false,
+                x: captureX,
+                y: captureY,
+                width: bounds.width,
+                height: bounds.height,
+                useCORS: true,
+                allowTaint: true
+            })
+
+            const base64 = canvas.toDataURL("image/png")
+            this.pendingImages = [...this.pendingImages, base64]
+
+            this.statusText = "Node area captured"
+            this.statusType = "success"
+            
+            // Revert status after 2s
+            setTimeout(() => {
+                if (this.statusText === "Node area captured") {
+                    this.statusText = "Ready"
+                    this.statusType = ""
+                }
+            }, 2000)
+
+        } catch (error) {
+            console.error("[Capture Error]:", error)
+            this.statusText = "Capture failed"
+            this.statusType = "error"
+        } finally {
+            this.requestUpdate()
+        }
+    }
+
 
     /* ... drag handlers ... */
     _handleDragStart(e) {
@@ -1857,6 +1979,14 @@ export default class AIPanelElement extends LitElement {
                         </div>
 
                         <div style="display: flex; gap: 8px;">
+                            <button
+                                class="capture-btn"
+                                @click=${this._captureSelectedNodes}
+                                title="Capture selected nodes"
+                                ?disabled=${this.isGenerating}
+                            >
+                                📷
+                            </button>
                             <button
                                 class="attach-btn"
                                 @click=${this._openImagePicker}

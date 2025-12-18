@@ -40,6 +40,7 @@
     "terser": "^5"
   },
   "dependencies": {
+    "html2canvas": "^1.4.1",
     "lit": "^3",
     "parsernostrum": "^1"
   }
