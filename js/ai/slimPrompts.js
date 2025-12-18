@@ -20,7 +20,7 @@ NODE STRUCTURE:
 
 SUPPORTED TYPES:
 - Event: event="ReceiveBeginPlay"|"ReceiveTick"
-- CallFunction: function="PrintString"|"Delay"|"GetActorLocation"|"SetActorLocation"|"MakeVector"
+- CallFunction: function="PrintString"|"Delay"|"GetActorLocation"|"SetActorLocation"|"MakeVector"|"Multiply"|"Add"|"Subtract"|"Divide"|"Sin"|"Cos"|"Abs"|"GetGameTimeInSeconds"
 - Branch: (has Condition input, Then/Else outputs)
 - Sequence: (multiple then outputs)
 - CustomEvent: eventName="YourName"

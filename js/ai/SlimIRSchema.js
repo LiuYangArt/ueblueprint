@@ -153,6 +153,79 @@ export const BLUEPRINT_NODE_TYPES = {
                     input: [{ name: 'InVec', type: 'vector' }],
                     output: [{ name: 'ReturnValue', type: 'string' }]
                 }
+            },
+            // Math Functions
+            'Multiply': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetMathLibrary'",
+                memberName: 'Multiply_DoubleDouble',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'A', type: 'float', default: '0.0' }, { name: 'B', type: 'float', default: '0.0' }],
+                    output: [{ name: 'ReturnValue', type: 'float' }]
+                }
+            },
+            'Add': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetMathLibrary'",
+                memberName: 'Add_DoubleDouble',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'A', type: 'float', default: '0.0' }, { name: 'B', type: 'float', default: '0.0' }],
+                    output: [{ name: 'ReturnValue', type: 'float' }]
+                }
+            },
+            'Subtract': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetMathLibrary'",
+                memberName: 'Subtract_DoubleDouble',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'A', type: 'float', default: '0.0' }, { name: 'B', type: 'float', default: '0.0' }],
+                    output: [{ name: 'ReturnValue', type: 'float' }]
+                }
+            },
+            'Divide': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetMathLibrary'",
+                memberName: 'Divide_DoubleDouble',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'A', type: 'float', default: '0.0' }, { name: 'B', type: 'float', default: '1.0' }],
+                    output: [{ name: 'ReturnValue', type: 'float' }]
+                }
+            },
+            'Sin': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetMathLibrary'",
+                memberName: 'Sin',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'Value', type: 'float', default: '0.0' }],
+                    output: [{ name: 'ReturnValue', type: 'float' }]
+                }
+            },
+            'Cos': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetMathLibrary'",
+                memberName: 'Cos',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'Value', type: 'float', default: '0.0' }],
+                    output: [{ name: 'ReturnValue', type: 'float' }]
+                }
+            },
+            'Abs': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetMathLibrary'",
+                memberName: 'Abs',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'A', type: 'float', default: '0.0' }],
+                    output: [{ name: 'ReturnValue', type: 'float' }]
+                }
+            },
+            'GetGameTimeInSeconds': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.GameplayStatics'",
+                memberName: 'GetGameTimeInSeconds',
+                isPure: true,
+                extraPins: {
+                    input: [{ name: 'WorldContextObject', type: 'object', hidden: true }],
+                    output: [{ name: 'ReturnValue', type: 'float' }]
+                }
             }
         }
     },

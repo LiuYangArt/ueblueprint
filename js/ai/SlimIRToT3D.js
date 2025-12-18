@@ -49,7 +49,7 @@ function buildPinFlags() {
         'bDefaultValueIsIgnored=False',
         'bAdvancedView=False',
         'bOrphanedPin=False'
-    ].join(',') + ','
+    ].join(',')
 }
 
 /**
@@ -204,14 +204,23 @@ class ConversionContext {
             const targetPin = this.pinMap.get(target)
             
             if (sourcePin && targetPin) {
-                // For execution flow: source.then -> target.execute
-                // LinkedTo goes on the OUTPUT pin (source)
+                // Bidirectional connections
+                // 1. Source -> Target (Output side)
                 if (!this.connectionMap.has(source)) {
                     this.connectionMap.set(source, [])
                 }
                 this.connectionMap.get(source).push({
                     nodeName: targetPin.nodeName,
                     pinId: targetPin.pinId
+                })
+
+                // 2. Target -> Source (Input side)
+                if (!this.connectionMap.has(target)) {
+                    this.connectionMap.set(target, [])
+                }
+                this.connectionMap.get(target).push({
+                    nodeName: sourcePin.nodeName,
+                    pinId: sourcePin.pinId
                 })
             }
         }
@@ -251,7 +260,8 @@ function convertEventNode(node, ctx) {
     const thenPinId = generateGUID()
     
     ctx.nodeMap.set(node.id, { t3dName: nodeName, config })
-    ctx.registerPin(node.id, 'then', nodeName, thenPinId)
+    ctx.registerPin(node.id, 'Then', nodeName, thenPinId)
+    ctx.registerPin(node.id, 'then', nodeName, thenPinId) // Alias
     
     const lines = [
         `Begin Object Class=${config.class} Name="${nodeName}"`,
@@ -285,7 +295,8 @@ function convertCallFunctionNode(node, ctx) {
     const thenPinId = generateGUID()
     
     ctx.nodeMap.set(node.id, { t3dName: nodeName, config })
-    ctx.registerPin(node.id, 'execute', nodeName, executePinId)
+    ctx.registerPin(node.id, 'Execute', nodeName, executePinId)
+    ctx.registerPin(node.id, 'execute', nodeName, executePinId) // Alias
     ctx.registerPin(node.id, 'then', nodeName, thenPinId)
     
     // Build FunctionReference
@@ -311,9 +322,9 @@ function convertCallFunctionNode(node, ctx) {
         lines.splice(2, 0, `    bIsPureFunc=True`)
     }
     
-    // Add execute pin (only for non-pure functions)
+    // Add Execute pin (only for non-pure functions)
     if (!funcConfig.isPure) {
-        lines.push(`    ${buildPin({ pinId: executePinId, pinName: 'execute', type: 'exec' })}`)
+        lines.push(`    ${buildPin({ pinId: executePinId, pinName: 'Execute', type: 'exec' })}`)
         lines.push(`    ${buildPin({ pinId: thenPinId, pinName: 'then', type: 'exec', isOutput: true })}`)
     }
     
@@ -370,7 +381,8 @@ function convertBranchNode(node, ctx) {
     const elsePinId = generateGUID()
     
     ctx.nodeMap.set(node.id, { t3dName: nodeName, config })
-    ctx.registerPin(node.id, 'execute', nodeName, executePinId)
+    ctx.registerPin(node.id, 'Execute', nodeName, executePinId)
+    ctx.registerPin(node.id, 'execute', nodeName, executePinId) // Alias
     ctx.registerPin(node.id, 'Condition', nodeName, conditionPinId)
     ctx.registerPin(node.id, 'Then', nodeName, thenPinId)
     ctx.registerPin(node.id, 'true', nodeName, thenPinId)  // Alias
@@ -382,7 +394,7 @@ function convertBranchNode(node, ctx) {
         `    NodePosX=${node.pos[0]}`,
         `    NodePosY=${node.pos[1]}`,
         `    NodeGuid=${nodeGuid}`,
-        `    ${buildPin({ pinId: executePinId, pinName: 'execute', type: 'exec' })}`,
+        `    ${buildPin({ pinId: executePinId, pinName: 'Execute', type: 'exec' })}`,
         `    ${buildPin({ pinId: conditionPinId, pinName: 'Condition', type: 'bool' })}`,
         `    ${buildPin({ pinId: thenPinId, pinName: 'Then', type: 'exec', isOutput: true })}`,
         `    ${buildPin({ pinId: elsePinId, pinName: 'Else', type: 'exec', isOutput: true })}`,
@@ -405,14 +417,15 @@ function convertSequenceNode(node, ctx) {
     
     const executePinId = generateGUID()
     ctx.nodeMap.set(node.id, { t3dName: nodeName, config })
-    ctx.registerPin(node.id, 'execute', nodeName, executePinId)
+    ctx.registerPin(node.id, 'Execute', nodeName, executePinId)
+    ctx.registerPin(node.id, 'execute', nodeName, executePinId) // Alias
     
     const lines = [
         `Begin Object Class=${config.class} Name="${nodeName}"`,
         `    NodePosX=${node.pos[0]}`,
         `    NodePosY=${node.pos[1]}`,
         `    NodeGuid=${nodeGuid}`,
-        `    ${buildPin({ pinId: executePinId, pinName: 'execute', type: 'exec' })}`
+        `    ${buildPin({ pinId: executePinId, pinName: 'Execute', type: 'exec' })}`
     ]
     
     // Add output pins (default 2, can be more based on connections)
@@ -528,7 +541,8 @@ function convertVariableSetNode(node, ctx) {
     const defaultValue = node.inputs?.value ?? node.value ?? ''
     
     ctx.nodeMap.set(node.id, { t3dName: nodeName, config })
-    ctx.registerPin(node.id, 'execute', nodeName, executePinId)
+    ctx.registerPin(node.id, 'Execute', nodeName, executePinId)
+    ctx.registerPin(node.id, 'execute', nodeName, executePinId) // Alias
     ctx.registerPin(node.id, 'then', nodeName, thenPinId)
     ctx.registerPin(node.id, 'value', nodeName, valuePinId)
     ctx.registerPin(node.id, variableName, nodeName, valuePinId)  // 用变量名作为 pin 名的别名
@@ -543,7 +557,7 @@ function convertVariableSetNode(node, ctx) {
         `    NodePosX=${node.pos[0]}`,
         `    NodePosY=${node.pos[1]}`,
         `    NodeGuid=${nodeGuid}`,
-        `    ${buildPin({ pinId: executePinId, pinName: 'execute', type: 'exec' })}`,
+        `    ${buildPin({ pinId: executePinId, pinName: 'Execute', type: 'exec' })}`,
         `    ${buildPin({ pinId: thenPinId, pinName: 'then', type: 'exec', isOutput: true })}`,
         `    ${buildPin({ pinId: selfPinId, pinName: 'self', type: 'object', hidden: true })}`,
         `    ${buildPin({ pinId: valuePinId, pinName: variableName, type: variableType, defaultValue: defaultValue })}`,
@@ -672,7 +686,7 @@ function injectConnections(t3d, ctx) {
         }
         
         // Insert LinkedTo before bOrphanedPin
-        result = result.slice(0, orphanPos) + ',' + linkedToStr + result.slice(orphanPos)
+        result = result.substring(0, orphanPos) + ',' + linkedToStr + result.substring(orphanPos)
     }
     
     return result
