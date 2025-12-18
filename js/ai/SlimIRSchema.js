@@ -160,8 +160,8 @@ export const BLUEPRINT_NODE_TYPES = {
                 memberName: 'Multiply_DoubleDouble',
                 isPure: true,
                 extraPins: {
-                    input: [{ name: 'A', type: 'float', default: '0.0' }, { name: 'B', type: 'float', default: '0.0' }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    input: [{ name: 'A', type: 'double' }, { name: 'B', type: 'double' }],
+                    output: [{ name: 'ReturnValue', type: 'double' }]
                 }
             },
             'Add': {
@@ -169,8 +169,8 @@ export const BLUEPRINT_NODE_TYPES = {
                 memberName: 'Add_DoubleDouble',
                 isPure: true,
                 extraPins: {
-                    input: [{ name: 'A', type: 'float', default: '0.0' }, { name: 'B', type: 'float', default: '0.0' }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    input: [{ name: 'A', type: 'double' }, { name: 'B', type: 'double' }],
+                    output: [{ name: 'ReturnValue', type: 'double' }]
                 }
             },
             'Subtract': {
@@ -178,8 +178,8 @@ export const BLUEPRINT_NODE_TYPES = {
                 memberName: 'Subtract_DoubleDouble',
                 isPure: true,
                 extraPins: {
-                    input: [{ name: 'A', type: 'float', default: '0.0' }, { name: 'B', type: 'float', default: '0.0' }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    input: [{ name: 'A', type: 'double' }, { name: 'B', type: 'double' }],
+                    output: [{ name: 'ReturnValue', type: 'double' }]
                 }
             },
             'Divide': {
@@ -187,8 +187,8 @@ export const BLUEPRINT_NODE_TYPES = {
                 memberName: 'Divide_DoubleDouble',
                 isPure: true,
                 extraPins: {
-                    input: [{ name: 'A', type: 'float', default: '0.0' }, { name: 'B', type: 'float', default: '1.0' }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    input: [{ name: 'A', type: 'double' }, { name: 'B', type: 'double' }],
+                    output: [{ name: 'ReturnValue', type: 'double' }]
                 }
             },
             'Sin': {
@@ -196,8 +196,8 @@ export const BLUEPRINT_NODE_TYPES = {
                 memberName: 'Sin',
                 isPure: true,
                 extraPins: {
-                    input: [{ name: 'Value', type: 'float', default: '0.0' }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    input: [{ name: 'A', type: 'double', default: '0.0' }],
+                    output: [{ name: 'ReturnValue', type: 'double' }]
                 }
             },
             'Cos': {
@@ -205,8 +205,8 @@ export const BLUEPRINT_NODE_TYPES = {
                 memberName: 'Cos',
                 isPure: true,
                 extraPins: {
-                    input: [{ name: 'Value', type: 'float', default: '0.0' }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    input: [{ name: 'A', type: 'double', default: '0.0' }],
+                    output: [{ name: 'ReturnValue', type: 'double' }]
                 }
             },
             'Abs': {
@@ -214,17 +214,28 @@ export const BLUEPRINT_NODE_TYPES = {
                 memberName: 'Abs',
                 isPure: true,
                 extraPins: {
-                    input: [{ name: 'A', type: 'float', default: '0.0' }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    input: [{ name: 'A', type: 'double', default: '0.0' }],
+                    output: [{ name: 'ReturnValue', type: 'double' }]
                 }
             },
             'GetGameTimeInSeconds': {
-                memberParent: "/Script/CoreUObject.Class'/Script/Engine.GameplayStatics'",
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetSystemLibrary'",
                 memberName: 'GetGameTimeInSeconds',
                 isPure: true,
                 extraPins: {
                     input: [{ name: 'WorldContextObject', type: 'object', hidden: true }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    output: [{ name: 'ReturnValue', type: 'double' }]
+                }
+            },
+            'SetCustomPrimitiveDataFloat': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.PrimitiveComponent'",
+                memberName: 'SetCustomPrimitiveDataFloat',
+                extraPins: {
+                    input: [
+                        { name: 'Target', type: 'object' },
+                        { name: 'DataIndex', type: 'int', default: '0' },
+                        { name: 'Value', type: 'float', default: '0.0' }
+                    ]
                 }
             }
         }
@@ -441,6 +452,11 @@ export const PIN_TYPES = {
     float: {
         category: 'real',
         subCategory: 'float',
+        subCategoryObject: 'None'
+    },
+    double: {
+        category: 'real',
+        subCategory: 'double',
         subCategoryObject: 'None'
     },
     string: {

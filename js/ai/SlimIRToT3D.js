@@ -129,6 +129,8 @@ function buildPin(options) {
     pin += `,bOrphanedPin=False`
     
     // Trailing comma before closing paren (UE format)
+    // result should NOT end with a comma if we want a clean injection later, 
+    // but UE usually has one. Let's stick to UE format.
     pin += `,`
     
     return `CustomProperties Pin (${pin})`
@@ -454,7 +456,8 @@ function convertCustomEventNode(node, ctx) {
     const thenPinId = generateGUID()
     
     ctx.nodeMap.set(node.id, { t3dName: nodeName, config })
-    ctx.registerPin(node.id, 'then', nodeName, thenPinId)
+    ctx.registerPin(node.id, 'Then', nodeName, thenPinId)
+    ctx.registerPin(node.id, 'then', nodeName, thenPinId) // Alias
     
     const eventName = node.eventName || node.inputs?.eventName || 'CustomEvent'
     
@@ -495,16 +498,17 @@ function convertVariableGetNode(node, ctx) {
     const variableType = node.variableType || node.inputs?.variableType || 'float'
     
     ctx.nodeMap.set(node.id, { t3dName: nodeName, config })
-    ctx.registerPin(node.id, 'value', nodeName, valuePinId)
-    ctx.registerPin(node.id, 'out', nodeName, valuePinId)  // 别名
-    ctx.registerPin(node.id, variableName, nodeName, valuePinId)  // 用变量名作为 pin 名的别名
+    ctx.registerPin(node.id, variableName, nodeName, valuePinId)
+    ctx.registerPin(node.id, 'value', nodeName, valuePinId) // Alias
+    ctx.registerPin(node.id, 'out', nodeName, valuePinId)   // Alias
+    ctx.registerPin(node.id, 'Output', nodeName, valuePinId) // Alias
     
     // 构建 VariableReference
     const varGuid = generateGUID()
     
     const lines = [
         `Begin Object Class=${config.class} Name="${nodeName}"`,
-        `    VariableReference=(MemberName="${variableName}",MemberGuid=${varGuid})`,
+        `    VariableReference=(MemberName="${variableName}",bSelfContext=True)`,
         `    NodePosX=${node.pos[0]}`,
         `    NodePosY=${node.pos[1]}`,
         `    NodeGuid=${nodeGuid}`,
@@ -553,12 +557,12 @@ function convertVariableSetNode(node, ctx) {
     
     const lines = [
         `Begin Object Class=${config.class} Name="${nodeName}"`,
-        `    VariableReference=(MemberName="${variableName}",MemberGuid=${varGuid})`,
+        `    VariableReference=(MemberName="${variableName}",bSelfContext=True)`,
         `    NodePosX=${node.pos[0]}`,
         `    NodePosY=${node.pos[1]}`,
         `    NodeGuid=${nodeGuid}`,
         `    ${buildPin({ pinId: executePinId, pinName: 'Execute', type: 'exec' })}`,
-        `    ${buildPin({ pinId: thenPinId, pinName: 'then', type: 'exec', isOutput: true })}`,
+        `    ${buildPin({ pinId: thenPinId, pinName: 'Then', type: 'exec', isOutput: true })}`,
         `    ${buildPin({ pinId: selfPinId, pinName: 'self', type: 'object', hidden: true })}`,
         `    ${buildPin({ pinId: valuePinId, pinName: variableName, type: variableType, defaultValue: defaultValue })}`,
         `    ${buildPin({ pinId: outputPinId, pinName: variableName, type: variableType, isOutput: true })}`,
@@ -686,6 +690,7 @@ function injectConnections(t3d, ctx) {
         }
         
         // Insert LinkedTo before bOrphanedPin
+        // Note: buildPin adds a trailing comma, so we should too before LinkedTo
         result = result.substring(0, orphanPos) + ',' + linkedToStr + result.substring(orphanPos)
     }
     

@@ -20,17 +20,19 @@ NODE STRUCTURE:
 
 SUPPORTED TYPES:
 - Event: event="ReceiveBeginPlay"|"ReceiveTick"
-- CallFunction: function="PrintString"|"Delay"|"GetActorLocation"|"SetActorLocation"|"MakeVector"|"Multiply"|"Add"|"Subtract"|"Divide"|"Sin"|"Cos"|"Abs"|"GetGameTimeInSeconds"
+- CallFunction: function="PrintString"|"Delay"|"GetActorLocation"|"SetActorLocation"|"MakeVector"|"Multiply"|"Add"|"Subtract"|"Divide"|"Sin"|"Cos"|"Abs"|"GetGameTimeInSeconds"|"SetCustomPrimitiveDataFloat"
 - Branch: (has Condition input, Then/Else outputs)
 - Sequence: (multiple then outputs)
 - CustomEvent: eventName="YourName"
 - VariableGet: variableName="VarName" (reads variable, output pin is the value)
-- VariableSet: variableName="VarName", inputs.value (writes variable, has execute/then)
+- VariableSet: variableName="VarName", inputs.value (writes variable, has Execute/Then)
 
 COMMON FUNCTIONS:
 - PrintString: inputs.InString="text"
 - Delay: inputs.Duration=2.0
 - MakeVector: inputs.X,Y,Z
+- Sin, Abs, Multiply: use "A" (and "B") as input pin names.
+- SetCustomPrimitiveDataFloat: inputs.Target (mesh), inputs.DataIndex (int), inputs.Value (float)
 - Conv_FloatToString: inputs.InFloat=float, returns string. USE THIS before PrintString for floats.
 - Conv_IntToString: inputs.InInt=int, returns string.
 - Conv_VectorToString: inputs.InVec=vector, returns string.
