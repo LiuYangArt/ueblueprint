@@ -3,7 +3,10 @@
 
 <br>
 - 基于 https://github.com/barsdeveloper/ueblueprint 项目， 接入ai功能
-- 这是一个开发中的实验性项目，很多功能都可能出问题。 
+- 这是一个开发中的实验性项目，很多功能都可能出问题。对话模式大致可用。生成模式还比较抽象。 
+- 对话模式中， 默认将graph中的蓝图作为上下文。  如果选中节点，则以选中的节点作为上下文。 
+- 区分blueprint/material 模式
+- 节点可与ue双向复制粘贴
 
 - 可以在线试用，所有api配置数据存在你本地。
 [https://liuyangart.github.io/ueblueprint/](https://liuyangart.github.io/ueblueprint/)
