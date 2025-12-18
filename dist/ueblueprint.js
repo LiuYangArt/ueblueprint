@@ -475,6 +475,12 @@ class Utility {
      * @param {Number} decimals
      */
     static minDecimals(num, decimals = 1, epsilon = 1e-8) {
+        if (typeof num === "string") {
+            num = Number(num);
+        }
+        if (isNaN(num) || num === null || num === undefined) {
+            return "0"
+        }
         const powered = num * 10 ** decimals;
         if (Math.abs(powered % 1) > epsilon) {
             // More decimal digits than required

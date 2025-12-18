@@ -727,17 +727,19 @@ NODE STRUCTURE:
 
 SUPPORTED TYPES:
 - Event: event="ReceiveBeginPlay"|"ReceiveTick"
-- CallFunction: function="PrintString"|"Delay"|"GetActorLocation"|"SetActorLocation"|"MakeVector"|"Multiply"|"Add"|"Subtract"|"Divide"|"Sin"|"Cos"|"Abs"|"GetGameTimeInSeconds"
+- CallFunction: function="PrintString"|"Delay"|"GetActorLocation"|"SetActorLocation"|"MakeVector"|"Multiply"|"Add"|"Subtract"|"Divide"|"Sin"|"Cos"|"Abs"|"GetGameTimeInSeconds"|"SetCustomPrimitiveDataFloat"
 - Branch: (has Condition input, Then/Else outputs)
 - Sequence: (multiple then outputs)
 - CustomEvent: eventName="YourName"
 - VariableGet: variableName="VarName" (reads variable, output pin is the value)
-- VariableSet: variableName="VarName", inputs.value (writes variable, has execute/then)
+- VariableSet: variableName="VarName", inputs.value (writes variable, has Execute/Then)
 
 COMMON FUNCTIONS:
 - PrintString: inputs.InString="text"
 - Delay: inputs.Duration=2.0
 - MakeVector: inputs.X,Y,Z
+- Sin, Abs, Multiply: use "A" (and "B") as input pin names.
+- SetCustomPrimitiveDataFloat: inputs.Target (mesh), inputs.DataIndex (int), inputs.Value (float)
 - Conv_FloatToString: inputs.InFloat=float, returns string. USE THIS before PrintString for floats.
 - Conv_IntToString: inputs.InInt=int, returns string.
 - Conv_VectorToString: inputs.InVec=vector, returns string.
@@ -972,8 +974,8 @@ const BLUEPRINT_NODE_TYPES = {
                 memberName: 'Multiply_DoubleDouble',
                 isPure: true,
                 extraPins: {
-                    input: [{ name: 'A', type: 'float', default: '0.0' }, { name: 'B', type: 'float', default: '0.0' }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    input: [{ name: 'A', type: 'double' }, { name: 'B', type: 'double' }],
+                    output: [{ name: 'ReturnValue', type: 'double' }]
                 }
             },
             'Add': {
@@ -981,8 +983,8 @@ const BLUEPRINT_NODE_TYPES = {
                 memberName: 'Add_DoubleDouble',
                 isPure: true,
                 extraPins: {
-                    input: [{ name: 'A', type: 'float', default: '0.0' }, { name: 'B', type: 'float', default: '0.0' }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    input: [{ name: 'A', type: 'double' }, { name: 'B', type: 'double' }],
+                    output: [{ name: 'ReturnValue', type: 'double' }]
                 }
             },
             'Subtract': {
@@ -990,8 +992,8 @@ const BLUEPRINT_NODE_TYPES = {
                 memberName: 'Subtract_DoubleDouble',
                 isPure: true,
                 extraPins: {
-                    input: [{ name: 'A', type: 'float', default: '0.0' }, { name: 'B', type: 'float', default: '0.0' }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    input: [{ name: 'A', type: 'double' }, { name: 'B', type: 'double' }],
+                    output: [{ name: 'ReturnValue', type: 'double' }]
                 }
             },
             'Divide': {
@@ -999,8 +1001,8 @@ const BLUEPRINT_NODE_TYPES = {
                 memberName: 'Divide_DoubleDouble',
                 isPure: true,
                 extraPins: {
-                    input: [{ name: 'A', type: 'float', default: '0.0' }, { name: 'B', type: 'float', default: '1.0' }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    input: [{ name: 'A', type: 'double' }, { name: 'B', type: 'double' }],
+                    output: [{ name: 'ReturnValue', type: 'double' }]
                 }
             },
             'Sin': {
@@ -1008,8 +1010,8 @@ const BLUEPRINT_NODE_TYPES = {
                 memberName: 'Sin',
                 isPure: true,
                 extraPins: {
-                    input: [{ name: 'Value', type: 'float', default: '0.0' }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    input: [{ name: 'A', type: 'double', default: '0.0' }],
+                    output: [{ name: 'ReturnValue', type: 'double' }]
                 }
             },
             'Cos': {
@@ -1017,8 +1019,8 @@ const BLUEPRINT_NODE_TYPES = {
                 memberName: 'Cos',
                 isPure: true,
                 extraPins: {
-                    input: [{ name: 'Value', type: 'float', default: '0.0' }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    input: [{ name: 'A', type: 'double', default: '0.0' }],
+                    output: [{ name: 'ReturnValue', type: 'double' }]
                 }
             },
             'Abs': {
@@ -1026,17 +1028,28 @@ const BLUEPRINT_NODE_TYPES = {
                 memberName: 'Abs',
                 isPure: true,
                 extraPins: {
-                    input: [{ name: 'A', type: 'float', default: '0.0' }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    input: [{ name: 'A', type: 'double', default: '0.0' }],
+                    output: [{ name: 'ReturnValue', type: 'double' }]
                 }
             },
             'GetGameTimeInSeconds': {
-                memberParent: "/Script/CoreUObject.Class'/Script/Engine.GameplayStatics'",
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.KismetSystemLibrary'",
                 memberName: 'GetGameTimeInSeconds',
                 isPure: true,
                 extraPins: {
                     input: [{ name: 'WorldContextObject', type: 'object', hidden: true }],
-                    output: [{ name: 'ReturnValue', type: 'float' }]
+                    output: [{ name: 'ReturnValue', type: 'double' }]
+                }
+            },
+            'SetCustomPrimitiveDataFloat': {
+                memberParent: "/Script/CoreUObject.Class'/Script/Engine.PrimitiveComponent'",
+                memberName: 'SetCustomPrimitiveDataFloat',
+                extraPins: {
+                    input: [
+                        { name: 'Target', type: 'object' },
+                        { name: 'DataIndex', type: 'int', default: '0' },
+                        { name: 'Value', type: 'float', default: '0.0' }
+                    ]
                 }
             }
         }
@@ -1253,6 +1266,11 @@ const PIN_TYPES = {
     float: {
         category: 'real',
         subCategory: 'float',
+        subCategoryObject: 'None'
+    },
+    double: {
+        category: 'real',
+        subCategory: 'double',
         subCategoryObject: 'None'
     },
     string: {
@@ -1484,6 +1502,8 @@ function buildPin(options) {
     pin += `,bOrphanedPin=False`;
     
     // Trailing comma before closing paren (UE format)
+    // result should NOT end with a comma if we want a clean injection later, 
+    // but UE usually has one. Let's stick to UE format.
     pin += `,`;
     
     return `CustomProperties Pin (${pin})`
@@ -1625,7 +1645,7 @@ function convertEventNode(node, ctx) {
         `    NodePosX=${node.pos[0]}`,
         `    NodePosY=${node.pos[1]}`,
         `    NodeGuid=${nodeGuid}`,
-        `    ${buildPin({ pinId: thenPinId, pinName: 'then', type: 'exec', isOutput: true })}`,
+        `    ${buildPin({ pinId: thenPinId, pinName: 'Then', type: 'exec', isOutput: true })}`,
         `End Object`
     ];
     
@@ -1809,7 +1829,8 @@ function convertCustomEventNode(node, ctx) {
     const thenPinId = generateGUID();
     
     ctx.nodeMap.set(node.id, { t3dName: nodeName, config });
-    ctx.registerPin(node.id, 'then', nodeName, thenPinId);
+    ctx.registerPin(node.id, 'Then', nodeName, thenPinId);
+    ctx.registerPin(node.id, 'then', nodeName, thenPinId); // Alias
     
     const eventName = node.eventName || node.inputs?.eventName || 'CustomEvent';
     
@@ -1850,16 +1871,17 @@ function convertVariableGetNode(node, ctx) {
     const variableType = node.variableType || node.inputs?.variableType || 'float';
     
     ctx.nodeMap.set(node.id, { t3dName: nodeName, config });
-    ctx.registerPin(node.id, 'value', nodeName, valuePinId);
-    ctx.registerPin(node.id, 'out', nodeName, valuePinId);  // 别名
-    ctx.registerPin(node.id, variableName, nodeName, valuePinId);  // 用变量名作为 pin 名的别名
+    ctx.registerPin(node.id, variableName, nodeName, valuePinId);
+    ctx.registerPin(node.id, 'value', nodeName, valuePinId); // Alias
+    ctx.registerPin(node.id, 'out', nodeName, valuePinId);   // Alias
+    ctx.registerPin(node.id, 'Output', nodeName, valuePinId); // Alias
     
     // 构建 VariableReference
-    const varGuid = generateGUID();
+    generateGUID();
     
     const lines = [
         `Begin Object Class=${config.class} Name="${nodeName}"`,
-        `    VariableReference=(MemberName="${variableName}",MemberGuid=${varGuid})`,
+        `    VariableReference=(MemberName="${variableName}",bSelfContext=True)`,
         `    NodePosX=${node.pos[0]}`,
         `    NodePosY=${node.pos[1]}`,
         `    NodeGuid=${nodeGuid}`,
@@ -1904,16 +1926,16 @@ function convertVariableSetNode(node, ctx) {
     ctx.registerPin(node.id, 'out', nodeName, outputPinId);  // 输出 pin
     
     // 构建 VariableReference
-    const varGuid = generateGUID();
+    generateGUID();
     
     const lines = [
         `Begin Object Class=${config.class} Name="${nodeName}"`,
-        `    VariableReference=(MemberName="${variableName}",MemberGuid=${varGuid})`,
+        `    VariableReference=(MemberName="${variableName}",bSelfContext=True)`,
         `    NodePosX=${node.pos[0]}`,
         `    NodePosY=${node.pos[1]}`,
         `    NodeGuid=${nodeGuid}`,
         `    ${buildPin({ pinId: executePinId, pinName: 'Execute', type: 'exec' })}`,
-        `    ${buildPin({ pinId: thenPinId, pinName: 'then', type: 'exec', isOutput: true })}`,
+        `    ${buildPin({ pinId: thenPinId, pinName: 'Then', type: 'exec', isOutput: true })}`,
         `    ${buildPin({ pinId: selfPinId, pinName: 'self', type: 'object', hidden: true })}`,
         `    ${buildPin({ pinId: valuePinId, pinName: variableName, type: variableType, defaultValue: defaultValue })}`,
         `    ${buildPin({ pinId: outputPinId, pinName: variableName, type: variableType, isOutput: true })}`,
@@ -2041,6 +2063,7 @@ function injectConnections(t3d, ctx) {
         }
         
         // Insert LinkedTo before bOrphanedPin
+        // Note: buildPin adds a trailing comma, so we should too before LinkedTo
         result = result.substring(0, orphanPos) + ',' + linkedToStr + result.substring(orphanPos);
     }
     
@@ -4309,6 +4332,12 @@ class Utility {
      * @param {Number} decimals
      */
     static minDecimals(num, decimals = 1, epsilon = 1e-8) {
+        if (typeof num === "string") {
+            num = Number(num);
+        }
+        if (isNaN(num) || num === null || num === undefined) {
+            return "0"
+        }
         const powered = num * 10 ** decimals;
         if (Math.abs(powered % 1) > epsilon) {
             // More decimal digits than required

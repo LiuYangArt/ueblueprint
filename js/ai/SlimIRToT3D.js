@@ -272,7 +272,7 @@ function convertEventNode(node, ctx) {
         `    NodePosX=${node.pos[0]}`,
         `    NodePosY=${node.pos[1]}`,
         `    NodeGuid=${nodeGuid}`,
-        `    ${buildPin({ pinId: thenPinId, pinName: 'then', type: 'exec', isOutput: true })}`,
+        `    ${buildPin({ pinId: thenPinId, pinName: 'Then', type: 'exec', isOutput: true })}`,
         `End Object`
     ]
     
